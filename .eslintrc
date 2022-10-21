@@ -3,8 +3,19 @@
   "rules": {
     "arrow-parens": ["error", "always"],
     "comma-dangle": ["error", "always-multiline"],
+    "indent": ["error", 2, { "MemberExpression": 1 }],
     "lines-between-class-members": "off",
+    "new-cap": "off",
     "object-curly-spacing": ["error", "always"],
+    "operator-linebreak": [
+      "error",
+      "before",
+      {
+        "overrides": {
+          "=": "after"
+        }
+      }
+    ],
     "quotes": ["error", "double"],
     "semi": ["error", "always"],
     "unicorn/no-array-for-each": "off"
