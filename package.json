@@ -47,8 +47,62 @@
     ],
     "topicSeparator": " ",
     "topics": {
-      "hello": {
-        "description": "Say hello to the world and others"
+      "original-rom": {
+        "description": "An original copy of vanilla SMW."
+      },
+      "project": {
+        "description": "Manage a ROM hack project from the project root directory."
+      },
+      "project:backup": {
+        "description": "Manage backups for the current project."
+      },
+      "project:block": {
+        "description": "Manage blocks for the current project."
+      },
+      "project:credits": {
+        "description": "Manage credits for the current project."
+      },
+      "project:meta": {
+        "description": "Manage metadata for the current project."
+      },
+      "project:music": {
+        "description": "Manage Music for the current project."
+      },
+      "project:patch": {
+        "description": "Manage patches for the current project."
+      },
+      "project:release": {
+        "description": "Manage releases for the current project."
+      },
+      "project:sprite": {
+        "description": "Manage sprites for the current project."
+      },
+      "project:uber-asm": {
+        "description": "Manage UberASM code for the current project."
+      },
+      "template": {
+        "description": "Manage resources that can be added to any project."
+      },
+      "template:block": {
+        "description": "Manage block templates."
+      },
+      "template:music": {
+        "description": "Manage music templates."
+      },
+      "template:patch": {
+        "description": "Manage patch templates."
+      },
+      "template:project": {
+        "description": "Manage project templates."
+      },
+      "template:sprite": {
+        "description": "Manage sprite templates."
+      },
+      "template:uber-asm": {
+        "description": "Manage UberASM code templates."
+      },
+      "tool": {
+        "description": "Manage tools that used by Bazar (e.g., Lunar Magic, Asar, ...)."
       }
     }
   },
