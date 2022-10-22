@@ -9,10 +9,11 @@
     "object-curly-spacing": ["error", "always"],
     "operator-linebreak": [
       "error",
-      "before",
+      "after",
       {
         "overrides": {
-          "=": "after"
+          "?": "before",
+          ":": "before"
         }
       }
     ],
