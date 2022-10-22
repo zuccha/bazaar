@@ -12,6 +12,7 @@ export enum ToolManagerError {
   FailedToRemoveMainDirectory,
   FailedToRemoveVersionDirectory,
   ToolAlreadyInstalled,
+  ToolNotInstalled,
   Generic,
 }
 
@@ -239,5 +240,69 @@ export default class ToolManager extends Manager {
       status: "deprecated",
       installedVersion: directoryNames[0],
     });
+  }
+
+  async uninstallAll(): Promise<ResultVoid> {
+    const scope = "tool.uninstallAll";
+
+    const results = await Promise.all(
+      Object.values(SupportedTool).map((tool) =>
+        this.uninstall(tool.name, {
+          ignoreIfNotInstalled: true,
+        }),
+      ),
+    );
+
+    for (const result of results) {
+      if (R.isError(result)) {
+        const message = "Failed to uninstall all tools";
+        return R.Stack(result, scope, message, ToolManagerError.Generic);
+      }
+    }
+
+    return R.Void;
+  }
+
+  async uninstall(
+    toolName: SupportedToolName,
+    partialOptions?: Partial<{
+      ignoreIfNotInstalled: boolean;
+    }>,
+  ): Promise<ResultVoid> {
+    const scope = "tool.uninstall";
+
+    const options = { ignoreIfNotInstalled: false, ...partialOptions };
+
+    const tool = SupportedTool[toolName];
+    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+
+    this.log(`Checking if ${tool.displayName} is installed...`);
+    const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
+    if (options.ignoreIfNotInstalled && !toolDirectoryPathExists) {
+      this.log(`${tool.displayName} not installed`);
+      return R.Void;
+    }
+
+    if (!toolDirectoryPathExists) {
+      return R.Error(
+        scope,
+        `${tool.displayName} is not installed`,
+        ToolManagerError.ToolNotInstalled,
+      );
+    }
+    this.log(`${tool.displayName} is installed`);
+
+    this.log(`Removing "${tool.name}" directory...`);
+    const result = await this.fs.removeDirectory(toolDirectoryPath);
+    if (R.isError(result)) {
+      return R.Error(
+        scope,
+        `Failed to remove "${tool.name}" directory`,
+        ToolManagerError.Generic,
+      );
+    }
+    this.log(`"${tool.name}" directory removed`);
+
+    return R.Void;
   }
 }
