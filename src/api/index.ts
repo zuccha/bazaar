@@ -1,9 +1,10 @@
+import ToolManager from "./managers/tool-manager";
 import { FS } from "./utils/fs";
 
 export default class Api {
-  private _fs: FS;
+  readonly tool: ToolManager;
 
   constructor(fs: FS) {
-    this._fs = fs;
+    this.tool = new ToolManager(fs);
   }
 }
