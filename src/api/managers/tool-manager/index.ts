@@ -22,99 +22,58 @@ export default class ToolManager extends Manager {
     SupportedTool,
   ) as SupportedToolName[];
 
-  async listAll(): Promise<Result<ToolInfo[]>> {
-    const scope = "tool.listAll";
+  async installAll(
+    partialOptions?: Partial<{ force: boolean }>,
+  ): Promise<ResultVoid> {
+    const scope = "tool.installAll";
 
-    const tools = Object.values(SupportedTool);
-    const toolInfoResults = await Promise.all(
-      tools.map((tool) => this.list(tool.name)),
+    const options = { force: false, ...partialOptions };
+
+    const results = await Promise.all(
+      Object.values(SupportedTool).map((tool) =>
+        this.install(tool.name, {
+          force: options.force,
+          ignoreIfAlreadyInstalled: true,
+        }),
+      ),
     );
 
-    for (const toolInfoResult of toolInfoResults) {
-      if (R.isError(toolInfoResult)) {
-        const message = "Failed to gather data for tool";
-        return R.Stack(
-          toolInfoResult,
-          scope,
-          message,
-          ToolManagerError.Generic,
-        );
+    for (const result of results) {
+      if (R.isError(result)) {
+        const message = "Failed to install all tools";
+        return R.Stack(result, scope, message, ToolManagerError.Generic);
       }
     }
 
-    return R.Ok(
-      toolInfoResults.map(
-        (toolInfoResult) => (toolInfoResult as ResultOk<ToolInfo>).data,
-      ),
-    );
-  }
-
-  async list(toolName: SupportedToolName): Promise<Result<ToolInfo>> {
-    const scope = "tool.list";
-
-    const tool = SupportedTool[toolName];
-    const toolDirectoryPath = this.fs.join(this.path, tool.name);
-
-    const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
-    if (!toolDirectoryPathExists) {
-      return R.Ok({
-        tool,
-        status: "not-installed",
-        installedVersion: undefined,
-      });
-    }
-
-    const toolDirectoryInfoResult = await this.fs.getDirectoryInfo(
-      toolDirectoryPath,
-    );
-    if (R.isError(toolDirectoryInfoResult)) {
-      const message = "Failed to read directory content";
-      return R.Stack(
-        toolDirectoryInfoResult,
-        scope,
-        message,
-        ToolManagerError.FailedToReadToolDirectoryContent,
-      );
-    }
-
-    const { directoryNames } = toolDirectoryInfoResult.data;
-    if (directoryNames.length === 0) {
-      return R.Ok({
-        tool,
-        status: "not-installed",
-        installedVersion: undefined,
-      });
-    }
-
-    if (directoryNames.includes(tool.supportedVersion)) {
-      return R.Ok({
-        tool,
-        status: "installed",
-        installedVersion: tool.supportedVersion,
-      });
-    }
-
-    return R.Ok({
-      tool,
-      status: "deprecated",
-      installedVersion: directoryNames[0],
-    });
+    return R.Void;
   }
 
   async install(
     toolName: SupportedToolName,
-    partialOptions?: Partial<{ force: boolean }>,
+    partialOptions?: Partial<{
+      force: boolean;
+      ignoreIfAlreadyInstalled: boolean;
+    }>,
   ): Promise<ResultVoid> {
     const scope = "tool.list.install";
     let result: ResultVoid;
 
-    const options = { force: false, ...partialOptions };
+    const options = {
+      force: false,
+      ignoreIfAlreadyInstalled: false,
+      ...partialOptions,
+    };
 
     const tool = SupportedTool[toolName];
     const toolDirectoryPath = this.fs.join(this.path, tool.name);
 
     this.log(`Checking if ${tool.displayName} is already installed...`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
+    if (options.ignoreIfAlreadyInstalled && toolDirectoryPathExists) {
+      this.log(`${tool.displayName} is already installed`);
+      return R.Void;
+    }
+
     if (!options.force && toolDirectoryPathExists) {
       return R.Error(
         scope,
@@ -201,5 +160,84 @@ export default class ToolManager extends Manager {
     this.log(`${tool.displayName} archive removed`);
 
     return R.Void;
+  }
+
+  async listAll(): Promise<Result<ToolInfo[]>> {
+    const scope = "tool.listAll";
+
+    const tools = Object.values(SupportedTool);
+    const toolInfoResults = await Promise.all(
+      tools.map((tool) => this.list(tool.name)),
+    );
+
+    for (const toolInfoResult of toolInfoResults) {
+      if (R.isError(toolInfoResult)) {
+        const message = "Failed to gather data for tool";
+        return R.Stack(
+          toolInfoResult,
+          scope,
+          message,
+          ToolManagerError.Generic,
+        );
+      }
+    }
+
+    return R.Ok(
+      toolInfoResults.map(
+        (toolInfoResult) => (toolInfoResult as ResultOk<ToolInfo>).data,
+      ),
+    );
+  }
+
+  async list(toolName: SupportedToolName): Promise<Result<ToolInfo>> {
+    const scope = "tool.list";
+
+    const tool = SupportedTool[toolName];
+    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+
+    const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
+    if (!toolDirectoryPathExists) {
+      return R.Ok({
+        tool,
+        status: "not-installed",
+        installedVersion: undefined,
+      });
+    }
+
+    const toolDirectoryInfoResult = await this.fs.getDirectoryInfo(
+      toolDirectoryPath,
+    );
+    if (R.isError(toolDirectoryInfoResult)) {
+      const message = "Failed to read directory content";
+      return R.Stack(
+        toolDirectoryInfoResult,
+        scope,
+        message,
+        ToolManagerError.FailedToReadToolDirectoryContent,
+      );
+    }
+
+    const { directoryNames } = toolDirectoryInfoResult.data;
+    if (directoryNames.length === 0) {
+      return R.Ok({
+        tool,
+        status: "not-installed",
+        installedVersion: undefined,
+      });
+    }
+
+    if (directoryNames.includes(tool.supportedVersion)) {
+      return R.Ok({
+        tool,
+        status: "installed",
+        installedVersion: tool.supportedVersion,
+      });
+    }
+
+    return R.Ok({
+      tool,
+      status: "deprecated",
+      installedVersion: directoryNames[0],
+    });
   }
 }
