@@ -37,16 +37,20 @@ export default class ToolManager extends Manager {
     const tool = SupportedTool[toolName];
     const toolDirectoryPath = this.fs.join(this.path, tool.name);
 
+    this.log(`Checking if ${tool.displayName} is already installed...`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (!options.force && toolDirectoryPathExists) {
       return R.Error(
         scope,
-        `The tool "${tool.displayName}" is already installed`,
+        `${tool.displayName} is already installed`,
         ToolManagerError.ToolAlreadyInstalled,
       );
     }
 
     if (toolDirectoryPathExists) {
+      this.log(
+        `${tool.displayName} already installed, removing other versions`,
+      );
       result = await this.fs.removeDirectory(toolDirectoryPath);
       if (R.isError(result)) {
         return R.Stack(
@@ -56,8 +60,11 @@ export default class ToolManager extends Manager {
           ToolManagerError.FailedToRemoveMainDirectory,
         );
       }
+    } else {
+      this.log(`${tool.displayName} is not installed`);
     }
 
+    this.log(`Creating "${tool.name}" directory...`);
     result = await this.fs.createDirectory(toolDirectoryPath);
     if (R.isError(result)) {
       return R.Stack(
@@ -67,7 +74,9 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToCreateMainDirectory,
       );
     }
+    this.log(`"${tool.name}" directory created`);
 
+    this.log(`Downloading ${tool.displayName}...`);
     const toolZipFilePath = this.fs.join(
       toolDirectoryPath,
       `${tool.supportedVersion}.zip`,
@@ -81,6 +90,7 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToRemoveMainDirectory,
       );
     }
+    this.log(`${tool.displayName} downloaded`);
 
     // TODO: Unzip supported tool.
     // TODO: Move supported tool in correct directory.
