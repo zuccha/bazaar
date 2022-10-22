@@ -17,6 +17,7 @@
         }
       }
     ],
+    "padding-line-between-statements": "off",
     "quotes": ["error", "double"],
     "semi": ["error", "always"],
     "unicorn/no-array-for-each": "off"
