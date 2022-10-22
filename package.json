@@ -46,6 +46,9 @@
     "bin": "bazar-cli",
     "dirname": "bazar-cli",
     "commands": "./dist/commands",
+    "macos": {
+      "identifier": "io.zuccha.baraz-cli"
+    },
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-plugins"
