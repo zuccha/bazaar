@@ -27,7 +27,7 @@ If the tool (even an old version) is already installed, this command will fail.\
   static flags = {
     force: Flags.boolean({
       char: "f",
-      summary: "Install the tool even if another version is already present.",
+      summary: "Install the tool even if another version is already installed.",
       description:
         "Force-installing a tool will remove other versions of the tool previously installed.",
       default: false,
