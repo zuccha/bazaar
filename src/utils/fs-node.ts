@@ -1,7 +1,28 @@
+import * as NodeFSNotPromise from "node:fs";
 import * as NodeFS from "node:fs/promises";
+import * as NodeHTTPS from "node:https";
 import * as NodePath from "node:path";
 import * as FSExtra from "fs-extra";
-import { DirectoryInfo, FileInfo, FS, FSError } from "../api/utils/fs";
+import {
+  CopyDirectoryOptions,
+  CopyFileOptions,
+  defaultCopyDirectoryOptions,
+  defaultCopyFileOptions,
+  defaultDownloadFileOptions,
+  defaultRemoveDirectoryOptions,
+  defaultRemoveFileOptions,
+  defaultRenameDirectoryOptions,
+  defaultRenameFileOptions,
+  DirectoryInfo,
+  DownloadFileOptions,
+  FileInfo,
+  FS,
+  FSError,
+  RemoveDirectoryOptions,
+  RemoveFileOptions,
+  RenameDirectoryOptions,
+  RenameFileOptions,
+} from "../api/utils/fs";
 import { R, Result, ResultVoid } from "../api/utils/result";
 
 const FSNode: FS = {
@@ -9,7 +30,8 @@ const FSNode: FS = {
     const scope = "FS.createDirectory";
 
     try {
-      if (await FSNode.exists(directoryPath)) {
+      const directoryPathExists = await FSNode.exists(directoryPath);
+      if (directoryPathExists) {
         const message = `Directory "${directoryPath}" already exists`;
         return R.Error(scope, message, FSError.DirectoryAlreadyExists);
       }
@@ -17,29 +39,39 @@ const FSNode: FS = {
       await NodeFS.mkdir(directoryPath, { recursive: true });
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
   copyDirectory: async (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    options: { force: boolean },
+    partialOptions?: Partial<CopyDirectoryOptions>,
   ): Promise<ResultVoid> => {
     const scope = "FS.copyDirectory";
+    const options = { ...defaultCopyDirectoryOptions, ...partialOptions };
 
     try {
-      if (!(await FSNode.exists(sourceDirectoryPath))) {
+      const sourceDirectoryPathExists = await FSNode.exists(
+        sourceDirectoryPath,
+      );
+      if (!sourceDirectoryPathExists) {
         const message = `Directory "${sourceDirectoryPath}" does not exist`;
         return R.Error(scope, message, FSError.DirectoryNotFound);
       }
 
-      if (!(await FSNode.isDirectory(sourceDirectoryPath))) {
+      const sourceDirectoryPathIsDirectory = await FSNode.isDirectory(
+        sourceDirectoryPath,
+      );
+      if (!sourceDirectoryPathIsDirectory) {
         const message = `"${sourceDirectoryPath}" is not a directory`;
         return R.Error(scope, message, FSError.NotDirectory);
       }
 
-      if (!options.force && (await FSNode.exists(targetDirectoryPath))) {
+      const targetDirectoryPathExists = await FSNode.exists(
+        targetDirectoryPath,
+      );
+      if (!options.force && targetDirectoryPathExists) {
         const message = `Directory "${targetDirectoryPath}" already exists`;
         return R.Error(scope, message, FSError.DirectoryAlreadyExists);
       }
@@ -48,29 +80,33 @@ const FSNode: FS = {
 
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
   copyFile: async (
     sourceFilePath: string,
     targetFilePath: string,
-    options: { force: boolean },
+    partialOptions?: Partial<CopyFileOptions>,
   ): Promise<ResultVoid> => {
     const scope = "FS.copyFile";
+    const options = { ...defaultCopyFileOptions, ...partialOptions };
 
     try {
-      if (!(await FSNode.exists(sourceFilePath))) {
+      const sourceFilePathExists = await FSNode.exists(sourceFilePath);
+      if (!sourceFilePathExists) {
         const message = `File "${sourceFilePath}" does not exist`;
         return R.Error(scope, message, FSError.FileNotFound);
       }
 
-      if (!(await FSNode.isFile(sourceFilePath))) {
+      const sourceFilePathIsFile = await FSNode.isFile(sourceFilePath);
+      if (!sourceFilePathIsFile) {
         const message = `"${sourceFilePath}" is not a file`;
         return R.Error(scope, message, FSError.NotFile);
       }
 
-      if (!options.force && (await FSNode.exists(targetFilePath))) {
+      const targetFilePathExists = await FSNode.exists(targetFilePath);
+      if (!options.force && targetFilePathExists) {
         const message = `File "${targetFilePath}" already exists`;
         return R.Error(scope, message, FSError.FileAlreadyExists);
       }
@@ -78,29 +114,39 @@ const FSNode: FS = {
       await NodeFS.copyFile(sourceFilePath, targetFilePath);
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
   renameDirectory: async (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    options: { force: boolean },
+    partialOptions?: Partial<RenameDirectoryOptions>,
   ): Promise<ResultVoid> => {
     const scope = "FS.renameDirectory";
+    const options = { ...defaultRenameDirectoryOptions, ...partialOptions };
 
     try {
-      if (!(await FSNode.exists(sourceDirectoryPath))) {
+      const sourceDirectoryPathExists = await FSNode.exists(
+        sourceDirectoryPath,
+      );
+      if (!sourceDirectoryPathExists) {
         const message = `Directory "${sourceDirectoryPath}" does not exist`;
         return R.Error(scope, message, FSError.DirectoryNotFound);
       }
 
-      if (!(await FSNode.isDirectory(sourceDirectoryPath))) {
+      const sourceDirectoryPathIsDirectory = await FSNode.isDirectory(
+        sourceDirectoryPath,
+      );
+      if (!sourceDirectoryPathIsDirectory) {
         const message = `"${sourceDirectoryPath}" is not a directory`;
         return R.Error(scope, message, FSError.NotDirectory);
       }
 
-      if (!options.force && (await FSNode.exists(targetDirectoryPath))) {
+      const targetDirectoryPathExists = await FSNode.exists(
+        targetDirectoryPath,
+      );
+      if (!options.force && targetDirectoryPathExists) {
         const message = `Directory "${targetDirectoryPath}" already exists`;
         return R.Error(scope, message, FSError.DirectoryAlreadyExists);
       }
@@ -108,29 +154,33 @@ const FSNode: FS = {
       await NodeFS.rename(sourceDirectoryPath, targetDirectoryPath);
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
   renameFile: async (
     sourceFilePath: string,
     targetFilePath: string,
-    options: { force: boolean },
+    partialOptions?: Partial<RenameFileOptions>,
   ): Promise<ResultVoid> => {
     const scope = "FS.renameFile";
+    const options = { ...defaultRenameFileOptions, ...partialOptions };
 
     try {
-      if (!(await FSNode.exists(sourceFilePath))) {
+      const sourceFilePathExists = await FSNode.exists(sourceFilePath);
+      if (!sourceFilePathExists) {
         const message = `File "${sourceFilePath}" does not exist`;
         return R.Error(scope, message, FSError.FileNotFound);
       }
 
-      if (!(await FSNode.isFile(sourceFilePath))) {
+      const sourceFilePathIsFile = await FSNode.isFile(sourceFilePath);
+      if (sourceFilePathExists && !sourceFilePathIsFile) {
         const message = `"${sourceFilePath}" is not a file`;
         return R.Error(scope, message, FSError.NotFile);
       }
 
-      if (!options.force && (await FSNode.exists(targetFilePath))) {
+      const targetFilePathExists = await FSNode.exists(targetFilePath);
+      if (!options.force && targetFilePathExists) {
         const message = `File "${targetFilePath}" already exists`;
         return R.Error(scope, message, FSError.FileAlreadyExists);
       }
@@ -138,20 +188,30 @@ const FSNode: FS = {
       await NodeFS.rename(sourceFilePath, targetFilePath);
       return R.Void;
     } catch {
-      return R.Error(scope, "FS.renameFile: Unknown error.", FSError.Generic);
+      return R.Error(scope, "FS.renameFile: Unknown error", FSError.Generic);
     }
   },
 
-  removeDirectory: async (directoryPath: string): Promise<ResultVoid> => {
+  removeDirectory: async (
+    directoryPath: string,
+    partialOptions?: Partial<RemoveDirectoryOptions>,
+  ): Promise<ResultVoid> => {
     const scope = "FS.removeDirectory";
+    const options = { ...defaultRemoveDirectoryOptions, ...partialOptions };
 
     try {
-      if (!(await FSNode.exists(directoryPath))) {
+      const directoryPathExists = await FSNode.exists(directoryPath);
+      if (options.silent && !directoryPathExists) {
+        return R.Void;
+      }
+
+      if (!directoryPathExists) {
         const message = `Directory "${directoryPath}" does not exist`;
         return R.Error(scope, message, FSError.DirectoryNotFound);
       }
 
-      if (!(await FSNode.isFile(directoryPath))) {
+      const directoryPathIsDirectory = await FSNode.isDirectory(directoryPath);
+      if (directoryPathExists && !directoryPathIsDirectory) {
         const message = `"${directoryPath}" is not a directory`;
         return R.Error(scope, message, FSError.NotDirectory);
       }
@@ -159,20 +219,30 @@ const FSNode: FS = {
       await NodeFS.rm(directoryPath, { force: true, recursive: true });
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
-  removeFile: async (filePath: string): Promise<ResultVoid> => {
+  removeFile: async (
+    filePath: string,
+    partialOptions?: Partial<RemoveFileOptions>,
+  ): Promise<ResultVoid> => {
     const scope = "FS.removeFile";
+    const options = { ...defaultRemoveFileOptions, ...partialOptions };
 
     try {
-      if (!(await FSNode.exists(filePath))) {
+      const filePathExists = await FSNode.exists(filePath);
+      if (options.silent && !filePathExists) {
+        return R.Void;
+      }
+
+      if (!filePathExists) {
         const message = `File "${filePath}" does not exist`;
         return R.Error(scope, message, FSError.FileNotFound);
       }
 
-      if (!(await FSNode.isFile(filePath))) {
+      const filePathIsFile = await FSNode.isFile(filePath);
+      if (filePathExists && !filePathIsFile) {
         const message = `"${filePath}" is not a file`;
         return R.Error(scope, message, FSError.NotFile);
       }
@@ -180,7 +250,7 @@ const FSNode: FS = {
       await NodeFS.unlink(filePath);
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
@@ -215,12 +285,14 @@ const FSNode: FS = {
     const scope = "FS.readFile";
 
     try {
-      if (!(await FSNode.exists(filePath))) {
+      const filePathExists = await FSNode.exists(filePath);
+      if (!filePathExists) {
         const message = `File "${filePath}" does not exist`;
         return R.Error(scope, message, FSError.FileNotFound);
       }
 
-      if (!(await FSNode.isFile(filePath))) {
+      const filePathIsFile = await FSNode.isFile(filePath);
+      if (!filePathIsFile) {
         const message = `"${filePath}" is not a file`;
         return R.Error(scope, message, FSError.NotFile);
       }
@@ -228,7 +300,7 @@ const FSNode: FS = {
       const content = await NodeFS.readFile(filePath, { encoding: "utf8" });
       return R.Ok(content);
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
@@ -238,13 +310,15 @@ const FSNode: FS = {
     const scope = "FS.getDirectoryInfo";
 
     try {
-      if (!(await FSNode.exists(directoryPath))) {
+      const directoryPathExists = await FSNode.exists(directoryPath);
+      if (!directoryPathExists) {
         const message = `Directory "${directoryPath}" does not exist`;
         return R.Error(scope, message, FSError.DirectoryNotFound);
       }
 
-      if (!(await FSNode.isDirectory(directoryPath))) {
-        const message = `"${directoryPath}" is not a file`;
+      const directoryPathIsDirectory = await FSNode.isDirectory(directoryPath);
+      if (!directoryPathIsDirectory) {
+        const message = `"${directoryPath}" is not a directory`;
         return R.Error(scope, message, FSError.NotDirectory);
       }
 
@@ -267,7 +341,7 @@ const FSNode: FS = {
         fileNames,
       });
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
@@ -275,12 +349,14 @@ const FSNode: FS = {
     const scope = "FS.getFileInfo";
 
     try {
-      if (!(await FSNode.exists(filePath))) {
+      const filePathExists = await FSNode.exists(filePath);
+      if (!filePathExists) {
         const message = `File "${filePath}" does not exist`;
         return R.Error(scope, message, FSError.FileNotFound);
       }
 
-      if (!(await FSNode.isFile(filePath))) {
+      const filePathIsFile = await FSNode.isFile(filePath);
+      if (!filePathIsFile) {
         const message = `"${filePath}" is not a file`;
         return R.Error(scope, message, FSError.NotFile);
       }
@@ -291,7 +367,7 @@ const FSNode: FS = {
         extension: NodePath.extname(filePath),
       });
     } catch {
-      return R.Error(scope, "Unknown error.", FSError.Generic);
+      return R.Error(scope, "Unknown error", FSError.Generic);
     }
   },
 
@@ -309,6 +385,41 @@ const FSNode: FS = {
 
   getExtension: (path: string): string => {
     return NodePath.extname(path);
+  },
+
+  downloadFile: async (
+    filePath: string,
+    url: string,
+    partialOptions?: Partial<DownloadFileOptions>,
+  ): Promise<ResultVoid> => {
+    const scope = "FS.downloadFile";
+    const options = { ...defaultDownloadFileOptions, ...partialOptions };
+
+    try {
+      const filePathExists = await FSNode.exists(filePath);
+      if (!options.force && filePathExists) {
+        const message = `File "${filePath}" already exists`;
+        return R.Error(scope, message, FSError.FileAlreadyExists);
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        NodeHTTPS.get(url, (response) => {
+          const stream = NodeFSNotPromise.createWriteStream(filePath);
+          response.pipe(stream);
+          stream.on("finish", () => {
+            stream.close();
+            resolve();
+          });
+          stream.on("error", (err) => {
+            console.log(err);
+            reject();
+          });
+        });
+      });
+      return R.Void;
+    } catch {
+      return R.Error(scope, "Unknown error", FSError.Generic);
+    }
   },
 };
 

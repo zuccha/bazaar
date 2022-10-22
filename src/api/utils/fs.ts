@@ -1,4 +1,4 @@
-import { Result } from "./result";
+import { Result, ResultVoid } from "./result";
 
 export type DirectoryInfo = {
   path: string;
@@ -23,33 +23,61 @@ export enum FSError {
   Generic,
 }
 
+export type CopyDirectoryOptions = { force: boolean };
+export type CopyFileOptions = { force: boolean };
+export type RenameDirectoryOptions = { force: boolean };
+export type RenameFileOptions = { force: boolean };
+export type RemoveDirectoryOptions = { silent: boolean };
+export type RemoveFileOptions = { silent: boolean };
+export type DownloadFileOptions = { force: boolean };
+
+export const defaultCopyDirectoryOptions: CopyDirectoryOptions = {
+  force: false,
+};
+export const defaultCopyFileOptions: CopyFileOptions = { force: false };
+export const defaultRenameDirectoryOptions: RenameDirectoryOptions = {
+  force: false,
+};
+export const defaultRenameFileOptions: RenameFileOptions = { force: false };
+export const defaultRemoveDirectoryOptions: RemoveDirectoryOptions = {
+  silent: false,
+};
+export const defaultRemoveFileOptions: RemoveFileOptions = { silent: false };
+export const defaultDownloadFileOptions: DownloadFileOptions = { force: false };
+
 export type FS = {
-  createDirectory: (directoryPath: string) => Promise<Result<void>>;
+  createDirectory: (directoryPath: string) => Promise<ResultVoid>;
 
   copyDirectory: (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    options: { force: boolean },
-  ) => Promise<Result<void>>;
+    options?: Partial<CopyDirectoryOptions>,
+  ) => Promise<ResultVoid>;
   copyFile: (
     sourceFilePath: string,
     targetFilePath: string,
-    options: { force: boolean },
-  ) => Promise<Result<void>>;
+    options?: Partial<CopyFileOptions>,
+  ) => Promise<ResultVoid>;
 
   renameDirectory: (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    options: { force: boolean },
-  ) => Promise<Result<void>>;
+    options?: Partial<RenameDirectoryOptions>,
+  ) => Promise<ResultVoid>;
   renameFile: (
     sourceFilePath: string,
     targetFilePath: string,
-    options: { force: boolean },
-  ) => Promise<Result<void>>;
+    options?: Partial<RenameFileOptions>,
+  ) => Promise<ResultVoid>;
 
-  removeDirectory: (directoryPath: string) => Promise<Result<void>>;
-  removeFile: (filePath: string) => Promise<Result<void>>;
+  removeDirectory: (
+    directoryPath: string,
+    options?: Partial<RemoveDirectoryOptions>,
+  ) => Promise<ResultVoid>;
+  removeFile: (
+    filePath: string,
+    options?: Partial<RemoveFileOptions>,
+  ) => Promise<ResultVoid>;
 
   exists: (path: string) => Promise<boolean>;
   isDirectory: (directoryPath: string) => Promise<boolean>;
@@ -65,4 +93,10 @@ export type FS = {
   getDirectoryPath: (path: string) => string;
   getName: (path: string) => string;
   getExtension: (path: string) => string;
+
+  downloadFile: (
+    filePath: string,
+    url: string,
+    options?: Partial<DownloadFileOptions>,
+  ) => Promise<ResultVoid>;
 };
