@@ -1,7 +1,7 @@
 import { Command, Config, Flags, Interfaces } from "@oclif/core";
-import * as chalk from "chalk"; // eslint-disable-line unicorn/import-style
 import Api from "../api";
 import FSNode from "./fs-node";
+import TE from "./text-effect";
 
 enum LogLevel {
   Debug = "debug",
@@ -55,7 +55,7 @@ export default abstract class BaseCommand<
       return;
     }
 
-    this.log(chalk.dim(`${chalk.bold("Debug:")} ${message}`));
+    this.log(TE.dim(`${TE.b("Debug:")} ${message}`));
   };
 
   protected Info = async (message: string): Promise<void> => {
@@ -64,7 +64,7 @@ export default abstract class BaseCommand<
       return;
     }
 
-    this.log(chalk.blue(`${chalk.bold("Info:")} ${message}`));
+    this.log(TE.info(`${TE.b("Info:")} ${message}`));
   };
 
   protected Warn = async (message: string): Promise<void> => {
@@ -73,7 +73,7 @@ export default abstract class BaseCommand<
       return;
     }
 
-    this.log(chalk.yellow(`${chalk.bold("Warn:")} ${message}`));
+    this.log(TE.warning(`${TE.b("Warn:")} ${message}`));
   };
 
   protected Error = (
@@ -81,7 +81,7 @@ export default abstract class BaseCommand<
     exit: number,
     options: { suggestions?: string[]; ref?: string } = {},
   ): void => {
-    this.error(chalk.red.bold(message), {
+    this.error(TE.failure.b(message), {
       exit,
       suggestions: options.suggestions,
       ref: options.ref,
