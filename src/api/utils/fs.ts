@@ -16,6 +16,8 @@ export type FileInfo = {
 export enum FSError {
   DirectoryAlreadyExists,
   DirectoryNotFound,
+  FailedToUnzip,
+  FailedToZip,
   FileAlreadyExists,
   FileNotFound,
   NotDirectory,
@@ -30,6 +32,11 @@ export type RenameFileOptions = { force: boolean };
 export type RemoveDirectoryOptions = { silent: boolean };
 export type RemoveFileOptions = { silent: boolean };
 export type DownloadFileOptions = { force: boolean };
+export type ZipDirectoryOptions = { force: boolean };
+export type UnzipFileOptions = {
+  force: boolean;
+  collapseSingleDirectoryArchive: boolean;
+};
 
 export const defaultCopyDirectoryOptions: CopyDirectoryOptions = {
   force: false,
@@ -44,6 +51,11 @@ export const defaultRemoveDirectoryOptions: RemoveDirectoryOptions = {
 };
 export const defaultRemoveFileOptions: RemoveFileOptions = { silent: false };
 export const defaultDownloadFileOptions: DownloadFileOptions = { force: false };
+export const defaultZipDirectoryOptions: ZipDirectoryOptions = { force: false };
+export const defaultUnzipFileOptions: UnzipFileOptions = {
+  force: false,
+  collapseSingleDirectoryArchive: false,
+};
 
 export type FS = {
   createDirectory: (directoryPath: string) => Promise<ResultVoid>;
@@ -98,5 +110,16 @@ export type FS = {
     filePath: string,
     url: string,
     options?: Partial<DownloadFileOptions>,
+  ) => Promise<ResultVoid>;
+
+  zipDirectory: (
+    directoryPath: string,
+    targetZipFilePath: string,
+    options?: Partial<ZipDirectoryOptions>,
+  ) => Promise<ResultVoid>;
+  unzipFile: (
+    zipFilePath: string,
+    targetDirectoryPath: string,
+    options?: Partial<UnzipFileOptions>,
   ) => Promise<ResultVoid>;
 };

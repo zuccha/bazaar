@@ -2,6 +2,7 @@ import * as NodeFSNotPromise from "node:fs";
 import * as NodeFS from "node:fs/promises";
 import * as NodeHTTPS from "node:https";
 import * as NodePath from "node:path";
+import * as AdmZip from "adm-zip";
 import * as FSExtra from "fs-extra";
 import {
   CopyDirectoryOptions,
@@ -13,6 +14,8 @@ import {
   defaultRemoveFileOptions,
   defaultRenameDirectoryOptions,
   defaultRenameFileOptions,
+  defaultUnzipFileOptions,
+  defaultZipDirectoryOptions,
   DirectoryInfo,
   DownloadFileOptions,
   FileInfo,
@@ -22,6 +25,8 @@ import {
   RemoveFileOptions,
   RenameDirectoryOptions,
   RenameFileOptions,
+  UnzipFileOptions,
+  ZipDirectoryOptions,
 } from "../api/utils/fs";
 import { R, Result, ResultVoid } from "../api/utils/result";
 
@@ -151,7 +156,9 @@ const FSNode: FS = {
         return R.Error(scope, message, FSError.DirectoryAlreadyExists);
       }
 
-      await NodeFS.rename(sourceDirectoryPath, targetDirectoryPath);
+      await FSExtra.move(sourceDirectoryPath, targetDirectoryPath, {
+        overwrite: options.force,
+      });
       return R.Void;
     } catch {
       return R.Error(scope, "Unknown error", FSError.Generic);
@@ -416,6 +423,138 @@ const FSNode: FS = {
           });
         });
       });
+      return R.Void;
+    } catch {
+      return R.Error(scope, "Unknown error", FSError.Generic);
+    }
+  },
+
+  zipDirectory: async (
+    directoryPath: string,
+    targetZipFilePath: string,
+    partialOptions?: Partial<ZipDirectoryOptions>,
+  ): Promise<ResultVoid> => {
+    const scope = "FS.zipDirectory";
+    const options = { ...defaultZipDirectoryOptions, ...partialOptions };
+    let result: ResultVoid;
+
+    try {
+      const directoryPathExists = await FSNode.exists(directoryPath);
+      if (!directoryPathExists) {
+        const message = `Directory "${directoryPathExists}" does not exist`;
+        return R.Error(scope, message, FSError.DirectoryNotFound);
+      }
+
+      const directoryPathIsDirectory = await FSNode.isDirectory(directoryPath);
+      if (!directoryPathIsDirectory) {
+        const message = `Directory "${directoryPath}" is not a directory`;
+        return R.Error(scope, message, FSError.NotDirectory);
+      }
+
+      const targetZipFilePathExists = await FSNode.exists(targetZipFilePath);
+      if (!options.force && targetZipFilePathExists) {
+        const message = `File "${targetZipFilePath}" already exists`;
+        return R.Error(scope, message, FSError.FileAlreadyExists);
+      }
+
+      result = await FSNode.removeFile(targetZipFilePath, { silent: true });
+      if (R.isError(result)) {
+        const message = `Failed to remove "${targetZipFilePath}"`;
+        return R.Stack(result, scope, message, FSError.Generic);
+      }
+
+      const zipFile = new AdmZip();
+      zipFile.addLocalFolder(directoryPath);
+      zipFile.writeZip(targetZipFilePath);
+
+      return R.Void;
+    } catch {
+      return R.Error(scope, "Unknown error", FSError.Generic);
+    }
+  },
+
+  unzipFile: async (
+    zipFilePath: string,
+    targetDirectoryPath: string,
+    partialOptions?: Partial<UnzipFileOptions>,
+  ): Promise<ResultVoid> => {
+    const scope = "FS.unzipFile";
+    const options = { ...defaultUnzipFileOptions, ...partialOptions };
+    let result: ResultVoid;
+
+    try {
+      const zipFilePathExists = await FSNode.exists(zipFilePath);
+      if (!zipFilePathExists) {
+        const message = `File "${zipFilePath}" does not exist`;
+        return R.Error(scope, message, FSError.FileNotFound);
+      }
+
+      const zipFilePathIsFile = await FSNode.isFile(zipFilePath);
+      if (!zipFilePathIsFile) {
+        const message = `File "${zipFilePath}" is not a file`;
+        return R.Error(scope, message, FSError.NotFile);
+      }
+
+      const targetDirectoryPathExists = await FSNode.exists(
+        targetDirectoryPath,
+      );
+      if (!options.force && targetDirectoryPathExists) {
+        const message = `Directory "${targetDirectoryPathExists}" already exists`;
+        return R.Error(scope, message, FSError.DirectoryAlreadyExists);
+      }
+
+      const zipFile = new AdmZip(zipFilePath);
+      const archiveError = await new Promise<Error | undefined>((resolve) => {
+        zipFile.extractAllToAsync(
+          targetDirectoryPath,
+          options.force,
+          false,
+          resolve,
+        );
+      });
+      if (archiveError) {
+        const message = `Failed to unzip "${targetDirectoryPath}"`;
+        return R.Error(scope, message, FSError.FailedToUnzip);
+      }
+
+      if (!options.collapseSingleDirectoryArchive) {
+        return R.Void;
+      }
+
+      const directoryInfoResult = await FSNode.getDirectoryInfo(
+        targetDirectoryPath,
+      );
+      if (R.isError(directoryInfoResult)) {
+        const message = "Failed to determine archive contents";
+        return R.Stack(directoryInfoResult, scope, message, FSError.Generic);
+      }
+      const { directoryNames, fileNames } = directoryInfoResult.data;
+      if (directoryNames.length !== 1 || fileNames.length > 0) {
+        return R.Void;
+      }
+
+      const tempDirectoryPath = `${targetDirectoryPath}-temp`;
+      result = await FSNode.renameDirectory(
+        NodePath.join(targetDirectoryPath, directoryNames[0]),
+        tempDirectoryPath,
+        { force: true },
+      );
+      if (R.isError(result)) {
+        const message = "Failed to move inner single directory outside";
+        return R.Stack(result, scope, message, FSError.Generic);
+      }
+
+      result = await FSNode.renameDirectory(
+        tempDirectoryPath,
+        targetDirectoryPath,
+        { force: true },
+      );
+      if (R.isError(result)) {
+        const message =
+          "Failed to rename inner single directory as target directory";
+        return R.Stack(result, scope, message, FSError.Generic);
+      }
+
       return R.Void;
     } catch {
       return R.Error(scope, "Unknown error", FSError.Generic);
