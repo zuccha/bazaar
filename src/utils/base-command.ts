@@ -31,7 +31,7 @@ export default abstract class BaseCommand<
 
   public constructor(argv: string[], config: Config) {
     super(argv, config);
-    this.api = new Api(FSNode);
+    this.api = new Api(FSNode, this.config.cacheDir);
   }
 
   public async init(): Promise<void> {
