@@ -63,12 +63,22 @@ export const R = {
   /**
    * Get a list of all messages in an error trace.
    * @param error The error from which we want to retrieve the messages from.
-   * @returns The list of messages, from most recent to oldest.
+   * @param partialOptions List of optional options:
+   *   - verbose: If true, the scope will be included in the messages. Defaults
+   *              to false.
+   * @returns A string with all messages on new lines, the most recent on top.
    */
-  messages: (error: ResultError): string[] => {
+  messages: (
+    error: ResultError,
+    partialOptions?: { verbose: boolean },
+  ): string => {
+    const options = { verbose: false, ...partialOptions };
+    const message = options.verbose
+      ? `${error.scope}: ${error.message}`
+      : error.message;
     return error.trace
-      ? [error.message, ...R.messages(error.trace)]
-      : [error.message];
+      ? `${message}\n${R.messages(error.trace, partialOptions)}`
+      : message;
   },
 
   /**
