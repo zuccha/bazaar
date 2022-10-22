@@ -6,6 +6,8 @@ import { ToolInfo } from "./types";
 export enum ToolManagerError {
   FailedToCreateMainDirectory,
   FailedToCreateVersionDirectory,
+  FailedToExtractArchive,
+  FailedToRemoveArchive,
   FailedToRemoveMainDirectory,
   FailedToRemoveVersionDirectory,
   ToolAlreadyInstalled,
@@ -92,9 +94,37 @@ export default class ToolManager extends Manager {
     }
     this.log(`${tool.displayName} downloaded`);
 
-    // TODO: Unzip supported tool.
-    // TODO: Move supported tool in correct directory.
-    // TODO: Delete zip file.
+    this.log(`Extracting ${tool.displayName} archive...`);
+    const toolVersionDirectoryPath = this.fs.join(
+      toolDirectoryPath,
+      tool.supportedVersion,
+    );
+    result = await this.fs.unzipFile(
+      toolZipFilePath,
+      toolVersionDirectoryPath,
+      { collapseSingleDirectoryArchive: true },
+    );
+    if (R.isError(result)) {
+      return R.Stack(
+        result,
+        scope,
+        `Failed to extract ${tool.displayName} archive`,
+        ToolManagerError.FailedToRemoveMainDirectory,
+      );
+    }
+    this.log(`${tool.displayName} archive extracted`);
+
+    this.log(`Removing ${tool.displayName} archive...`);
+    result = await this.fs.removeFile(toolZipFilePath);
+    if (R.isError(result)) {
+      return R.Stack(
+        result,
+        scope,
+        `Failed to remove "${tool.displayName}" archive`,
+        ToolManagerError.FailedToRemoveArchive,
+      );
+    }
+    this.log(`${tool.displayName} archive removed`);
 
     return R.Void;
   }
