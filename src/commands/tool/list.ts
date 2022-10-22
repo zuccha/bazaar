@@ -29,7 +29,7 @@ Deprecated tools might not work with the current version of Bazar and need to\
           get: (toolInfo) => toolInfo.tool.displayName,
         },
         supportedVersion: {
-          get: (toolInfo) => toolInfo.tool.version,
+          get: (toolInfo) => toolInfo.tool.supportedVersion,
           header: "Supported version",
         },
         status: {

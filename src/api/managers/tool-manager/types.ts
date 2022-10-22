@@ -2,7 +2,7 @@ export type Tool = {
   name: string;
   displayName: string;
   downloadUrl: string;
-  version: string;
+  supportedVersion: string;
 };
 
 export type ToolInfo = {
