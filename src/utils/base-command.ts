@@ -24,6 +24,11 @@ export default abstract class BaseCommand<
       default: LogLevel.Info,
       helpGroup: "GLOBAL",
     }),
+    verbose: Flags.boolean({
+      summary: "Produce more logs (info level).",
+      default: false,
+      helpGroup: "GLOBAL",
+    }),
   };
 
   protected flags!: BaseFlags<T>;
@@ -31,7 +36,11 @@ export default abstract class BaseCommand<
 
   public constructor(argv: string[], config: Config) {
     super(argv, config);
-    this.api = new Api(FSNode, this.config.cacheDir);
+    this.api = new Api({
+      cacheDirectoryPath: this.config.cacheDir,
+      fs: FSNode,
+      log: this.Log,
+    });
   }
 
   public async init(): Promise<void> {
@@ -48,6 +57,19 @@ export default abstract class BaseCommand<
   protected async finally(_: Error | undefined): Promise<any> {
     return super.finally(_);
   }
+
+  protected Log = async (message: string): Promise<void> => {
+    if (!this.flags.verbose) {
+      return;
+    }
+
+    const logLevel = this.flags["log-level"];
+    if (logLevel !== LogLevel.Debug && logLevel !== LogLevel.Info) {
+      return;
+    }
+
+    this.log(message);
+  };
 
   protected Debug = async (message: string): Promise<void> => {
     const logLevel = this.flags["log-level"];
