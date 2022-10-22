@@ -51,9 +51,9 @@ export type FS = {
   removeDirectory: (directoryPath: string) => Promise<Result<void>>;
   removeFile: (filePath: string) => Promise<Result<void>>;
 
-  exists: (path: string) => Promise<Result<boolean>>;
-  isDirectory: (directoryPath: string) => Promise<Result<boolean>>;
-  isFile: (filePath: string) => Promise<Result<boolean>>;
+  exists: (path: string) => Promise<boolean>;
+  isDirectory: (directoryPath: string) => Promise<boolean>;
+  isFile: (filePath: string) => Promise<boolean>;
 
   readFile: (filePath: string) => Promise<Result<string>>;
 

@@ -5,6 +5,7 @@ export type ResultOk<T> = {
 export type ResultVoid = Result<undefined>;
 
 export type ResultError = {
+  scope: string;
   message: string;
   code: number;
   trace: ResultError | undefined;
@@ -27,11 +28,13 @@ export const R = {
 
   /**
    * Create an error response.
+   * @param scope Scope (function) where the error occurred.
    * @param message Message of the error.
    * @param code Error code.
    * @returns The error, with no trace.
    */
-  Error: (message: string, code: number): ResultError => ({
+  Error: (scope: string, message: string, code: number): ResultError => ({
+    scope,
     code,
     message,
     trace: undefined,
@@ -40,12 +43,19 @@ export const R = {
   /**
    * Stack a new error into an existing one.
    * @param error The old error.
+   * @param scope Scope (function) where the new error occurred.
    * @param message The new error message.
    * @param code The new error code.
    * @returns The new error, with the old error in the trace.
    */
-  Stack: (error: ResultError, message: string, code: number): ResultError => ({
+  Stack: (
+    error: ResultError,
+    scope: string,
+    message: string,
+    code: number,
+  ): ResultError => ({
     message,
+    scope,
     code,
     trace: error,
   }),
