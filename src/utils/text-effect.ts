@@ -46,8 +46,8 @@ const TextEffect = {
   warning: buildColor("yellow"),
 
   b: (text: string): string => chalk.bold(text),
-  i: (text: string): string => chalk.bold(text),
-  u: (text: string): string => chalk.bold(text),
+  i: (text: string): string => chalk.italic(text),
+  u: (text: string): string => chalk.underline(text),
 };
 
 export default TextEffect;
