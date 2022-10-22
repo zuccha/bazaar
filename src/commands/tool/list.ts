@@ -77,6 +77,8 @@ Deprecated tools might not work with the current version of Bazar and need to\
           header: "Version (supported)",
         },
         installedVersion: {
+          get: (toolInfo) =>
+            toolInfo.installedVersion || TextEffect.i("<none>"),
           header: "Version (installed)",
         },
       },
