@@ -57,7 +57,11 @@ export default class ToolManager extends Manager {
 
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (!toolDirectoryPathExists) {
-      return R.Ok({ tool, status: "not-installed" });
+      return R.Ok({
+        tool,
+        status: "not-installed",
+        installedVersion: undefined,
+      });
     }
 
     const toolDirectoryInfoResult = await this.fs.getDirectoryInfo(
@@ -75,14 +79,26 @@ export default class ToolManager extends Manager {
 
     const { directoryNames } = toolDirectoryInfoResult.data;
     if (directoryNames.length === 0) {
-      return R.Ok({ tool, status: "not-installed" });
+      return R.Ok({
+        tool,
+        status: "not-installed",
+        installedVersion: undefined,
+      });
     }
 
     if (directoryNames.includes(tool.supportedVersion)) {
-      return R.Ok({ tool, status: "installed" });
+      return R.Ok({
+        tool,
+        status: "installed",
+        installedVersion: tool.supportedVersion,
+      });
     }
 
-    return R.Ok({ tool, status: "deprecated" });
+    return R.Ok({
+      tool,
+      status: "deprecated",
+      installedVersion: directoryNames[0],
+    });
   }
 
   async install(

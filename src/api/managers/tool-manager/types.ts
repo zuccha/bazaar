@@ -8,4 +8,5 @@ export type Tool = {
 export type ToolInfo = {
   tool: Tool;
   status: "not-installed" | "installed" | "deprecated";
+  installedVersion: string | undefined;
 };
