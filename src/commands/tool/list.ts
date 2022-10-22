@@ -1,7 +1,11 @@
-import { Command } from "@oclif/core";
-import ToolApi from "../../api/tool";
+// import ToolApi from "../../api/managers/tool-manager";
+import { CliUx } from "@oclif/core";
+import BaseCommand from "../../utils/base-command";
+import TextEffect from "../../utils/text-effect";
 
-export default class ToolList extends Command {
+export default class ToolListCommand extends BaseCommand<
+  typeof ToolListCommand
+> {
   static summary = "List tools and their installation status.";
   static description = `\
 List tools and their installation status. A tool can be either not installed,\
@@ -9,12 +13,37 @@ List tools and their installation status. A tool can be either not installed,\
 Deprecated tools might not work with the current version of Bazar and need to\
  be updated.`;
 
-  async run(): Promise<void> {
-    // const { args, flags } = await this.parse(Tool);
+  static flags = {
+    ...CliUx.ux.table.flags(),
+  };
 
-    ToolApi.list().forEach((toolInfo) => {
-      const line = `${toolInfo.tool.name} (${toolInfo.tool.version}) - ${toolInfo.status}`;
-      this.log(line);
-    });
+  async run(): Promise<void> {
+    const { flags } = await this.parse(ToolListCommand);
+
+    const toolInfos = this.api.tool.list();
+
+    CliUx.ux.table(
+      toolInfos,
+      {
+        name: {
+          get: (toolInfo) => toolInfo.tool.displayName,
+        },
+        supportedVersion: {
+          get: (toolInfo) => toolInfo.tool.version,
+          header: "Supported version",
+        },
+        status: {
+          get: (toolInfo) =>
+            ({
+              "not-installed": TextEffect.failure("Not installed"),
+              installed: TextEffect.success("Installed"),
+              deprecated: TextEffect.warning("Deprecated"),
+            }[toolInfo.status]),
+        },
+      },
+      {
+        ...flags,
+      },
+    );
   }
 }
