@@ -1,5 +1,5 @@
 import Manager from "../../utils/manager";
-import { R, ResultVoid } from "../../utils/result";
+import { R, Result, ResultOk, ResultVoid } from "../../utils/result";
 import SupportedTool, { SupportedToolName } from "./supported-tool";
 import { ToolInfo } from "./types";
 
@@ -7,10 +7,12 @@ export enum ToolManagerError {
   FailedToCreateMainDirectory,
   FailedToCreateVersionDirectory,
   FailedToExtractArchive,
+  FailedToReadToolDirectoryContent,
   FailedToRemoveArchive,
   FailedToRemoveMainDirectory,
   FailedToRemoveVersionDirectory,
   ToolAlreadyInstalled,
+  Generic,
 }
 
 export default class ToolManager extends Manager {
@@ -20,11 +22,67 @@ export default class ToolManager extends Manager {
     SupportedTool,
   ) as SupportedToolName[];
 
-  list(): ToolInfo[] {
-    return Object.values(SupportedTool).map((tool) => ({
-      tool,
-      status: "not-installed",
-    }));
+  async listAll(): Promise<Result<ToolInfo[]>> {
+    const scope = "tool.listAll";
+
+    const tools = Object.values(SupportedTool);
+    const toolInfoResults = await Promise.all(
+      tools.map((tool) => this.list(tool.name)),
+    );
+
+    for (const toolInfoResult of toolInfoResults) {
+      if (R.isError(toolInfoResult)) {
+        const message = "Failed to gather data for tool";
+        return R.Stack(
+          toolInfoResult,
+          scope,
+          message,
+          ToolManagerError.Generic,
+        );
+      }
+    }
+
+    return R.Ok(
+      toolInfoResults.map(
+        (toolInfoResult) => (toolInfoResult as ResultOk<ToolInfo>).data,
+      ),
+    );
+  }
+
+  async list(toolName: SupportedToolName): Promise<Result<ToolInfo>> {
+    const scope = "tool.list";
+
+    const tool = SupportedTool[toolName];
+    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+
+    const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
+    if (!toolDirectoryPathExists) {
+      return R.Ok({ tool, status: "not-installed" });
+    }
+
+    const toolDirectoryInfoResult = await this.fs.getDirectoryInfo(
+      toolDirectoryPath,
+    );
+    if (R.isError(toolDirectoryInfoResult)) {
+      const message = "Failed to read directory content";
+      return R.Stack(
+        toolDirectoryInfoResult,
+        scope,
+        message,
+        ToolManagerError.FailedToReadToolDirectoryContent,
+      );
+    }
+
+    const { directoryNames } = toolDirectoryInfoResult.data;
+    if (directoryNames.length === 0) {
+      return R.Ok({ tool, status: "not-installed" });
+    }
+
+    if (directoryNames.includes(tool.supportedVersion)) {
+      return R.Ok({ tool, status: "installed" });
+    }
+
+    return R.Ok({ tool, status: "deprecated" });
   }
 
   async install(
