@@ -6,6 +6,7 @@
     "indent": "off",
     "lines-between-class-members": "off",
     "new-cap": "off",
+    "no-await-in-loop": "off",
     "object-curly-spacing": ["error", "always"],
     "operator-linebreak": [
       "error",
