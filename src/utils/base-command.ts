@@ -19,13 +19,13 @@ export default abstract class BaseCommand<
 > extends Command {
   static globalFlags = {
     "log-level": Flags.enum<LogLevel>({
-      summary: "Specify level for logging.",
+      summary: "Specify level for logging",
       options: Object.values(LogLevel),
       default: LogLevel.Info,
       helpGroup: "GLOBAL",
     }),
     verbose: Flags.boolean({
-      summary: "Produce more logs (info level).",
+      summary: "Produce more logs (info level)",
       default: false,
       helpGroup: "GLOBAL",
     }),
