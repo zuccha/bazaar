@@ -12,10 +12,40 @@ export default class ToolListCommand extends BaseCommand<
 > {
   static summary = "List tools and their installation status.";
   static description = `\
-List tools and their installation status. A tool can be either not installed,\
- installed, or deprecated.
-Deprecated tools might not work with the current version of Bazar and need to\
- be updated.`;
+List tools and their installation status. Tools are programs required by Bazar\
+ to perform specific tasks, and need to be of a precise version to ensure\
+ everything works correctly. For this reason, the user cannot choose to use a\
+ custom version.
+
+The installation of tools is completely handled by Bazar. Installing and\
+ uninstalling a tool with Bazar will not impact any other installation of the\
+ same tool done by the user on the same machine. This means that the user can\
+ still use their preferred tools for hacking SMW without Bazar.
+
+A tool can be either not installed, installed, or deprecated:
+  not installed: The tool is not installed in Bazar, task that require the tool
+    cannot be performed.
+  installed: The correct version of the tool has been installed in Bazar. If the
+    version appears to be broken (doesn't work correctly), you can uninstall it\
+    and install it again (or force install it). For more, check\
+    \`bazar tool install --help\` and \`bazar tool uninstall --help\`.
+  deprecated: The wrong version of the tool has been installed in Bazar. This\
+    can happen if the user upgraded Bazar, and the new version requires a\
+    different version of a tool previously installed. To upgrade a tool, check\
+    \`bazar tool update --help\`.
+
+Tools used by Bazar:
+  AddmusicK: Used to insert music.
+  Asar: Used to apply patches.
+  Flips: Used to produce releases (BPS files).
+  GPS: Used to insert blocks.
+  Lunar Magic: Used to open the ROM hack, and extract graphics and levels.
+  PIXI: Used to insert sprites.
+  UberASM: Used to apply UberASM code.
+
+The difference between tools and editors: tools need to be of specific versions\
+ to ensure that they work correctly, while editors are user-chosen programs.\
+ If you want to install tools instead, check out \`bazar editor --help\`.`;
 
   static args = [
     {
