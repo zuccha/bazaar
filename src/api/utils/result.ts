@@ -7,7 +7,7 @@ export type ResultVoid = Result<undefined>;
 export type ResultError = {
   scope: string;
   message: string;
-  code: number;
+  code: number | string;
   trace: ResultError | undefined;
 };
 
@@ -33,7 +33,11 @@ export const R = {
    * @param code Error code.
    * @returns The error, with no trace.
    */
-  Error: (scope: string, message: string, code: number): ResultError => ({
+  Error: (
+    scope: string,
+    message: string,
+    code: number | string,
+  ): ResultError => ({
     scope,
     code,
     message,
@@ -52,7 +56,7 @@ export const R = {
     error: ResultError,
     scope: string,
     message: string,
-    code: number,
+    code: number | string,
   ): ResultError => ({
     message,
     scope,
