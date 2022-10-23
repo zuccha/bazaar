@@ -2,20 +2,21 @@ import { z } from "zod";
 import Manager from "./manager";
 import { R, Result, ResultVoid } from "./result";
 
-export enum ConfigManagerError {
-  ConfigNotFound,
-  FailedToLoadConfiguration,
-  FailedToParseConfiguration,
-  FailedToSaveConfiguration,
-  NotJson,
-  Generic,
-}
-
 export default abstract class ConfigManager<Config> extends Manager {
+  static ErrorCode = {
+    ConfigNotFound: "ConfigManager.ConfigNotFound",
+    FailedToLoadConfiguration: "ConfigManager.FailedToLoadConfiguration",
+    FailedToParseConfiguration: "ConfigManager.FailedToParseConfiguration",
+    FailedToSaveConfiguration: "ConfigManager.FailedToSaveConfiguration",
+    FailedToParseJson: "ConfigManager.FailedToParseJson",
+    FailedToStringifyJson: "ConfigManager.FailedToStringifyJson",
+    Generic: "ConfigManager.Generic",
+  };
+
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
 
-  async loadConfig(): Promise<Result<Config>> {
+  protected async loadConfig(): Promise<Result<Config>> {
     const scope = this.scope("loadConfig");
     const configPath = this.path("config.json");
 
@@ -28,7 +29,7 @@ export default abstract class ConfigManager<Config> extends Manager {
       return R.Error(
         scope,
         "config.json does not exist",
-        ConfigManagerError.ConfigNotFound,
+        ConfigManager.ErrorCode.ConfigNotFound,
       );
     }
 
@@ -38,7 +39,7 @@ export default abstract class ConfigManager<Config> extends Manager {
         contentResult,
         scope,
         "Failed to load config.json",
-        ConfigManagerError.FailedToLoadConfiguration,
+        ConfigManager.ErrorCode.FailedToLoadConfiguration,
       );
     }
 
@@ -49,25 +50,52 @@ export default abstract class ConfigManager<Config> extends Manager {
       return R.Error(
         scope,
         "config.json is not a valid JSON",
-        ConfigManagerError.NotJson,
+        ConfigManager.ErrorCode.FailedToParseJson,
       );
     }
 
     const configResult = this.ConfigSchema.safeParse(content);
     if (!configResult.success) {
       return R.Stack(
-        R.Error(scope, configResult.error.message, ConfigManagerError.Generic),
+        R.Error(
+          scope,
+          configResult.error.message,
+          ConfigManager.ErrorCode.Generic,
+        ),
         scope,
         "Failed to parse config.json",
-        ConfigManagerError.FailedToParseConfiguration,
+        ConfigManager.ErrorCode.FailedToParseConfiguration,
       );
     }
 
     return R.Ok(configResult.data);
   }
 
-  async saveConfig(/* config: Config */): Promise<ResultVoid> {
-    // TODO.
-    return Promise.resolve(R.Void);
+  protected async saveConfig(config: Config): Promise<ResultVoid> {
+    const scope = this.scope("saveConfig");
+    const configPath = this.path("config.json");
+
+    let content: string;
+    try {
+      content = JSON.stringify(config);
+    } catch {
+      return R.Error(
+        scope,
+        "Configuration cannot be stringified",
+        ConfigManager.ErrorCode.FailedToStringifyJson,
+      );
+    }
+
+    const result = await this.fs.writeFile(configPath, content);
+    if (R.isError(result)) {
+      return R.Stack(
+        result,
+        scope,
+        "Failed to save config.json",
+        ConfigManager.ErrorCode.FailedToSaveConfiguration,
+      );
+    }
+
+    return R.Void;
   }
 }
