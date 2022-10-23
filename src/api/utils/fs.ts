@@ -13,18 +13,6 @@ export type FileInfo = {
   extension: string;
 };
 
-export enum FSError {
-  DirectoryAlreadyExists,
-  DirectoryNotFound,
-  FailedToUnzip,
-  FailedToZip,
-  FileAlreadyExists,
-  FileNotFound,
-  NotDirectory,
-  NotFile,
-  Generic,
-}
-
 export type CopyDirectoryOptions = { force: boolean };
 export type CopyFileOptions = { force: boolean };
 export type RenameDirectoryOptions = { force: boolean };
@@ -55,6 +43,20 @@ export const defaultZipDirectoryOptions: ZipDirectoryOptions = { force: false };
 export const defaultUnzipFileOptions: UnzipFileOptions = {
   force: false,
   collapseSingleDirectoryArchive: false,
+};
+
+export const FSErrorCode = {
+  DirectoryAlreadyExists: "FS.DirectoryAlreadyExists",
+  DirectoryNotFound: "FS.DirectoryNotFound",
+  FailedToReadFile: "FS.FailedToReadFile",
+  FailedToWriteFile: "FS.FailedToWriteFile",
+  FailedToUnzip: "FS.FailedToUnzip",
+  FailedToZip: "FS.FailedToZip",
+  FileAlreadyExists: "FS.FileAlreadyExists",
+  FileNotFound: "FS.FileNotFound",
+  NotDirectory: "FS.NotDirectory",
+  NotFile: "FS.NotFile",
+  Generic: "FS.Generic",
 };
 
 export type FS = {
@@ -96,6 +98,7 @@ export type FS = {
   isFile: (filePath: string) => Promise<boolean>;
 
   readFile: (filePath: string) => Promise<Result<string>>;
+  writeFile: (filePath: string, content: string) => Promise<ResultVoid>;
 
   getDirectoryInfo: (directoryPath: string) => Promise<Result<DirectoryInfo>>;
   getFileInfo: (filePath: string) => Promise<Result<FileInfo>>;
