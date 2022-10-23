@@ -1,5 +1,5 @@
 import Manager from "../../utils/manager";
-import { R, Result, ResultOk, ResultVoid } from "../../utils/result";
+import { R, Result, ResultVoid } from "../../utils/result";
 import SupportedTool, {
   SupportedToolName,
   SupportedTools,
@@ -35,16 +35,12 @@ export default class ToolManager extends Manager {
 
     const options = { force: false, ...partialOptions };
 
-    const results = await Promise.all(
-      SupportedTools.map((tool) =>
-        this.install(tool.name, {
-          force: options.force,
-          ignoreIfAlreadyInstalled: true,
-        }),
-      ),
-    );
+    for (const tool of SupportedTools) {
+      const result = await this.install(tool.name, {
+        force: options.force,
+        ignoreIfAlreadyInstalled: true,
+      });
 
-    for (const result of results) {
       if (R.isError(result)) {
         const message = "Failed to install all tools";
         return R.Stack(result, scope, message, ToolManagerError.Generic);
@@ -171,11 +167,11 @@ export default class ToolManager extends Manager {
   async listAll(): Promise<Result<ToolInfo[]>> {
     const scope = this.scope("listAll");
 
-    const toolInfoResults = await Promise.all(
-      SupportedTools.map((tool) => this.list(tool.name)),
-    );
+    const toolInfos: ToolInfo[] = [];
 
-    for (const toolInfoResult of toolInfoResults) {
+    for (const tool of SupportedTools) {
+      const toolInfoResult = await this.list(tool.name);
+
       if (R.isError(toolInfoResult)) {
         const message = "Failed to gather data for tool";
         return R.Stack(
@@ -185,13 +181,11 @@ export default class ToolManager extends Manager {
           ToolManagerError.Generic,
         );
       }
+
+      toolInfos.push(toolInfoResult.data);
     }
 
-    return R.Ok(
-      toolInfoResults.map(
-        (toolInfoResult) => (toolInfoResult as ResultOk<ToolInfo>).data,
-      ),
-    );
+    return R.Ok(toolInfos);
   }
 
   async list(toolName: SupportedToolName): Promise<Result<ToolInfo>> {
@@ -249,13 +243,11 @@ export default class ToolManager extends Manager {
   async uninstallAll(): Promise<ResultVoid> {
     const scope = this.scope("uninstallAll");
 
-    const results = await Promise.all(
-      SupportedTools.map((tool) =>
-        this.uninstall(tool.name, { ignoreIfNotInstalled: true }),
-      ),
-    );
+    for (const tool of SupportedTools) {
+      const result = await this.uninstall(tool.name, {
+        ignoreIfNotInstalled: true,
+      });
 
-    for (const result of results) {
       if (R.isError(result)) {
         const message = "Failed to uninstall all tools";
         return R.Stack(result, scope, message, ToolManagerError.Generic);
@@ -311,16 +303,12 @@ export default class ToolManager extends Manager {
   async updateAll(): Promise<ResultVoid> {
     const scope = this.scope("updateAll");
 
-    const results = await Promise.all(
-      SupportedTools.map((tool) =>
-        this.update(tool.name, {
-          ignoreIfNotInstalled: true,
-          ignoreIfUpToDate: true,
-        }),
-      ),
-    );
+    for (const tool of SupportedTools) {
+      const result = await this.update(tool.name, {
+        ignoreIfNotInstalled: true,
+        ignoreIfUpToDate: true,
+      });
 
-    for (const result of results) {
       if (R.isError(result)) {
         const message = "Failed to update all tools";
         return R.Stack(result, scope, message, ToolManagerError.Generic);
