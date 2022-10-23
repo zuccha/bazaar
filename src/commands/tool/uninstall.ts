@@ -7,9 +7,13 @@ import BaseCommand from "../../utils/base-command";
 export default class ToolUninstallCommand extends BaseCommand<
   typeof ToolUninstallCommand
 > {
-  static summary = "Uninstall a given tool.";
-  static description =
-    "Once uninstalled, you will have to re-install the tool to use related features.";
+  static summary = "Uninstall a given tool";
+  static description = `\
+Only tools that are already installed can be uninstalled. Trying to uninstall a
+non-installed tool will cause an error.
+
+Uninstalling a tool with Bazar will not cause any other installation made by\
+the user on the machine to be uninstalled.`;
 
   static examples = [];
 

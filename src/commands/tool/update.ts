@@ -7,10 +7,15 @@ import BaseCommand from "../../utils/base-command";
 export default class ToolUpdateCommand extends BaseCommand<
   typeof ToolUpdateCommand
 > {
-  static summary =
-    "Update a given tool to the last version supported by Bazar.";
-  static description =
-    "The new version of the tool will be downloaded by SMWCentral.";
+  static summary = "Update a given tool to the version supported by Bazar";
+  static description = `\
+The new version of the tool will be downloaded by SMWCentral.
+
+Only a tool with status deprecated can be updated. If a tool is not deprecated,\
+ the command will fail.
+
+Updating a tool will not cause any other version of the tool installed manually\
+ by the user on the same machine to be updated.`;
 
   static examples = [];
 

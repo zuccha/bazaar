@@ -5,9 +5,13 @@ import BaseCommand from "../../utils/base-command";
 export default class ToolUninstallAllCommand extends BaseCommand<
   typeof ToolUninstallAllCommand
 > {
-  static summary = "Uninstall all tools.";
-  static description =
-    "Once uninstalled, you will have to re-install tools to use related features.";
+  static summary = "Uninstall all tools";
+  static description = `\
+Only tools that are already installed can be uninstalled. Tools that are not\
+ installed will be ignored.
+
+Uninstalling tools with Bazar will not cause any other installation made by the\
+ user on the machine to be uninstalled.`;
 
   static examples = [];
 

@@ -5,18 +5,26 @@ import BaseCommand from "../../utils/base-command";
 export default class ToolInstallAllCommand extends BaseCommand<
   typeof ToolInstallAllCommand
 > {
-  static summary = "Install all tools required by Bazar.";
+  static summary = "Install all tools required by Bazar";
   static description = `\
 The tools will be downloaded by SMWCentral.
-If a tool is already installed, it will be skipped.`;
+
+By default, only a tool that is not installed can be installed. If the\
+ \`--force\` flag is given, the newest supported version of the tool will be\
+ installed regardless of its current installation status.
+
+The command will ignore already installed tools without if executed without the\
+ \`--force\` flag.
+
+Installing a tool will not interfere with any other manual installation of the\
+ tool made by the user on the same machine.`;
 
   static examples = [];
 
   static flags = {
     force: Flags.boolean({
       char: "f",
-      summary:
-        "Install all tools even if other versions are already installed.",
+      summary: "Install all tools even if other versions are already installed",
       description:
         "Force-installing a tool will remove other versions of the tool previously installed.",
       default: false,

@@ -7,11 +7,19 @@ import ToolListCommand from "./list";
 export default class ToolInstallCommand extends BaseCommand<
   typeof ToolListCommand
 > {
-  static summary = "Install a given tool.";
+  static summary = "Install a given tool";
   static description = `\
-The tool will be downloaded from SMWCentral.
-If the tool (even an old version) is already installed, this command will fail.\
- To circumvent this issue, use the \`--force\` flag.`;
+The tool will be downloaded by SMWCentral.
+
+By default, only a tool that is not installed can be installed. If the\
+ \`--force\` flag is given, the newest supported version of the tool will be\
+ installed regardless of its current installation status.
+
+The command will fail if trying to install an already installed tool without\
+ the \`--force\` flag.
+
+Installing a tool will not interfere with any other manual installation of the\
+ tool made by the user on the same machine.`;
 
   static examples = [];
 
@@ -27,7 +35,7 @@ If the tool (even an old version) is already installed, this command will fail.\
   static flags = {
     force: Flags.boolean({
       char: "f",
-      summary: "Install the tool even if another version is already installed.",
+      summary: "Install the tool even if another version is already installed",
       description:
         "Force-installing a tool will remove other versions of the tool previously installed.",
       default: false,

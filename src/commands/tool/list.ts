@@ -5,12 +5,12 @@ import { SupportedToolName } from "../../api/managers/tool-manager/supported-too
 import { ToolInfo } from "../../api/managers/tool-manager/types";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
-import TextEffect from "../../utils/text-effect";
+import TE from "../../utils/text-effect";
 
 export default class ToolListCommand extends BaseCommand<
   typeof ToolListCommand
 > {
-  static summary = "List tools and their installation status.";
+  static summary = "List tools and their installation status";
   static description = `\
 List tools and their installation status. Tools are programs required by Bazar\
  to perform specific tasks, and need to be of a precise version to ensure\
@@ -23,25 +23,26 @@ The installation of tools is completely handled by Bazar. Installing and\
  still use their preferred tools for hacking SMW without Bazar.
 
 A tool can be either not installed, installed, or deprecated:
-  not installed: The tool is not installed in Bazar, task that require the tool
-    cannot be performed.
-  installed: The correct version of the tool has been installed in Bazar. If the
-    version appears to be broken (doesn't work correctly), you can uninstall it\
-    and install it again (or force install it). For more, check\
-    \`bazar tool install --help\` and \`bazar tool uninstall --help\`.
-  deprecated: The wrong version of the tool has been installed in Bazar. This\
-    can happen if the user upgraded Bazar, and the new version requires a\
-    different version of a tool previously installed. To upgrade a tool, check\
-    \`bazar tool update --help\`.
+- ${TE.b("not-installed")}: The tool is not installed in Bazar, tasks that\
+ require the tool cannot be performed.
+- ${TE.b("installed")}: The correct version of the tool has been installed in\
+ Bazar. If the version appears to be broken (doesn't work correctly), you can\
+ uninstall it and install it again (or force install it). For more, check\
+ \`bazar tool install --help\` and \`bazar tool uninstall --help\`.
+- ${TE.b("deprecated")}: The wrong version of the tool has been installed in\
+ Bazar. This can happen if the user upgraded Bazar, and the new version\
+ requires a different version of a tool previously installed. To upgrade a\
+ tool, check \`bazar tool update --help\`.
 
 Tools used by Bazar:
-  AddmusicK: Used to insert music.
-  Asar: Used to apply patches.
-  Flips: Used to produce releases (BPS files).
-  GPS: Used to insert blocks.
-  Lunar Magic: Used to open the ROM hack, and extract graphics and levels.
-  PIXI: Used to insert sprites.
-  UberASM: Used to apply UberASM code.
+- ${TE.b("AddmusicK")}: Used to insert music.
+- ${TE.b("Asar")}: Used to apply patches.
+- ${TE.b("Flips")}: Used to produce releases (BPS files).
+- ${TE.b("GPS")}: Used to insert blocks.
+- ${TE.b("Lunar")} Magic: Used to open the ROM hack, and extract graphics and\
+ levels.
+- ${TE.b("PIXI")}: Used to insert sprites.
+- ${TE.b("UberASM")}: Used to apply UberASM code.
 
 The difference between tools and editors: tools need to be of specific versions\
  to ensure that they work correctly, while editors are user-chosen programs.\
@@ -97,9 +98,9 @@ The difference between tools and editors: tools need to be of specific versions\
         status: {
           get: (toolInfo) =>
             ({
-              "not-installed": TextEffect.failure("Not installed"),
-              installed: TextEffect.success("Installed"),
-              deprecated: TextEffect.warning("Deprecated"),
+              "not-installed": TE.failure("Not installed"),
+              installed: TE.success("Installed"),
+              deprecated: TE.warning("Deprecated"),
             }[toolInfo.status]),
         },
         supportedVersion: {
@@ -107,8 +108,7 @@ The difference between tools and editors: tools need to be of specific versions\
           header: "Version (supported)",
         },
         installedVersion: {
-          get: (toolInfo) =>
-            toolInfo.installedVersion || TextEffect.i("<none>"),
+          get: (toolInfo) => toolInfo.installedVersion || TE.i("<none>"),
           header: "Version (installed)",
         },
       },
