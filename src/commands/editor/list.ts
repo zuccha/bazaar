@@ -1,4 +1,3 @@
-// import ToolApi from "../../api/managers/tool-manager";
 import { CliUx } from "@oclif/core";
 import EditorManager from "../../api/managers/editor-manager";
 import { EditorInfo } from "../../api/managers/editor-manager/editor-info";
@@ -10,7 +9,7 @@ import TE from "../../utils/text-effect";
 export default class EditorListCommand extends BaseCommand<
   typeof EditorListCommand
 > {
-  static summary = "List editors and their paths.";
+  static summary = "List editors and their paths";
   static description = `\
 List editors used by the program. Editors are programs chosen by the user used\
  to open certain types of files.
@@ -30,6 +29,8 @@ Supported editors are:
 The difference between and editors and tools: editors are user-chosen programs,\
  while tools need to be of specific versions to ensure that they work correctly.\
  If you want to install tools instead, check out \`bazar tool --help\`.`;
+
+  static examples = ["bazar editor list", "bazar editor list emulator"];
 
   static args = [
     {
@@ -71,8 +72,8 @@ The difference between and editors and tools: editors are user-chosen programs,\
 
   logEditorInfos(editorInfos: EditorInfo[]): void {
     for (const editorInfo of editorInfos) {
-      this.log(editorInfo.editor.name);
-      this.log(`- Path: ${editorInfo.exePath}`);
+      this.log(TE.b(editorInfo.editor.name));
+      this.log(`- Path: ${editorInfo.exePath || TE.i("<not set>")}`);
       this.log(`- Args: ${editorInfo.exeArgs}`);
     }
   }
