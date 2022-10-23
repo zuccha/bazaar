@@ -331,6 +331,16 @@ const FSNode: FS = {
         return R.Error(scope, message, FSErrorCode.NotFile);
       }
 
+      const directoryPath = FSNode.getDirectoryPath(filePath);
+      const directoryPathExists = await FSNode.exists(directoryPath);
+      if (!directoryPathExists) {
+        const result = await FSNode.createDirectory(directoryPath);
+        if (R.isError(result)) {
+          const message = `Failed to create directory "${directoryPath}" for config.json`;
+          return R.Stack(result, scope, message, FSErrorCode.FailedToWriteFile);
+        }
+      }
+
       try {
         await NodeFS.writeFile(filePath, content);
       } catch {
