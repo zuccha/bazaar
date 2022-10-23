@@ -1,6 +1,9 @@
 import Manager from "../../utils/manager";
 import { R, Result, ResultOk, ResultVoid } from "../../utils/result";
-import SupportedTool, { SupportedToolName } from "./supported-tool";
+import SupportedTool, {
+  SupportedToolName,
+  SupportedTools,
+} from "./supported-tool";
 import { ToolInfo } from "./types";
 
 export enum ToolManagerError {
@@ -33,7 +36,7 @@ export default class ToolManager extends Manager {
     const options = { force: false, ...partialOptions };
 
     const results = await Promise.all(
-      Object.values(SupportedTool).map((tool) =>
+      SupportedTools.map((tool) =>
         this.install(tool.name, {
           force: options.force,
           ignoreIfAlreadyInstalled: true,
@@ -168,9 +171,8 @@ export default class ToolManager extends Manager {
   async listAll(): Promise<Result<ToolInfo[]>> {
     const scope = this.scope("listAll");
 
-    const tools = Object.values(SupportedTool);
     const toolInfoResults = await Promise.all(
-      tools.map((tool) => this.list(tool.name)),
+      SupportedTools.map((tool) => this.list(tool.name)),
     );
 
     for (const toolInfoResult of toolInfoResults) {
@@ -248,7 +250,7 @@ export default class ToolManager extends Manager {
     const scope = this.scope("uninstallAll");
 
     const results = await Promise.all(
-      Object.values(SupportedTool).map((tool) =>
+      SupportedTools.map((tool) =>
         this.uninstall(tool.name, { ignoreIfNotInstalled: true }),
       ),
     );
@@ -310,7 +312,7 @@ export default class ToolManager extends Manager {
     const scope = this.scope("updateAll");
 
     const results = await Promise.all(
-      Object.values(SupportedTool).map((tool) =>
+      SupportedTools.map((tool) =>
         this.update(tool.name, {
           ignoreIfNotInstalled: true,
           ignoreIfUpToDate: true,

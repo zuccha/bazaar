@@ -45,4 +45,6 @@ const SupportedTool = {
 
 export type SupportedToolName = keyof typeof SupportedTool;
 
+export const SupportedTools = Object.values(SupportedTool);
+
 export default SupportedTool;
