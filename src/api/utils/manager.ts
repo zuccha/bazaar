@@ -7,6 +7,7 @@ export type ManagerBag = {
 };
 
 export default abstract class Manager {
+  protected abstract id: string;
   protected abstract directoryName: string;
 
   protected cacheDirectoryPath: string;
@@ -19,7 +20,11 @@ export default abstract class Manager {
     this.log = log;
   }
 
-  protected get path(): string {
-    return this.fs.join(this.cacheDirectoryPath, this.directoryName);
+  protected path(...paths: string[]): string {
+    return this.fs.join(this.cacheDirectoryPath, this.directoryName, ...paths);
+  }
+
+  protected scope(functionName: string): string {
+    return `${this.id}.${functionName}`;
   }
 }

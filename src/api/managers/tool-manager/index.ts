@@ -18,6 +18,7 @@ export enum ToolManagerError {
 }
 
 export default class ToolManager extends Manager {
+  protected id = "tool";
   protected directoryName = "Tools";
 
   static ToolNames: SupportedToolName[] = Object.keys(
@@ -27,7 +28,7 @@ export default class ToolManager extends Manager {
   async installAll(
     partialOptions?: Partial<{ force: boolean }>,
   ): Promise<ResultVoid> {
-    const scope = "tool.installAll";
+    const scope = this.scope("installAll");
 
     const options = { force: false, ...partialOptions };
 
@@ -57,7 +58,7 @@ export default class ToolManager extends Manager {
       ignoreIfAlreadyInstalled: boolean;
     }>,
   ): Promise<ResultVoid> {
-    const scope = "tool.list.install";
+    const scope = this.scope("install");
     let result: ResultVoid;
 
     const options = {
@@ -67,7 +68,7 @@ export default class ToolManager extends Manager {
     };
 
     const tool = SupportedTool[toolName];
-    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+    const toolDirectoryPath = this.path(tool.name);
 
     this.log(`Checking if ${tool.displayName} is already installed...`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
@@ -165,7 +166,7 @@ export default class ToolManager extends Manager {
   }
 
   async listAll(): Promise<Result<ToolInfo[]>> {
-    const scope = "tool.listAll";
+    const scope = this.scope("listAll");
 
     const tools = Object.values(SupportedTool);
     const toolInfoResults = await Promise.all(
@@ -192,10 +193,10 @@ export default class ToolManager extends Manager {
   }
 
   async list(toolName: SupportedToolName): Promise<Result<ToolInfo>> {
-    const scope = "tool.list";
+    const scope = this.scope("list");
 
     const tool = SupportedTool[toolName];
-    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+    const toolDirectoryPath = this.path(tool.name);
 
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (!toolDirectoryPathExists) {
@@ -244,7 +245,7 @@ export default class ToolManager extends Manager {
   }
 
   async uninstallAll(): Promise<ResultVoid> {
-    const scope = "tool.uninstallAll";
+    const scope = this.scope("uninstallAll");
 
     const results = await Promise.all(
       Object.values(SupportedTool).map((tool) =>
@@ -268,12 +269,12 @@ export default class ToolManager extends Manager {
       ignoreIfNotInstalled: boolean;
     }>,
   ): Promise<ResultVoid> {
-    const scope = "tool.uninstall";
+    const scope = this.scope("uninstall");
 
     const options = { ignoreIfNotInstalled: false, ...partialOptions };
 
     const tool = SupportedTool[toolName];
-    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+    const toolDirectoryPath = this.path(tool.name);
 
     this.log(`Checking if ${tool.displayName} is installed...`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
@@ -306,7 +307,7 @@ export default class ToolManager extends Manager {
   }
 
   async updateAll(): Promise<ResultVoid> {
-    const scope = "tool.updateAll";
+    const scope = this.scope("updateAll");
 
     const results = await Promise.all(
       Object.values(SupportedTool).map((tool) =>
@@ -334,7 +335,7 @@ export default class ToolManager extends Manager {
       ignoreIfUpToDate: boolean;
     }>,
   ): Promise<ResultVoid> {
-    const scope = "tool.update";
+    const scope = this.scope("update");
 
     const options = {
       ignoreIfNotInstalled: false,
@@ -343,8 +344,7 @@ export default class ToolManager extends Manager {
     };
 
     const tool = SupportedTool[toolName];
-    const toolVersionDirectoryPath = this.fs.join(
-      this.path,
+    const toolVersionDirectoryPath = this.path(
       tool.name,
       tool.supportedVersion,
     );
@@ -368,7 +368,7 @@ export default class ToolManager extends Manager {
     this.log(`${tool.displayName} is not up to date`);
 
     this.log(`Checking if another ${tool.displayName} version is installed...`);
-    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+    const toolDirectoryPath = this.path(tool.name);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (!toolDirectoryPathExists && options.ignoreIfNotInstalled) {
       this.log(`Another ${tool.displayName} version is not installed`);
