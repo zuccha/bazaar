@@ -12,6 +12,7 @@ export enum ToolManagerError {
   FailedToRemoveMainDirectory,
   FailedToRemoveVersionDirectory,
   ToolAlreadyInstalled,
+  ToolIsUpToDate,
   ToolNotInstalled,
   Generic,
 }
@@ -247,9 +248,7 @@ export default class ToolManager extends Manager {
 
     const results = await Promise.all(
       Object.values(SupportedTool).map((tool) =>
-        this.uninstall(tool.name, {
-          ignoreIfNotInstalled: true,
-        }),
+        this.uninstall(tool.name, { ignoreIfNotInstalled: true }),
       ),
     );
 
@@ -302,6 +301,98 @@ export default class ToolManager extends Manager {
       );
     }
     this.log(`"${tool.name}" directory removed`);
+
+    return R.Void;
+  }
+
+  async updateAll(): Promise<ResultVoid> {
+    const scope = "tool.updateAll";
+
+    const results = await Promise.all(
+      Object.values(SupportedTool).map((tool) =>
+        this.update(tool.name, {
+          ignoreIfNotInstalled: true,
+          ignoreIfUpToDate: true,
+        }),
+      ),
+    );
+
+    for (const result of results) {
+      if (R.isError(result)) {
+        const message = "Failed to update all tools";
+        return R.Stack(result, scope, message, ToolManagerError.Generic);
+      }
+    }
+
+    return R.Void;
+  }
+
+  async update(
+    toolName: SupportedToolName,
+    partialOptions?: Partial<{
+      ignoreIfNotInstalled: boolean;
+      ignoreIfUpToDate: boolean;
+    }>,
+  ): Promise<ResultVoid> {
+    const scope = "tool.update";
+
+    const options = {
+      ignoreIfNotInstalled: false,
+      ignoreIfUpToDate: false,
+      ...partialOptions,
+    };
+
+    const tool = SupportedTool[toolName];
+    const toolVersionDirectoryPath = this.fs.join(
+      this.path,
+      tool.name,
+      tool.supportedVersion,
+    );
+
+    this.log(`Checking if ${tool.displayName} is up to date...`);
+    const toolVersionDirectoryPathExists = await this.fs.exists(
+      toolVersionDirectoryPath,
+    );
+    if (toolVersionDirectoryPathExists && options.ignoreIfUpToDate) {
+      this.log(`${tool.displayName} is up to date`);
+      return R.Void;
+    }
+
+    if (toolVersionDirectoryPathExists) {
+      return R.Error(
+        scope,
+        `${tool.displayName} is up to date`,
+        ToolManagerError.ToolIsUpToDate,
+      );
+    }
+    this.log(`${tool.displayName} is not up to date`);
+
+    this.log(`Checking if another ${tool.displayName} version is installed...`);
+    const toolDirectoryPath = this.fs.join(this.path, tool.name);
+    const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
+    if (!toolDirectoryPathExists && options.ignoreIfNotInstalled) {
+      this.log(`Another ${tool.displayName} version is not installed`);
+      return R.Void;
+    }
+
+    if (!toolDirectoryPathExists) {
+      return R.Error(
+        scope,
+        `${tool.displayName} is not installed`,
+        ToolManagerError.ToolNotInstalled,
+      );
+    }
+    this.log(`Another ${tool.displayName} version is installed`);
+
+    const result = await this.install(toolName, { force: true });
+    if (R.isError(result)) {
+      return R.Stack(
+        result,
+        scope,
+        `Failed to update ${tool.displayName}`,
+        ToolManagerError.Generic,
+      );
+    }
 
     return R.Void;
   }
