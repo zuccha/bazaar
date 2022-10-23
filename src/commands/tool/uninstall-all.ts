@@ -5,7 +5,7 @@ import BaseCommand from "../../utils/base-command";
 export default class ToolUninstallAllCommand extends BaseCommand<
   typeof ToolUninstallAllCommand
 > {
-  static summary = "Uninstall all tool.";
+  static summary = "Uninstall all tools.";
   static description =
     "Once uninstalled, you will have to re-install tools to use related features.";
 
