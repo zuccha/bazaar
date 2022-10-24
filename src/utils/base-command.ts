@@ -37,7 +37,10 @@ export default abstract class BaseCommand<
   public constructor(argv: string[], config: Config) {
     super(argv, config);
     this.api = new Api({
-      cacheDirectoryPath: this.config.cacheDir,
+      cacheDirectoryPath:
+        this.config.platform === "darwin"
+          ? `${process.env.HOME}/Library/Application Support/${config.dirname}`
+          : this.config.cacheDir,
       fs: FSNode,
       log: this.Log,
     });
