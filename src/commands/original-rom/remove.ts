@@ -1,12 +1,35 @@
-import { Command } from "@oclif/core";
+import { CliUx } from "@oclif/core";
+import OriginalRomManager from "../../api/managers/original-rom-manager";
+import { R } from "../../api/utils/result";
+import BaseCommand from "../../utils/base-command";
 
-export default class OriginalRomRemove extends Command {
-  static summary = "Remove the original, vanilla ROM of SMW.";
-  static description = "Bazar uses the original ROM to create BPS files.";
+export default class OriginalRomRemoveCommand extends BaseCommand<
+  typeof OriginalRomRemoveCommand
+> {
+  static summary = "Remove the copy of the original vanilla ROM of SMW";
+  static description = `\
+Removing the original ROM from Bazar will not remove the file used to add it.
 
-  static examples = [];
+Attempting to remove the original ROM if none was added will result in an\
+ error.`;
+
+  static examples = ["bazar original-rom remove"];
 
   async run(): Promise<void> {
-    this.log("Not implemented");
+    CliUx.ux.action.start("Removing original ROM...");
+    const result = await this.api.originalRom.remove();
+    if (R.isOk(result)) {
+      CliUx.ux.action.stop();
+      return;
+    }
+
+    if (result.code === OriginalRomManager.ErrorCode.OriginalRomNotFound) {
+      this.Warn("No original ROM was present");
+      CliUx.ux.action.stop("interrupted");
+      return;
+    }
+
+    const messages = R.messages(result, { verbose: true });
+    this.Error(`Failed to remove original ROM\n${messages}`, 1);
   }
 }
