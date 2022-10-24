@@ -197,7 +197,7 @@ export default class ToolManager extends Manager {
     this.log(`Checking if ${tool.displayName} directory exists...`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (!toolDirectoryPathExists) {
-      this.log(`${tool.displayName} directory exists does not exist`);
+      this.log(`${tool.displayName} directory does not exist`);
       return R.Ok({
         tool,
         status: "not-installed",
