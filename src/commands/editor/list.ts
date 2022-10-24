@@ -1,7 +1,7 @@
 import { CliUx } from "@oclif/core";
 import EditorManager from "../../api/managers/editor-manager";
 import { Editor } from "../../api/managers/editor-manager/editor";
-import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor-info";
+import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 import TE from "../../utils/text-effect";
@@ -72,7 +72,7 @@ The difference between and editors and tools: editors are user-chosen programs,\
 
   logEditors(editors: Editor[]): void {
     for (const editor of editors) {
-      this.log(TE.b(editor.info.name));
+      this.log(TE.b(editor.name));
       this.log(`- Path: ${editor.config.exePath || TE.i("<not set>")}`);
       this.log(`- Args: ${editor.config.exeArgs}`);
     }

@@ -7,13 +7,8 @@ export const EditorConfigSchema = z.object({
 
 export type EditorConfig = z.infer<typeof EditorConfigSchema>;
 
-export type EditorInfo = {
+export type Editor = {
   name: string;
   displayName: string;
-  defaultExeArgs: string;
-};
-
-export type Editor = {
-  info: EditorInfo;
   config: EditorConfig;
 };

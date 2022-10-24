@@ -1,12 +1,11 @@
 import ConfigManager from "../../utils/config-manager";
 import { R, Result, ResultVoid } from "../../utils/result";
-import SupportedEditorInfo, {
+import SupportedEditor, {
   SupportedEditorName,
-  SupportedEditorInfos,
-} from "./supported-editor-info";
+  SupportedEditors,
+} from "./supported-editor";
 import { Editor, EditorConfig } from "./editor";
 import {
-  defaultEditorManagerConfig,
   EditorManagerConfig,
   EditorManagerConfigSchema,
 } from "./editor-manager-config";
@@ -22,10 +21,13 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
   protected id = "editor";
   protected directoryName = "Editor";
   protected ConfigSchema = EditorManagerConfigSchema;
-  protected defaultConfig = defaultEditorManagerConfig;
+  protected defaultConfig = {
+    "code-editor": SupportedEditor["code-editor"].config,
+    emulator: SupportedEditor.emulator.config,
+  };
 
   static EditorNames: SupportedEditorName[] = Object.keys(
-    SupportedEditorInfo,
+    SupportedEditor,
   ) as SupportedEditorName[];
 
   async listAll(): Promise<Result<Editor[]>> {
@@ -37,9 +39,9 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
     this.log("Config loaded");
 
     const config = configResult.data;
-    const editors = SupportedEditorInfos.map((editorInfo) => ({
-      info: SupportedEditorInfo[editorInfo.name],
-      config: config[editorInfo.name],
+    const editors = SupportedEditors.map((editor) => ({
+      ...editor,
+      config: config[editor.name],
     }));
 
     return R.Ok(editors);
@@ -55,7 +57,7 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
 
     const config = configResult.data;
     const editor = {
-      info: SupportedEditorInfo[editorName],
+      ...SupportedEditor[editorName],
       config: config[editorName],
     };
 
@@ -64,14 +66,13 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
 
   async set(
     editorName: SupportedEditorName,
-    partialConfig: Partial<EditorConfig>,
+    partialEditorConfig: Partial<EditorConfig>,
   ): Promise<ResultVoid> {
     const scope = this.scope("set");
-    const editorInfo = SupportedEditorInfo[editorName];
 
     if (
-      partialConfig.exePath === undefined &&
-      partialConfig.exeArgs === undefined
+      partialEditorConfig.exePath === undefined &&
+      partialEditorConfig.exeArgs === undefined
     ) {
       const message = "There are no parameters to change";
       return R.Error(scope, message, EditorManager.ErrorCode.MissingParameters);
@@ -82,27 +83,28 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
     if (R.isError(configResult)) {
       return configResult;
     }
+
     const config = configResult.data;
     this.log("Config loaded");
 
-    if (partialConfig.exePath !== undefined) {
+    if (partialEditorConfig.exePath !== undefined) {
       this.log("Setting exe path...");
-      const exePathExists = await this.fs.exists(partialConfig.exePath);
-      if (!exePathExists && partialConfig.exePath !== "") {
-        const message = `The given executable "${partialConfig.exePath}" does not exist`;
+      const exePathExists = await this.fs.exists(partialEditorConfig.exePath);
+      if (!exePathExists && partialEditorConfig.exePath !== "") {
+        const message = `The given executable "${partialEditorConfig.exePath}" does not exist`;
         return R.Error(scope, message, EditorManager.ErrorCode.ExeFileNotFound);
       }
 
-      config[editorName].exePath = partialConfig.exePath;
+      config[editorName].exePath = partialEditorConfig.exePath;
       this.log(`exe path set to "${config[editorName].exePath}"`);
     }
 
-    if (partialConfig.exeArgs !== undefined) {
+    if (partialEditorConfig.exeArgs !== undefined) {
       this.log("Setting exe args...");
       config[editorName].exeArgs =
-        partialConfig.exeArgs === ""
-          ? editorInfo.defaultExeArgs
-          : partialConfig.exeArgs;
+        partialEditorConfig.exeArgs === ""
+          ? SupportedEditor[editorName].config.exeArgs
+          : partialEditorConfig.exeArgs;
       this.log(`exe args set to "${config[editorName].exeArgs}"`);
     }
 

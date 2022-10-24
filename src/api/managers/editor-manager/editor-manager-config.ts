@@ -7,14 +7,3 @@ export const EditorManagerConfigSchema = z.object({
 });
 
 export type EditorManagerConfig = z.infer<typeof EditorManagerConfigSchema>;
-
-export const defaultEditorManagerConfig: EditorManagerConfig = {
-  "code-editor": {
-    exePath: "",
-    exeArgs: "%1%",
-  },
-  emulator: {
-    exePath: "",
-    exeArgs: "%1%",
-  },
-};
