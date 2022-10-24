@@ -21,7 +21,10 @@ The command will fail if trying to install an already installed tool without\
 Installing a tool will not interfere with any other manual installation of the\
  tool made by the user on the same machine.`;
 
-  static examples = [];
+  static examples = [
+    "bazar tool install asar",
+    "bazar tool install lunar-magic --force",
+  ];
 
   static args = [
     {

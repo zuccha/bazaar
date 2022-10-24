@@ -48,6 +48,8 @@ The difference between tools and editors: tools need to be of specific versions\
  to ensure that they work correctly, while editors are user-chosen programs.\
  If you want to install tools instead, check out \`bazar editor --help\`.`;
 
+  static examples = ["bazar tool list", "bazar tool list uber-asm"];
+
   static args = [
     {
       name: "tool-name",

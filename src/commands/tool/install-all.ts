@@ -19,7 +19,10 @@ The command will ignore already installed tools without if executed without the\
 Installing a tool will not interfere with any other manual installation of the\
  tool made by the user on the same machine.`;
 
-  static examples = [];
+  static examples = [
+    "bazar tool install-all",
+    "bazar tool install-all --force",
+  ];
 
   static flags = {
     force: Flags.boolean({
