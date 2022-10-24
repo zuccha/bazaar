@@ -1,3 +1,3 @@
-export type OriginalRomInfo = {
+export type OriginalRom = {
   filePath: string | undefined;
 };

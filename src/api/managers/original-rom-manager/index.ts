@@ -1,6 +1,6 @@
 import Manager from "../../utils/manager";
 import { R, Result, ResultVoid } from "../../utils/result";
-import { OriginalRomInfo } from "./original-rom-info";
+import { OriginalRom } from "./original-rom";
 
 export default class OriginalRomManager extends Manager {
   static ErrorCode = {
@@ -67,7 +67,7 @@ export default class OriginalRomManager extends Manager {
     return R.Void;
   }
 
-  async list(): Promise<Result<OriginalRomInfo>> {
+  async list(): Promise<Result<OriginalRom>> {
     const originalRomPath = this.path(OriginalRomManager.OriginalRomFileName);
 
     this.log("Checking if original ROM exists...");
