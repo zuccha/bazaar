@@ -22,7 +22,6 @@ export enum ToolManagerError {
 
 export default class ToolManager extends Manager {
   protected id = "tool";
-  protected directoryName = "Tools";
 
   static ToolNames: SupportedToolName[] = Object.keys(
     SupportedTool,

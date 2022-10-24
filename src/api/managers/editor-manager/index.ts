@@ -19,7 +19,6 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
   };
 
   protected id = "editor";
-  protected directoryName = "Editor";
   protected ConfigSchema = EditorManagerConfigSchema;
   protected defaultConfig = {
     "code-editor": SupportedEditor["code-editor"].config,

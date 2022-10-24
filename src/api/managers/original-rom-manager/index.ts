@@ -12,7 +12,6 @@ export default class OriginalRomManager extends Manager {
   static OriginalRomFileName = "original-rom.sfc";
 
   protected id = "original-rom";
-  protected directoryName = "OriginalROM";
 
   async add(sourceOriginalRomPath: string): Promise<ResultVoid> {
     const scope = this.scope("add");

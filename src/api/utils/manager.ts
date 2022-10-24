@@ -1,27 +1,25 @@
 import { FS } from "./fs";
 
 export type ManagerBag = {
-  cacheDirectoryPath: string;
   fs: FS;
   log: (message: string) => void;
 };
 
 export default abstract class Manager {
   protected abstract id: string;
-  protected abstract directoryName: string;
 
-  protected cacheDirectoryPath: string;
+  protected directoryPath: string;
   protected fs: FS;
   protected log: (message: string) => void;
 
-  constructor({ cacheDirectoryPath, fs, log }: ManagerBag) {
-    this.cacheDirectoryPath = cacheDirectoryPath;
+  constructor(directoryPath: string, { fs, log }: ManagerBag) {
+    this.directoryPath = directoryPath;
     this.fs = fs;
     this.log = log;
   }
 
   protected path(...paths: string[]): string {
-    return this.fs.join(this.cacheDirectoryPath, this.directoryName, ...paths);
+    return this.fs.join(this.directoryPath, ...paths);
   }
 
   protected scope(functionName: string): string {
