@@ -4,7 +4,7 @@ import SupportedTool, {
   SupportedToolName,
   SupportedTools,
 } from "./supported-tool";
-import { ToolInfo } from "./types";
+import { Tool } from "./tool";
 
 export enum ToolManagerError {
   FailedToCreateMainDirectory,
@@ -164,31 +164,26 @@ export default class ToolManager extends Manager {
     return R.Void;
   }
 
-  async listAll(): Promise<Result<ToolInfo[]>> {
+  async listAll(): Promise<Result<Tool[]>> {
     const scope = this.scope("listAll");
 
-    const toolInfos: ToolInfo[] = [];
+    const tools: Tool[] = [];
 
     for (const tool of SupportedTools) {
-      const toolInfoResult = await this.list(tool.name);
+      const toolResult = await this.list(tool.name);
 
-      if (R.isError(toolInfoResult)) {
+      if (R.isError(toolResult)) {
         const message = "Failed to gather data for tool";
-        return R.Stack(
-          toolInfoResult,
-          scope,
-          message,
-          ToolManagerError.Generic,
-        );
+        return R.Stack(toolResult, scope, message, ToolManagerError.Generic);
       }
 
-      toolInfos.push(toolInfoResult.data);
+      tools.push(toolResult.data);
     }
 
-    return R.Ok(toolInfos);
+    return R.Ok(tools);
   }
 
-  async list(toolName: SupportedToolName): Promise<Result<ToolInfo>> {
+  async list(toolName: SupportedToolName): Promise<Result<Tool>> {
     const scope = this.scope("list");
 
     const tool = SupportedTool[toolName];
@@ -199,9 +194,9 @@ export default class ToolManager extends Manager {
     if (!toolDirectoryPathExists) {
       this.log(`${tool.displayName} directory does not exist`);
       return R.Ok({
-        tool,
-        status: "not-installed",
+        ...tool,
         installedVersion: undefined,
+        installationStatus: "not-installed",
       });
     }
     this.log(`${tool.displayName} directory exists`);
@@ -224,24 +219,24 @@ export default class ToolManager extends Manager {
     const { directoryNames } = toolDirectoryInfoResult.data;
     if (directoryNames.length === 0) {
       return R.Ok({
-        tool,
-        status: "not-installed",
+        ...tool,
         installedVersion: undefined,
+        installationStatus: "not-installed",
       });
     }
 
     if (directoryNames.includes(tool.supportedVersion)) {
       return R.Ok({
-        tool,
-        status: "installed",
+        ...tool,
         installedVersion: tool.supportedVersion,
+        installationStatus: "installed",
       });
     }
 
     return R.Ok({
-      tool,
-      status: "deprecated",
+      ...tool,
       installedVersion: directoryNames[0],
+      installationStatus: "deprecated",
     });
   }
 

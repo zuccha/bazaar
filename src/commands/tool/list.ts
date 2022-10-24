@@ -2,7 +2,7 @@
 import { CliUx } from "@oclif/core";
 import ToolManager from "../../api/managers/tool-manager";
 import { SupportedToolName } from "../../api/managers/tool-manager/supported-tool";
-import { ToolInfo } from "../../api/managers/tool-manager/types";
+import { Tool } from "../../api/managers/tool-manager/tool";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 import TE from "../../utils/text-effect";
@@ -68,49 +68,49 @@ The difference between tools and editors: tools need to be of specific versions\
     const toolName: SupportedToolName | undefined = args["tool-name"];
 
     if (toolName) {
-      const toolInfoResult = await this.api.tool.list(toolName);
-      if (R.isError(toolInfoResult)) {
-        const messages = R.messages(toolInfoResult, { verbose: true });
+      const toolResult = await this.api.tool.list(toolName);
+      if (R.isError(toolResult)) {
+        const messages = R.messages(toolResult, { verbose: true });
         this.Error(`Failed to list ${toolName}\n${messages}`, 1);
         return;
       }
 
-      this.logToolInfos([toolInfoResult.data]);
+      this.logTools([toolResult.data]);
     } else {
-      const toolInfosResult = await this.api.tool.listAll();
-      if (R.isError(toolInfosResult)) {
-        const messages = R.messages(toolInfosResult, { verbose: true });
+      const toolsResult = await this.api.tool.listAll();
+      if (R.isError(toolsResult)) {
+        const messages = R.messages(toolsResult, { verbose: true });
         this.Error(`Failed to list tools\n${messages}`, 1);
         return;
       }
 
-      this.logToolInfos(toolInfosResult.data);
+      this.logTools(toolsResult.data);
     }
   }
 
-  async logToolInfos(toolInfos: ToolInfo[]): Promise<void> {
+  async logTools(tools: Tool[]): Promise<void> {
     const { flags } = await this.parse(ToolListCommand);
 
     CliUx.ux.table(
-      toolInfos,
+      tools,
       {
         name: {
-          get: (toolInfo) => toolInfo.tool.displayName,
+          get: (tool) => tool.displayName,
         },
         status: {
-          get: (toolInfo) =>
+          get: (tool) =>
             ({
               "not-installed": TE.failure("Not installed"),
               installed: TE.success("Installed"),
               deprecated: TE.warning("Deprecated"),
-            }[toolInfo.status]),
+            }[tool.installationStatus]),
         },
         supportedVersion: {
-          get: (toolInfo) => toolInfo.tool.supportedVersion,
+          get: (tool) => tool.supportedVersion,
           header: "Version (supported)",
         },
         installedVersion: {
-          get: (toolInfo) => toolInfo.installedVersion || TE.i("<none>"),
+          get: (tool) => tool.installedVersion || TE.i("<none>"),
           header: "Version (installed)",
         },
       },
