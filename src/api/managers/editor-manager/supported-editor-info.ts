@@ -1,4 +1,4 @@
-const SupportedEditor = {
+const SupportedEditorInfo = {
   "code-editor": {
     name: "code-editor",
     displayName: "Code editor",
@@ -11,8 +11,8 @@ const SupportedEditor = {
   },
 } as const;
 
-export type SupportedEditorName = keyof typeof SupportedEditor;
+export default SupportedEditorInfo;
 
-export const SupportedEditors = Object.values(SupportedEditor);
+export const SupportedEditorInfos = Object.values(SupportedEditorInfo);
 
-export default SupportedEditor;
+export type SupportedEditorName = keyof typeof SupportedEditorInfo;

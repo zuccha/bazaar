@@ -1,9 +1,5 @@
 import { z } from "zod";
-
-const EditorConfigSchema = z.object({
-  exePath: z.string(),
-  exeArgs: z.string(),
-});
+import { EditorConfigSchema } from "./editor";
 
 export const EditorManagerConfigSchema = z.object({
   "code-editor": EditorConfigSchema,

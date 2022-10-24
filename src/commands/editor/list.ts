@@ -1,7 +1,7 @@
 import { CliUx } from "@oclif/core";
 import EditorManager from "../../api/managers/editor-manager";
-import { EditorInfo } from "../../api/managers/editor-manager/editor-info";
-import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor";
+import { Editor } from "../../api/managers/editor-manager/editor";
+import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor-info";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 import TE from "../../utils/text-effect";
@@ -50,31 +50,31 @@ The difference between and editors and tools: editors are user-chosen programs,\
     const editorName: SupportedEditorName | undefined = args["editor-name"];
 
     if (editorName) {
-      const editorInfoResult = await this.api.editor.list(editorName);
-      if (R.isError(editorInfoResult)) {
-        const messages = R.messages(editorInfoResult, { verbose: true });
+      const editorResult = await this.api.editor.list(editorName);
+      if (R.isError(editorResult)) {
+        const messages = R.messages(editorResult, { verbose: true });
         this.Error(`Failed to list ${editorName}\n${messages}`, 1);
         return;
       }
 
-      this.logEditorInfos([editorInfoResult.data]);
+      this.logEditors([editorResult.data]);
     } else {
-      const editorInfosResult = await this.api.editor.listAll();
-      if (R.isError(editorInfosResult)) {
-        const messages = R.messages(editorInfosResult, { verbose: true });
+      const editorsResult = await this.api.editor.listAll();
+      if (R.isError(editorsResult)) {
+        const messages = R.messages(editorsResult, { verbose: true });
         this.Error(`Failed to list editors\n${messages}`, 1);
         return;
       }
 
-      this.logEditorInfos(editorInfosResult.data);
+      this.logEditors(editorsResult.data);
     }
   }
 
-  logEditorInfos(editorInfos: EditorInfo[]): void {
-    for (const editorInfo of editorInfos) {
-      this.log(TE.b(editorInfo.editor.name));
-      this.log(`- Path: ${editorInfo.exePath || TE.i("<not set>")}`);
-      this.log(`- Args: ${editorInfo.exeArgs}`);
+  logEditors(editors: Editor[]): void {
+    for (const editor of editors) {
+      this.log(TE.b(editor.info.name));
+      this.log(`- Path: ${editor.config.exePath || TE.i("<not set>")}`);
+      this.log(`- Args: ${editor.config.exeArgs}`);
     }
   }
 }

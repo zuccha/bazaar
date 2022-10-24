@@ -1,10 +1,10 @@
 import ConfigManager from "../../utils/config-manager";
 import { R, Result, ResultVoid } from "../../utils/result";
-import SupportedEditor, {
+import SupportedEditorInfo, {
   SupportedEditorName,
-  SupportedEditors,
-} from "./supported-editor";
-import { EditorInfo } from "./editor-info";
+  SupportedEditorInfos,
+} from "./supported-editor-info";
+import { Editor, EditorConfig } from "./editor";
 import {
   defaultEditorManagerConfig,
   EditorManagerConfig,
@@ -25,10 +25,10 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
   protected defaultConfig = defaultEditorManagerConfig;
 
   static EditorNames: SupportedEditorName[] = Object.keys(
-    SupportedEditor,
+    SupportedEditorInfo,
   ) as SupportedEditorName[];
 
-  async listAll(): Promise<Result<EditorInfo[]>> {
+  async listAll(): Promise<Result<Editor[]>> {
     this.log("Loading config...");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
@@ -37,16 +37,15 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
     this.log("Config loaded");
 
     const config = configResult.data;
-    const editorInfos = SupportedEditors.map((editor) => ({
-      editor: SupportedEditor[editor.name],
-      exePath: config[editor.name].exePath,
-      exeArgs: config[editor.name].exeArgs,
+    const editors = SupportedEditorInfos.map((editorInfo) => ({
+      info: SupportedEditorInfo[editorInfo.name],
+      config: config[editorInfo.name],
     }));
 
-    return R.Ok(editorInfos);
+    return R.Ok(editors);
   }
 
-  async list(editorName: SupportedEditorName): Promise<Result<EditorInfo>> {
+  async list(editorName: SupportedEditorName): Promise<Result<Editor>> {
     this.log("Loading config...");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
@@ -55,26 +54,25 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
     this.log("Config loaded");
 
     const config = configResult.data;
-    const editorInfo = {
-      editor: SupportedEditor[editorName],
-      exePath: config[editorName].exePath,
-      exeArgs: config[editorName].exeArgs,
+    const editor = {
+      info: SupportedEditorInfo[editorName],
+      config: config[editorName],
     };
 
-    return R.Ok(editorInfo);
+    return R.Ok(editor);
   }
 
   async set(
     editorName: SupportedEditorName,
-    properties: {
-      exePath?: string;
-      exeArgs?: string;
-    },
+    partialConfig: Partial<EditorConfig>,
   ): Promise<ResultVoid> {
     const scope = this.scope("set");
-    const editor = SupportedEditor[editorName];
+    const editorInfo = SupportedEditorInfo[editorName];
 
-    if (properties.exePath === undefined && properties.exeArgs === undefined) {
+    if (
+      partialConfig.exePath === undefined &&
+      partialConfig.exeArgs === undefined
+    ) {
       const message = "There are no parameters to change";
       return R.Error(scope, message, EditorManager.ErrorCode.MissingParameters);
     }
@@ -87,22 +85,24 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
     const config = configResult.data;
     this.log("Config loaded");
 
-    if (properties.exePath !== undefined) {
+    if (partialConfig.exePath !== undefined) {
       this.log("Setting exe path...");
-      const exePathExists = await this.fs.exists(properties.exePath);
-      if (!exePathExists && properties.exePath !== "") {
-        const message = `The given executable "${properties.exePath}" does not exist`;
+      const exePathExists = await this.fs.exists(partialConfig.exePath);
+      if (!exePathExists && partialConfig.exePath !== "") {
+        const message = `The given executable "${partialConfig.exePath}" does not exist`;
         return R.Error(scope, message, EditorManager.ErrorCode.ExeFileNotFound);
       }
 
-      config[editorName].exePath = properties.exePath;
+      config[editorName].exePath = partialConfig.exePath;
       this.log(`exe path set to "${config[editorName].exePath}"`);
     }
 
-    if (properties.exeArgs !== undefined) {
+    if (partialConfig.exeArgs !== undefined) {
       this.log("Setting exe args...");
       config[editorName].exeArgs =
-        properties.exeArgs === "" ? editor.defaultExeArgs : properties.exeArgs;
+        partialConfig.exeArgs === ""
+          ? editorInfo.defaultExeArgs
+          : partialConfig.exeArgs;
       this.log(`exe args set to "${config[editorName].exeArgs}"`);
     }
 

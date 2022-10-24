@@ -1,7 +1,7 @@
 // import ToolApi from "../../api/managers/tool-manager";
 import { CliUx, Flags } from "@oclif/core";
 import EditorManager from "../../api/managers/editor-manager";
-import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor";
+import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor-info";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 import TE from "../../utils/text-effect";
