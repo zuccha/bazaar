@@ -21,6 +21,7 @@
     "padding-line-between-statements": "off",
     "quotes": "off",
     "semi": ["error", "always"],
-    "unicorn/no-array-for-each": "off"
+    "unicorn/no-array-for-each": "off",
+    "unicorn/no-useless-undefined": "off"
   }
 }
