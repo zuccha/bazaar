@@ -116,6 +116,18 @@ const FSNode: FS = {
         return R.Error(scope, message, FSErrorCode.FileAlreadyExists);
       }
 
+      const targetDirectoryPath = FSNode.getDirectoryPath(targetFilePath);
+      const targetDirectoryPathExists = await FSNode.exists(
+        targetDirectoryPath,
+      );
+      if (!targetDirectoryPathExists) {
+        const result = await FSNode.createDirectory(targetDirectoryPath);
+        if (R.isError(result)) {
+          const message = `Failed to create directory "${targetDirectoryPath}" while copying file`;
+          return R.Stack(result, scope, message, FSErrorCode.Generic);
+        }
+      }
+
       await NodeFS.copyFile(sourceFilePath, targetFilePath);
       return R.Void;
     } catch {
@@ -336,8 +348,8 @@ const FSNode: FS = {
       if (!directoryPathExists) {
         const result = await FSNode.createDirectory(directoryPath);
         if (R.isError(result)) {
-          const message = `Failed to create directory "${directoryPath}" for config.json`;
-          return R.Stack(result, scope, message, FSErrorCode.FailedToWriteFile);
+          const message = `Failed to create directory "${directoryPath}" while writing file`;
+          return R.Stack(result, scope, message, FSErrorCode.Generic);
         }
       }
 
