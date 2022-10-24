@@ -71,7 +71,7 @@ export default abstract class BaseCommand<
       return;
     }
 
-    this.log(message);
+    this.log(TE.dim(message));
   };
 
   protected Debug = async (message: string): Promise<void> => {
@@ -80,7 +80,7 @@ export default abstract class BaseCommand<
       return;
     }
 
-    this.log(TE.dim(`${TE.b("Debug:")} ${message}`));
+    this.log(`${TE.b("Debug:")} ${message}`);
   };
 
   protected Info = async (message: string): Promise<void> => {
@@ -89,7 +89,7 @@ export default abstract class BaseCommand<
       return;
     }
 
-    this.log(TE.info(`${TE.b("Info:")} ${message}`));
+    this.log(TE.info(message));
   };
 
   protected Warn = async (message: string): Promise<void> => {
@@ -98,7 +98,7 @@ export default abstract class BaseCommand<
       return;
     }
 
-    this.log(TE.warning(`${TE.b("Warn:")} ${message}`));
+    this.log(TE.warning(message));
   };
 
   protected Error = (
@@ -106,7 +106,7 @@ export default abstract class BaseCommand<
     exit: number,
     options: { suggestions?: string[]; ref?: string } = {},
   ): void => {
-    this.error(TE.failure.b(message), {
+    this.error(message, {
       exit,
       suggestions: options.suggestions,
       ref: options.ref,
