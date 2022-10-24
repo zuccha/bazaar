@@ -20,8 +20,10 @@ export default abstract class ConfigManager<Config> extends Manager {
     const scope = this.scope("loadConfig");
     const configPath = this.path("config.json");
 
+    this.log("Checking if config exists or a default config is present...");
     const configPathExists = await this.fs.exists(configPath);
     if (!configPathExists && this.defaultConfig) {
+      this.log("A default config is present");
       return R.Ok(this.defaultConfig);
     }
 
@@ -32,7 +34,9 @@ export default abstract class ConfigManager<Config> extends Manager {
         ConfigManager.ErrorCode.ConfigNotFound,
       );
     }
+    this.log("A config exists");
 
+    this.log("Reading config.json...");
     const contentResult = await this.fs.readFile(configPath);
     if (R.isError(contentResult)) {
       return R.Stack(
@@ -42,10 +46,13 @@ export default abstract class ConfigManager<Config> extends Manager {
         ConfigManager.ErrorCode.FailedToLoadConfiguration,
       );
     }
+    this.log("config.json read");
 
     let content: unknown;
     try {
+      this.log("Parsing config.json content...");
       content = JSON.parse(contentResult.data);
+      this.log("config.json content parsed");
     } catch {
       return R.Error(
         scope,
@@ -54,6 +61,7 @@ export default abstract class ConfigManager<Config> extends Manager {
       );
     }
 
+    this.log("Validating config.json content...");
     const configResult = this.ConfigSchema.safeParse(content);
     if (!configResult.success) {
       return R.Stack(
@@ -67,6 +75,7 @@ export default abstract class ConfigManager<Config> extends Manager {
         ConfigManager.ErrorCode.FailedToParseConfiguration,
       );
     }
+    this.log("config.json content validated");
 
     return R.Ok(configResult.data);
   }
@@ -77,7 +86,9 @@ export default abstract class ConfigManager<Config> extends Manager {
 
     let content: string;
     try {
+      this.log("Stringifying config...");
       content = JSON.stringify(config);
+      this.log("Config stringified...");
     } catch {
       return R.Error(
         scope,
@@ -86,6 +97,7 @@ export default abstract class ConfigManager<Config> extends Manager {
       );
     }
 
+    this.log("Writing config.json...");
     const result = await this.fs.writeFile(configPath, content);
     if (R.isError(result)) {
       return R.Stack(
@@ -95,6 +107,7 @@ export default abstract class ConfigManager<Config> extends Manager {
         ConfigManager.ErrorCode.FailedToSaveConfiguration,
       );
     }
+    this.log("config.json written");
 
     return R.Void;
   }

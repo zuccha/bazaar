@@ -29,10 +29,12 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
   ) as SupportedEditorName[];
 
   async listAll(): Promise<Result<EditorInfo[]>> {
+    this.log("Loading config...");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
       return configResult;
     }
+    this.log("Config loaded");
 
     const config = configResult.data;
     const editorInfos = SupportedEditors.map((editor) => ({
@@ -45,10 +47,12 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
   }
 
   async list(editorName: SupportedEditorName): Promise<Result<EditorInfo>> {
+    this.log("Loading config...");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
       return configResult;
     }
+    this.log("Config loaded");
 
     const config = configResult.data;
     const editorInfo = {
@@ -75,14 +79,16 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
       return R.Error(scope, message, EditorManager.ErrorCode.MissingParameters);
     }
 
+    this.log("Loading config...");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
       return configResult;
     }
-
     const config = configResult.data;
+    this.log("Config loaded");
 
     if (properties.exePath !== undefined) {
+      this.log("Setting exe path...");
       const exePathExists = await this.fs.exists(properties.exePath);
       if (!exePathExists && properties.exePath !== "") {
         const message = `The given executable "${properties.exePath}" does not exist`;
@@ -90,17 +96,22 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
       }
 
       config[editorName].exePath = properties.exePath;
+      this.log(`exe path set to "${config[editorName].exePath}"`);
     }
 
     if (properties.exeArgs !== undefined) {
+      this.log("Setting exe args...");
       config[editorName].exeArgs =
         properties.exeArgs === "" ? editor.defaultExeArgs : properties.exeArgs;
+      this.log(`exe args set to "${config[editorName].exeArgs}"`);
     }
 
+    this.log("Saving config...");
     const result = await this.saveConfig(config);
     if (R.isError(result)) {
       return result;
     }
+    this.log("Config saved");
 
     return R.Void;
   }

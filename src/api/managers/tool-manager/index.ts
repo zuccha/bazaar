@@ -194,15 +194,19 @@ export default class ToolManager extends Manager {
     const tool = SupportedTool[toolName];
     const toolDirectoryPath = this.path(tool.name);
 
+    this.log(`Checking if ${tool.displayName} directory exists...`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (!toolDirectoryPathExists) {
+      this.log(`${tool.displayName} directory exists does not exist`);
       return R.Ok({
         tool,
         status: "not-installed",
         installedVersion: undefined,
       });
     }
+    this.log(`${tool.displayName} directory exists`);
 
+    this.log(`Collecting ${tool.displayName} directory information...`);
     const toolDirectoryInfoResult = await this.fs.getDirectoryInfo(
       toolDirectoryPath,
     );
@@ -215,6 +219,7 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToReadToolDirectoryContent,
       );
     }
+    this.log(`${tool.displayName} directory information collected`);
 
     const { directoryNames } = toolDirectoryInfoResult.data;
     if (directoryNames.length === 0) {
