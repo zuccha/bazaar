@@ -13,7 +13,7 @@ Only tools that are already installed can be uninstalled. Tools that are not\
 Uninstalling tools with Bazar will not cause any other installation made by the\
  user on the machine to be uninstalled.`;
 
-  static examples = ["bazar tool uninstall-all"];
+  static examples = ["bazaar tool uninstall-all"];
 
   async run(): Promise<void> {
     CliUx.ux.action.start("Uninstalling tools");

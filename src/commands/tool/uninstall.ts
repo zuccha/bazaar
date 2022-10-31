@@ -15,7 +15,7 @@ non-installed tool will cause an error.
 Uninstalling a tool with Bazar will not cause any other installation made by\
 the user on the machine to be uninstalled.`;
 
-  static examples = ["bazar tool uninstall gps"];
+  static examples = ["bazaar tool uninstall gps"];
 
   static args = [
     {

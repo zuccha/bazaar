@@ -20,8 +20,8 @@ Installing a tool will not interfere with any other manual installation of the\
  tool made by the user on the same machine.`;
 
   static examples = [
-    "bazar tool install-all",
-    "bazar tool install-all --force",
+    "bazaar tool install-all",
+    "bazaar tool install-all --force",
   ];
 
   static flags = {

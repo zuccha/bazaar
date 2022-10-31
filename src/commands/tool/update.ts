@@ -17,7 +17,7 @@ Only a tool with status deprecated can be updated. If a tool is not deprecated,\
 Updating a tool will not cause any other version of the tool installed manually\
  by the user on the same machine to be updated.`;
 
-  static examples = ["bazar tool update addmusick"];
+  static examples = ["bazaar tool update addmusick"];
 
   static args = [
     {

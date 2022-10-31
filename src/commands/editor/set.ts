@@ -21,11 +21,11 @@ Supported editors are:
  Snes9x and RetroArch.`;
 
   static examples = [
-    'bazar editor emulator set --exe-path="~\\tools\\snes9x\\snes9x.exe"',
-    'bazar editor emulator set --exe-path=""',
-    'bazar editor emulator set --exe-args="--no-volume %1%"',
-    'bazar editor code-editor set --exe-path="C:\\Program Files\\Notepad++\\Notepad++.exe" --exe-args="--reuse-window %1%"',
-    'bazar editor code-editor set --exe-path="C:\\Program Files\\Notepad++\\Notepad++.exe" --exe-args=""',
+    'bazaar editor emulator set --exe-path="~\\tools\\snes9x\\snes9x.exe"',
+    'bazaar editor emulator set --exe-path=""',
+    'bazaar editor emulator set --exe-args="--no-volume %1%"',
+    'bazaar editor code-editor set --exe-path="C:\\Program Files\\Notepad++\\Notepad++.exe" --exe-args="--reuse-window %1%"',
+    'bazaar editor code-editor set --exe-path="C:\\Program Files\\Notepad++\\Notepad++.exe" --exe-args=""',
   ];
 
   static args = [

@@ -28,11 +28,11 @@ A tool can be either not installed, installed, or deprecated:
 - ${TE.b("installed")}: The correct version of the tool has been installed in\
  Bazar. If the version appears to be broken (doesn't work correctly), you can\
  uninstall it and install it again (or force install it). For more, check\
- \`bazar tool install --help\` and \`bazar tool uninstall --help\`.
+ \`bazaar tool install --help\` and \`bazaar tool uninstall --help\`.
 - ${TE.b("deprecated")}: The wrong version of the tool has been installed in\
  Bazar. This can happen if the user upgraded Bazar, and the new version\
  requires a different version of a tool previously installed. To upgrade a\
- tool, check \`bazar tool update --help\`.
+ tool, check \`bazaar tool update --help\`.
 
 Tools used by Bazar:
 - ${TE.b("AddmusicK")}: Used to insert music.
@@ -46,9 +46,9 @@ Tools used by Bazar:
 
 The difference between tools and editors: tools need to be of specific versions\
  to ensure that they work correctly, while editors are user-chosen programs.\
- If you want to install tools instead, check out \`bazar editor --help\`.`;
+ If you want to install tools instead, check out \`bazaar editor --help\`.`;
 
-  static examples = ["bazar tool list", "bazar tool list uber-asm"];
+  static examples = ["bazaar tool list", "bazaar tool list uber-asm"];
 
   static args = [
     {

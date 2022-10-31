@@ -1,15 +1,15 @@
 {
-  "name": "bazar-cli",
+  "name": "bazaar-cli",
   "version": "0.0.0",
   "description": "Command line tool for hacking Super Mario World",
   "author": "Amedeo Zucchetti @zuccha",
   "bin": {
-    "bazar-cli": "./bin/run"
+    "bazaar-cli": "./bin/run"
   },
-  "homepage": "https://github.com/zuccha/bazar-cli",
+  "homepage": "https://github.com/zuccha/bazaar-cli",
   "license": "MIT",
   "main": "dist/index.js",
-  "repository": "zuccha/bazar-cli",
+  "repository": "zuccha/bazaar-cli",
   "files": [
     "/bin",
     "/dist",
@@ -44,8 +44,8 @@
     "typescript": "^4.8.4"
   },
   "oclif": {
-    "bin": "bazar-cli",
-    "dirname": "bazar-cli",
+    "bin": "bazaar-cli",
+    "dirname": "bazaar-cli",
     "commands": "./dist/commands",
     "macos": {
       "identifier": "io.zuccha.baraz-cli"

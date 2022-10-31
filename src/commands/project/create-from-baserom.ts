@@ -14,8 +14,8 @@ The new project will be created in a new directory named after the project, in\
  the current directory.`;
 
   static examples = [
-    "bazar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc",
-    "bazar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc --path=..",
+    "bazaar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc",
+    "bazaar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc --path=..",
   ];
 
   static flags = {

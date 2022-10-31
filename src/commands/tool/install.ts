@@ -22,8 +22,8 @@ Installing a tool will not interfere with any other manual installation of the\
  tool made by the user on the same machine.`;
 
   static examples = [
-    "bazar tool install asar",
-    "bazar tool install lunar-magic --force",
+    "bazaar tool install asar",
+    "bazaar tool install lunar-magic --force",
   ];
 
   static args = [
@@ -62,7 +62,7 @@ Installing a tool will not interfere with any other manual installation of the\
     if (response.code === ToolManagerError.ToolAlreadyInstalled) {
       this.Warn(`${toolName} is already installed!`);
       this.Warn("Run with `--force` if you want to force the installation");
-      this.Warn(`  bazar tool install ${toolName} --force`);
+      this.Warn(`  bazaar tool install ${toolName} --force`);
       CliUx.ux.action.stop("interrupted");
       return;
     }

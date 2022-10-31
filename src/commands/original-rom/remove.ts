@@ -13,7 +13,7 @@ Removing the original ROM from Bazar will not remove the file used to add it.
 Attempting to remove the original ROM if none was added will result in an\
  error.`;
 
-  static examples = ["bazar original-rom remove"];
+  static examples = ["bazaar original-rom remove"];
 
   async run(): Promise<void> {
     CliUx.ux.action.start("Removing original ROM...");

@@ -21,7 +21,9 @@ Adding the original ROM a second time will overwrite any version previously\
 
 The command will fail if an invalid file is provided.`;
 
-  static examples = ['bazar original-rom add --path="~\\smw\\vanilla-smw.sfc"'];
+  static examples = [
+    'bazaar original-rom add --path="~\\smw\\vanilla-smw.sfc"',
+  ];
 
   static flags = {
     path: Flags.string({

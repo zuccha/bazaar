@@ -1,5 +1,4 @@
-oclif-hello-world
-=================
+# oclif-hello-world
 
 oclif example Hello World CLI
 
@@ -10,45 +9,53 @@ oclif example Hello World CLI
 [![License](https://img.shields.io/npm/l/oclif-hello-world.svg)](https://github.com/oclif/hello-world/blob/main/package.json)
 
 <!-- toc -->
-* [Usage](#usage)
-* [Commands](#commands)
+
+- [Usage](#usage)
+- [Commands](#commands)
 <!-- tocstop -->
+
 # Usage
+
 <!-- usage -->
+
 ```sh-session
-$ npm install -g bazar-cli
-$ bazar-cli COMMAND
+$ npm install -g bazaar-cli
+$ bazaar-cli COMMAND
 running command...
-$ bazar-cli (--version)
-bazar-cli/0.0.0 darwin-arm64 node-v18.0.0
-$ bazar-cli --help [COMMAND]
+$ bazaar-cli (--version)
+bazaar-cli/0.0.0 darwin-arm64 node-v18.0.0
+$ bazaar-cli --help [COMMAND]
 USAGE
-  $ bazar-cli COMMAND
+  $ bazaar-cli COMMAND
 ...
 ```
-<!-- usagestop -->
-# Commands
-<!-- commands -->
-* [`bazar-cli hello PERSON`](#bazar-cli-hello-person)
-* [`bazar-cli hello world`](#bazar-cli-hello-world)
-* [`bazar-cli help [COMMAND]`](#bazar-cli-help-command)
-* [`bazar-cli plugins`](#bazar-cli-plugins)
-* [`bazar-cli plugins:install PLUGIN...`](#bazar-cli-pluginsinstall-plugin)
-* [`bazar-cli plugins:inspect PLUGIN...`](#bazar-cli-pluginsinspect-plugin)
-* [`bazar-cli plugins:install PLUGIN...`](#bazar-cli-pluginsinstall-plugin-1)
-* [`bazar-cli plugins:link PLUGIN`](#bazar-cli-pluginslink-plugin)
-* [`bazar-cli plugins:uninstall PLUGIN...`](#bazar-cli-pluginsuninstall-plugin)
-* [`bazar-cli plugins:uninstall PLUGIN...`](#bazar-cli-pluginsuninstall-plugin-1)
-* [`bazar-cli plugins:uninstall PLUGIN...`](#bazar-cli-pluginsuninstall-plugin-2)
-* [`bazar-cli plugins update`](#bazar-cli-plugins-update)
 
-## `bazar-cli hello PERSON`
+<!-- usagestop -->
+
+# Commands
+
+<!-- commands -->
+
+- [`bazaar-cli hello PERSON`](#bazaar-cli-hello-person)
+- [`bazaar-cli hello world`](#bazaar-cli-hello-world)
+- [`bazaar-cli help [COMMAND]`](#bazaar-cli-help-command)
+- [`bazaar-cli plugins`](#bazaar-cli-plugins)
+- [`bazaar-cli plugins:install PLUGIN...`](#bazaar-cli-pluginsinstall-plugin)
+- [`bazaar-cli plugins:inspect PLUGIN...`](#bazaar-cli-pluginsinspect-plugin)
+- [`bazaar-cli plugins:install PLUGIN...`](#bazaar-cli-pluginsinstall-plugin-1)
+- [`bazaar-cli plugins:link PLUGIN`](#bazaar-cli-pluginslink-plugin)
+- [`bazaar-cli plugins:uninstall PLUGIN...`](#bazaar-cli-pluginsuninstall-plugin)
+- [`bazaar-cli plugins:uninstall PLUGIN...`](#bazaar-cli-pluginsuninstall-plugin-1)
+- [`bazaar-cli plugins:uninstall PLUGIN...`](#bazaar-cli-pluginsuninstall-plugin-2)
+- [`bazaar-cli plugins update`](#bazaar-cli-plugins-update)
+
+## `bazaar-cli hello PERSON`
 
 Say hello
 
 ```
 USAGE
-  $ bazar-cli hello [PERSON] -f <value>
+  $ bazaar-cli hello [PERSON] -f <value>
 
 ARGUMENTS
   PERSON  Person to say hello to
@@ -64,31 +71,31 @@ EXAMPLES
   hello friend from oclif! (./src/commands/hello/index.ts)
 ```
 
-_See code: [dist/commands/hello/index.ts](https://github.com/zuccha/bazar-cli/blob/v0.0.0/dist/commands/hello/index.ts)_
+_See code: [dist/commands/hello/index.ts](https://github.com/zuccha/bazaar-cli/blob/v0.0.0/dist/commands/hello/index.ts)_
 
-## `bazar-cli hello world`
+## `bazaar-cli hello world`
 
 Say hello world
 
 ```
 USAGE
-  $ bazar-cli hello world
+  $ bazaar-cli hello world
 
 DESCRIPTION
   Say hello world
 
 EXAMPLES
-  $ bazar-cli hello world
+  $ bazaar-cli hello world
   hello world! (./src/commands/hello/world.ts)
 ```
 
-## `bazar-cli help [COMMAND]`
+## `bazaar-cli help [COMMAND]`
 
-Display help for bazar-cli.
+Display help for bazaar-cli.
 
 ```
 USAGE
-  $ bazar-cli help [COMMAND] [-n]
+  $ bazaar-cli help [COMMAND] [-n]
 
 ARGUMENTS
   COMMAND  Command to show help for.
@@ -97,18 +104,18 @@ FLAGS
   -n, --nested-commands  Include all nested commands in the output.
 
 DESCRIPTION
-  Display help for bazar-cli.
+  Display help for bazaar-cli.
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.15/src/commands/help.ts)_
 
-## `bazar-cli plugins`
+## `bazaar-cli plugins`
 
 List installed plugins.
 
 ```
 USAGE
-  $ bazar-cli plugins [--core]
+  $ bazaar-cli plugins [--core]
 
 FLAGS
   --core  Show core plugins.
@@ -117,18 +124,18 @@ DESCRIPTION
   List installed plugins.
 
 EXAMPLES
-  $ bazar-cli plugins
+  $ bazaar-cli plugins
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.2/src/commands/plugins/index.ts)_
 
-## `bazar-cli plugins:install PLUGIN...`
+## `bazaar-cli plugins:install PLUGIN...`
 
 Installs a plugin into the CLI.
 
 ```
 USAGE
-  $ bazar-cli plugins:install PLUGIN...
+  $ bazaar-cli plugins:install PLUGIN...
 
 ARGUMENTS
   PLUGIN  Plugin to install.
@@ -150,23 +157,23 @@ DESCRIPTION
 
 
 ALIASES
-  $ bazar-cli plugins add
+  $ bazaar-cli plugins add
 
 EXAMPLES
-  $ bazar-cli plugins:install myplugin 
+  $ bazaar-cli plugins:install myplugin
 
-  $ bazar-cli plugins:install https://github.com/someuser/someplugin
+  $ bazaar-cli plugins:install https://github.com/someuser/someplugin
 
-  $ bazar-cli plugins:install someuser/someplugin
+  $ bazaar-cli plugins:install someuser/someplugin
 ```
 
-## `bazar-cli plugins:inspect PLUGIN...`
+## `bazaar-cli plugins:inspect PLUGIN...`
 
 Displays installation properties of a plugin.
 
 ```
 USAGE
-  $ bazar-cli plugins:inspect PLUGIN...
+  $ bazaar-cli plugins:inspect PLUGIN...
 
 ARGUMENTS
   PLUGIN  [default: .] Plugin to inspect.
@@ -179,16 +186,16 @@ DESCRIPTION
   Displays installation properties of a plugin.
 
 EXAMPLES
-  $ bazar-cli plugins:inspect myplugin
+  $ bazaar-cli plugins:inspect myplugin
 ```
 
-## `bazar-cli plugins:install PLUGIN...`
+## `bazaar-cli plugins:install PLUGIN...`
 
 Installs a plugin into the CLI.
 
 ```
 USAGE
-  $ bazar-cli plugins:install PLUGIN...
+  $ bazaar-cli plugins:install PLUGIN...
 
 ARGUMENTS
   PLUGIN  Plugin to install.
@@ -210,23 +217,23 @@ DESCRIPTION
 
 
 ALIASES
-  $ bazar-cli plugins add
+  $ bazaar-cli plugins add
 
 EXAMPLES
-  $ bazar-cli plugins:install myplugin 
+  $ bazaar-cli plugins:install myplugin
 
-  $ bazar-cli plugins:install https://github.com/someuser/someplugin
+  $ bazaar-cli plugins:install https://github.com/someuser/someplugin
 
-  $ bazar-cli plugins:install someuser/someplugin
+  $ bazaar-cli plugins:install someuser/someplugin
 ```
 
-## `bazar-cli plugins:link PLUGIN`
+## `bazaar-cli plugins:link PLUGIN`
 
 Links a plugin into the CLI for development.
 
 ```
 USAGE
-  $ bazar-cli plugins:link PLUGIN
+  $ bazaar-cli plugins:link PLUGIN
 
 ARGUMENTS
   PATH  [default: .] path to plugin
@@ -244,16 +251,16 @@ DESCRIPTION
 
 
 EXAMPLES
-  $ bazar-cli plugins:link myplugin
+  $ bazaar-cli plugins:link myplugin
 ```
 
-## `bazar-cli plugins:uninstall PLUGIN...`
+## `bazaar-cli plugins:uninstall PLUGIN...`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ bazar-cli plugins:uninstall PLUGIN...
+  $ bazaar-cli plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -266,17 +273,17 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ bazar-cli plugins unlink
-  $ bazar-cli plugins remove
+  $ bazaar-cli plugins unlink
+  $ bazaar-cli plugins remove
 ```
 
-## `bazar-cli plugins:uninstall PLUGIN...`
+## `bazaar-cli plugins:uninstall PLUGIN...`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ bazar-cli plugins:uninstall PLUGIN...
+  $ bazaar-cli plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -289,17 +296,17 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ bazar-cli plugins unlink
-  $ bazar-cli plugins remove
+  $ bazaar-cli plugins unlink
+  $ bazaar-cli plugins remove
 ```
 
-## `bazar-cli plugins:uninstall PLUGIN...`
+## `bazaar-cli plugins:uninstall PLUGIN...`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ bazar-cli plugins:uninstall PLUGIN...
+  $ bazaar-cli plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -312,17 +319,17 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ bazar-cli plugins unlink
-  $ bazar-cli plugins remove
+  $ bazaar-cli plugins unlink
+  $ bazaar-cli plugins remove
 ```
 
-## `bazar-cli plugins update`
+## `bazaar-cli plugins update`
 
 Update installed plugins.
 
 ```
 USAGE
-  $ bazar-cli plugins update [-h] [-v]
+  $ bazaar-cli plugins update [-h] [-v]
 
 FLAGS
   -h, --help     Show CLI help.
@@ -331,4 +338,5 @@ FLAGS
 DESCRIPTION
   Update installed plugins.
 ```
+
 <!-- commandsstop -->

@@ -12,7 +12,7 @@ The original ROM should be an unmodified ".sfc" file of vanilla Super Mario\
 
 The original ROM is used to generate BPS files.`;
 
-  static examples = ["bazar original-rom list"];
+  static examples = ["bazaar original-rom list"];
 
   async run(): Promise<void> {
     const originalRomResult = await this.api.originalRom.list();
