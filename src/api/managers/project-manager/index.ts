@@ -31,16 +31,18 @@ export default class ProjectManager extends ConfigManager<ProjectConfig> {
     const authors = params.authors ?? [];
     const version = params.version ?? "";
 
-    this.log("Checking a project with the given name already exists...");
+    this.logger.start("Checking if a project with same name already exists");
     if (await this.exists()) {
+      this.logger.failure();
       const message = `A project named "${this.name}" already exists (directory "${this.path}")`;
       return R.Error(scope, message, ProjectManager.ErrorCode.ProjectExists);
     }
-    this.log("A project with the given name does not exist");
+    this.logger.success();
 
-    this.log("Checking if the baserom file exists...");
+    this.logger.start("Checking if the baserom file exists");
     const baseromPathExists = await this.fs.exists(baseromPath);
     if (!baseromPathExists) {
+      this.logger.failure();
       const message = `The baserom file was not found`;
       return R.Error(
         scope,
@@ -48,44 +50,48 @@ export default class ProjectManager extends ConfigManager<ProjectConfig> {
         ProjectManager.ErrorCode.BaseromFileNotFound,
       );
     }
-    this.log("The baserom file exists");
+    this.logger.success();
 
-    this.log("Checking if the baserom file is valid...");
+    this.logger.start("Checking if the baserom file is valid");
     const baseromIsFile = await this.fs.isFile(baseromPath);
     if (!baseromIsFile) {
+      this.logger.failure();
       const message = `The baserom file is not actually a file`;
       return R.Error(scope, message, ProjectManager.ErrorCode.BaseromNotFile);
     }
-    this.log("The baserom file is valid...");
+    this.logger.success();
 
-    this.log("Creating project directory...");
+    this.logger.start("Creating project directory");
     result = await this.createDirectory();
     if (R.isError(result)) {
+      this.logger.failure();
       const message = "Failed to create project directory";
       return R.Stack(result, scope, message, ProjectManager.ErrorCode.Generic);
     }
-    this.log("Project directory created");
+    this.logger.success();
 
-    this.log("Copying baserom file...");
+    this.logger.start("Copying baserom file");
     result = await this.fs.copyFile(
       baseromPath,
       this.path(ProjectManager.BaseromName),
     );
     if (R.isError(result)) {
+      this.logger.failure();
       await this.removeDirectory();
       const message = "Failed to copy baserom file";
       return R.Stack(result, scope, message, ProjectManager.ErrorCode.Generic);
     }
-    this.log("Baserom file copied");
+    this.logger.success();
 
-    this.log("Saving metadata...");
+    this.logger.start("Saving metadata");
     result = await this.saveConfig({ authors, version });
     if (R.isError(result)) {
+      this.logger.failure();
       await this.removeDirectory();
       const message = "Failed to save metadata";
       return R.Stack(result, scope, message, ProjectManager.ErrorCode.Generic);
     }
-    this.log("Metadata saved");
+    this.logger.success();
 
     return Promise.resolve(R.Void);
   }

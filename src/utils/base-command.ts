@@ -1,4 +1,4 @@
-import { Command, Config, Flags, Interfaces } from "@oclif/core";
+import { CliUx, Command, Config, Flags, Interfaces } from "@oclif/core";
 import Api from "../api";
 import FSNode from "./fs-node";
 import TE from "./text-effect";
@@ -42,7 +42,14 @@ export default abstract class BaseCommand<
           ? `${process.env.HOME}/Library/Application Support/${config.dirname}`
           : this.config.cacheDir,
       fs: FSNode,
-      log: this.Log,
+      logger: {
+        log: this.Log,
+        start: this.LogStart,
+        done: this.LogDone,
+        success: this.LogSuccess,
+        failure: this.LogFailure,
+        stop: this.LogStop,
+      },
     });
   }
 
@@ -61,44 +68,61 @@ export default abstract class BaseCommand<
     return super.finally(_);
   }
 
-  protected Log = async (message: string): Promise<void> => {
-    if (!this.flags.verbose) {
-      return;
-    }
-
+  private get _isDebug(): boolean {
     const logLevel = this.flags["log-level"];
-    if (logLevel !== LogLevel.Debug && logLevel !== LogLevel.Info) {
-      return;
-    }
+    return logLevel === LogLevel.Debug;
+  }
 
-    this.log(TE.dim(message));
+  private get _isInfo(): boolean {
+    const logLevel = this.flags["log-level"];
+    return logLevel === LogLevel.Debug || logLevel === LogLevel.Info;
+  }
+
+  private get _isWarning(): boolean {
+    const logLevel = this.flags["log-level"];
+    return logLevel !== LogLevel.Error;
+  }
+
+  protected Log = (message: string): void => {
+    if (this.flags.verbose && this._isInfo) {
+      this.log(TE.dim(message));
+    }
   };
 
-  protected Debug = async (message: string): Promise<void> => {
-    const logLevel = this.flags["log-level"];
-    if (logLevel !== LogLevel.Debug) {
-      return;
+  protected LogStart = (message: string): void => {
+    if (this.flags.verbose && this._isInfo) {
+      CliUx.ux.action.start(TE.dim(message));
     }
-
-    this.log(`${TE.b("Debug:")} ${message}`);
   };
 
-  protected Info = async (message: string): Promise<void> => {
-    const logLevel = this.flags["log-level"];
-    if (logLevel !== LogLevel.Debug && logLevel !== LogLevel.Info) {
-      return;
+  protected LogDone = (message = "done"): void => {
+    if (this.flags.verbose && this._isInfo) {
+      CliUx.ux.action.stop(TE.dim(message));
     }
-
-    this.log(TE.info(message));
   };
 
-  protected Warn = async (message: string): Promise<void> => {
-    const logLevel = this.flags["log-level"];
-    if (logLevel === LogLevel.Error) {
-      return;
-    }
+  protected LogSuccess = (): void => this.LogDone("✓");
 
-    this.log(TE.warning(message));
+  protected LogFailure = (): void => this.LogDone("✗");
+
+  protected LogStop = (): void => this.LogDone("interrupted");
+
+  protected Debug = (message: string): void => {
+    if (this._isDebug) {
+      this.log(`${TE.b("Debug:")} ${message}`);
+    }
+  };
+
+  protected Info = (message: string): void => {
+    if (this._isInfo) {
+      this.log(TE.info(message));
+    }
+  };
+
+  protected Warn = (message: string): void => {
+    if (this._isWarning) {
+      this.log(TE.warning(message));
+    }
   };
 
   protected Error = (

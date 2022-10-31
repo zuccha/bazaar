@@ -30,12 +30,12 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
   ) as SupportedEditorName[];
 
   async listAll(): Promise<Result<Editor[]>> {
-    this.log("Loading config...");
+    this.logger.start("Loading config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
       return configResult;
     }
-    this.log("Config loaded");
+    this.logger.success();
 
     const config = configResult.data;
     const editors = SupportedEditors.map((editor) => ({
@@ -47,12 +47,13 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
   }
 
   async list(editorName: SupportedEditorName): Promise<Result<Editor>> {
-    this.log("Loading config...");
+    this.logger.start("Loading config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
+      this.logger.failure();
       return configResult;
     }
-    this.log("Config loaded");
+    this.logger.success();
 
     const config = configResult.data;
     const editor = {
@@ -77,42 +78,45 @@ export default class EditorManager extends ConfigManager<EditorManagerConfig> {
       return R.Error(scope, message, EditorManager.ErrorCode.MissingParameters);
     }
 
-    this.log("Loading config...");
+    this.logger.start("Loading config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
+      this.logger.failure();
       return configResult;
     }
 
     const config = configResult.data;
-    this.log("Config loaded");
+    this.logger.success();
 
     if (partialEditorConfig.exePath !== undefined) {
-      this.log("Setting exe path...");
+      this.logger.start("Setting exe path");
       const exePathExists = await this.fs.exists(partialEditorConfig.exePath);
       if (!exePathExists && partialEditorConfig.exePath !== "") {
+        this.logger.failure();
         const message = `The given executable "${partialEditorConfig.exePath}" does not exist`;
         return R.Error(scope, message, EditorManager.ErrorCode.ExeFileNotFound);
       }
 
       config[editorName].exePath = partialEditorConfig.exePath;
-      this.log(`exe path set to "${config[editorName].exePath}"`);
+      this.logger.success();
     }
 
     if (partialEditorConfig.exeArgs !== undefined) {
-      this.log("Setting exe args...");
+      this.logger.start("Setting exe args");
       config[editorName].exeArgs =
         partialEditorConfig.exeArgs === ""
           ? SupportedEditor[editorName].config.exeArgs
           : partialEditorConfig.exeArgs;
-      this.log(`exe args set to "${config[editorName].exeArgs}"`);
+      this.logger.success();
     }
 
-    this.log("Saving config...");
+    this.logger.start("Saving config");
     const result = await this.saveConfig(config);
     if (R.isError(result)) {
+      this.logger.failure();
       return result;
     }
-    this.log("Config saved");
+    this.logger.success();
 
     return R.Void;
   }

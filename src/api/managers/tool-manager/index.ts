@@ -68,27 +68,29 @@ export default class ToolManager extends Manager {
     const tool = SupportedTool[toolName];
     const toolDirectoryPath = this.path(tool.name);
 
-    this.log(`Checking if ${tool.displayName} is already installed...`);
+    this.logger.start(`Checking if ${tool.displayName} is already installed`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
-    if (options.ignoreIfAlreadyInstalled && toolDirectoryPathExists) {
-      this.log(`${tool.displayName} is already installed`);
-      return R.Void;
-    }
-
-    if (!options.force && toolDirectoryPathExists) {
-      return R.Error(
-        scope,
-        `${tool.displayName} is already installed`,
-        ToolManagerError.ToolAlreadyInstalled,
-      );
-    }
-
     if (toolDirectoryPathExists) {
-      this.log(
-        `${tool.displayName} already installed, removing other versions`,
-      );
+      if (options.ignoreIfAlreadyInstalled) {
+        this.logger.success();
+        return R.Void;
+      }
+
+      if (!options.force) {
+        this.logger.failure();
+        return R.Error(
+          scope,
+          `${tool.displayName} is already installed`,
+          ToolManagerError.ToolAlreadyInstalled,
+        );
+      }
+
+      this.logger.success();
+
+      this.logger.start("Removing old versions");
       result = await this.fs.removeDirectory(toolDirectoryPath);
       if (R.isError(result)) {
+        this.logger.failure();
         return R.Stack(
           result,
           scope,
@@ -96,13 +98,13 @@ export default class ToolManager extends Manager {
           ToolManagerError.FailedToRemoveMainDirectory,
         );
       }
-    } else {
-      this.log(`${tool.displayName} is not installed`);
+      this.logger.success();
     }
 
-    this.log(`Creating "${tool.name}" directory...`);
+    this.logger.start(`Creating "${tool.name}" directory`);
     result = await this.fs.createDirectory(toolDirectoryPath);
     if (R.isError(result)) {
+      this.logger.failure();
       return R.Stack(
         result,
         scope,
@@ -110,15 +112,16 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToCreateMainDirectory,
       );
     }
-    this.log(`"${tool.name}" directory created`);
+    this.logger.success();
 
-    this.log(`Downloading ${tool.displayName}...`);
+    this.logger.start(`Downloading ${tool.displayName}`);
     const toolZipFilePath = this.fs.join(
       toolDirectoryPath,
       `${tool.supportedVersion}.zip`,
     );
     result = await this.fs.downloadFile(toolZipFilePath, tool.downloadUrl);
     if (R.isError(result)) {
+      this.logger.failure();
       return R.Stack(
         result,
         scope,
@@ -126,9 +129,9 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToRemoveMainDirectory,
       );
     }
-    this.log(`${tool.displayName} downloaded`);
+    this.logger.success();
 
-    this.log(`Extracting ${tool.displayName} archive...`);
+    this.logger.start(`Extracting ${tool.displayName} archive`);
     const toolVersionDirectoryPath = this.fs.join(
       toolDirectoryPath,
       tool.supportedVersion,
@@ -139,6 +142,7 @@ export default class ToolManager extends Manager {
       { collapseSingleDirectoryArchive: true },
     );
     if (R.isError(result)) {
+      this.logger.failure();
       return R.Stack(
         result,
         scope,
@@ -146,11 +150,12 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToRemoveMainDirectory,
       );
     }
-    this.log(`${tool.displayName} archive extracted`);
+    this.logger.success();
 
-    this.log(`Removing ${tool.displayName} archive...`);
+    this.logger.start(`Removing ${tool.displayName} archive`);
     result = await this.fs.removeFile(toolZipFilePath);
     if (R.isError(result)) {
+      this.logger.failure();
       return R.Stack(
         result,
         scope,
@@ -158,7 +163,7 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToRemoveArchive,
       );
     }
-    this.log(`${tool.displayName} archive removed`);
+    this.logger.success();
 
     return R.Void;
   }
@@ -172,6 +177,7 @@ export default class ToolManager extends Manager {
       const toolResult = await this.list(tool.name);
 
       if (R.isError(toolResult)) {
+        this.logger.failure();
         const message = "Failed to gather data for tool";
         return R.Stack(toolResult, scope, message, ToolManagerError.Generic);
       }
@@ -188,23 +194,24 @@ export default class ToolManager extends Manager {
     const tool = SupportedTool[toolName];
     const toolDirectoryPath = this.path(tool.name);
 
-    this.log(`Checking if ${tool.displayName} directory exists...`);
+    this.logger.start(`Checking if ${tool.displayName} directory exists`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (!toolDirectoryPathExists) {
-      this.log(`${tool.displayName} directory does not exist`);
+      this.logger.failure();
       return R.Ok({
         ...tool,
         installedVersion: undefined,
         installationStatus: "not-installed",
       });
     }
-    this.log(`${tool.displayName} directory exists`);
+    this.logger.success();
 
-    this.log(`Collecting ${tool.displayName} directory information...`);
+    this.logger.start(`Collecting ${tool.displayName} directory information`);
     const toolDirectoryInfoResult = await this.fs.getDirectoryInfo(
       toolDirectoryPath,
     );
     if (R.isError(toolDirectoryInfoResult)) {
+      this.logger.failure();
       const message = "Failed to read directory content";
       return R.Stack(
         toolDirectoryInfoResult,
@@ -213,7 +220,7 @@ export default class ToolManager extends Manager {
         ToolManagerError.FailedToReadToolDirectoryContent,
       );
     }
-    this.log(`${tool.displayName} directory information collected`);
+    this.logger.success();
 
     const { directoryNames } = toolDirectoryInfoResult.data;
     if (directoryNames.length === 0) {
@@ -269,23 +276,24 @@ export default class ToolManager extends Manager {
     const tool = SupportedTool[toolName];
     const toolDirectoryPath = this.path(tool.name);
 
-    this.log(`Checking if ${tool.displayName} is installed...`);
+    this.logger.start(`Checking if ${tool.displayName} is installed`);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
     if (options.ignoreIfNotInstalled && !toolDirectoryPathExists) {
-      this.log(`${tool.displayName} not installed`);
+      this.logger.stop();
       return R.Void;
     }
 
     if (!toolDirectoryPathExists) {
+      this.logger.failure();
       return R.Error(
         scope,
         `${tool.displayName} is not installed`,
         ToolManagerError.ToolNotInstalled,
       );
     }
-    this.log(`${tool.displayName} is installed`);
+    this.logger.success();
 
-    this.log(`Removing "${tool.name}" directory...`);
+    this.logger.start(`Removing "${tool.name}" directory`);
     const result = await this.fs.removeDirectory(toolDirectoryPath);
     if (R.isError(result)) {
       return R.Error(
@@ -294,7 +302,7 @@ export default class ToolManager extends Manager {
         ToolManagerError.Generic,
       );
     }
-    this.log(`"${tool.name}" directory removed`);
+    this.logger.success();
 
     return R.Void;
   }
@@ -338,43 +346,46 @@ export default class ToolManager extends Manager {
       tool.supportedVersion,
     );
 
-    this.log(`Checking if ${tool.displayName} is up to date...`);
+    this.logger.start(`Checking if ${tool.displayName} is up to date`);
     const toolVersionDirectoryPathExists = await this.fs.exists(
       toolVersionDirectoryPath,
     );
-    if (toolVersionDirectoryPathExists && options.ignoreIfUpToDate) {
-      this.log(`${tool.displayName} is up to date`);
-      return R.Void;
-    }
-
     if (toolVersionDirectoryPathExists) {
+      if (options.ignoreIfUpToDate) {
+        this.logger.success();
+        return R.Void;
+      }
+      this.logger.failure();
       return R.Error(
         scope,
         `${tool.displayName} is up to date`,
         ToolManagerError.ToolIsUpToDate,
       );
     }
-    this.log(`${tool.displayName} is not up to date`);
+    this.logger.failure();
 
-    this.log(`Checking if another ${tool.displayName} version is installed...`);
+    this.logger.start(
+      `Checking if another ${tool.displayName} version is installed`,
+    );
     const toolDirectoryPath = this.path(tool.name);
     const toolDirectoryPathExists = await this.fs.exists(toolDirectoryPath);
-    if (!toolDirectoryPathExists && options.ignoreIfNotInstalled) {
-      this.log(`Another ${tool.displayName} version is not installed`);
-      return R.Void;
-    }
-
     if (!toolDirectoryPathExists) {
+      if (options.ignoreIfNotInstalled) {
+        this.logger.failure();
+        return R.Void;
+      }
+      this.logger.failure();
       return R.Error(
         scope,
         `${tool.displayName} is not installed`,
         ToolManagerError.ToolNotInstalled,
       );
     }
-    this.log(`Another ${tool.displayName} version is installed`);
+    this.logger.success();
 
     const result = await this.install(toolName, { force: true });
     if (R.isError(result)) {
+      this.logger.failure();
       return R.Stack(
         result,
         scope,

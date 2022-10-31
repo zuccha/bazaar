@@ -1,9 +1,10 @@
 import { FS } from "./fs";
+import { Logger } from "./logger";
 import { ResultVoid } from "./result";
 
 export type ManagerBag = {
   fs: FS;
-  log: (message: string) => void;
+  logger: Logger;
 };
 
 export default abstract class Manager {
@@ -11,12 +12,12 @@ export default abstract class Manager {
 
   protected directoryPath: string;
   protected fs: FS;
-  protected log: (message: string) => void;
+  protected logger: Logger;
 
-  constructor(directoryPath: string, { fs, log }: ManagerBag) {
+  constructor(directoryPath: string, { fs, logger }: ManagerBag) {
     this.directoryPath = directoryPath;
     this.fs = fs;
-    this.log = log;
+    this.logger = logger;
   }
 
   protected get name(): string {

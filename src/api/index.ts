@@ -3,10 +3,11 @@ import OriginalRomManager from "./managers/original-rom-manager";
 import ProjectManager from "./managers/project-manager";
 import ToolManager from "./managers/tool-manager";
 import { FS } from "./utils/fs";
+import { Logger } from "./utils/logger";
 
 export default class Api {
   readonly fs: FS;
-  readonly log: (message: string) => void;
+  readonly logger: Logger;
 
   readonly editor: EditorManager;
   readonly originalRom: OriginalRomManager;
@@ -15,16 +16,16 @@ export default class Api {
   constructor({
     cacheDirectoryPath,
     fs,
-    log,
+    logger,
   }: {
     cacheDirectoryPath: string;
     fs: FS;
-    log: (message: string) => void;
+    logger: Logger;
   }) {
-    const managerBag = { fs, log };
+    const managerBag = { fs, logger };
 
     this.fs = fs;
-    this.log = log;
+    this.logger = logger;
 
     this.editor = new EditorManager(
       fs.join(cacheDirectoryPath, "Editors"),
@@ -43,7 +44,7 @@ export default class Api {
   }
 
   project(name: string, path: string): ProjectManager {
-    const managerBag = { fs: this.fs, log: this.log };
+    const managerBag = { fs: this.fs, logger: this.logger };
     return new ProjectManager(this.fs.join(path, name), managerBag);
   }
 }
