@@ -12,7 +12,7 @@ export default class ToolUninstallCommand extends BaseCommand<
 Only tools that are already installed can be uninstalled. Trying to uninstall a
 non-installed tool will cause an error.
 
-Uninstalling a tool with Bazar will not cause any other installation made by\
+Uninstalling a tool with Bazaar will not cause any other installation made by\
 the user on the machine to be uninstalled.`;
 
   static examples = ["bazaar tool uninstall gps"];

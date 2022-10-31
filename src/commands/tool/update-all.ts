@@ -5,7 +5,7 @@ import BaseCommand from "../../utils/base-command";
 export default class ToolUpdateAllCommand extends BaseCommand<
   typeof ToolUpdateAllCommand
 > {
-  static summary = "Update all tools to their last version supported by Bazar";
+  static summary = "Update all tools to their last version supported by Bazaar";
   static description = `\
 The new versions of the tools will be downloaded by SMWCentral.
 

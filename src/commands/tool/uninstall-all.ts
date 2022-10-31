@@ -10,7 +10,7 @@ export default class ToolUninstallAllCommand extends BaseCommand<
 Only tools that are already installed can be uninstalled. Tools that are not\
  installed will be ignored.
 
-Uninstalling tools with Bazar will not cause any other installation made by the\
+Uninstalling tools with Bazaar will not cause any other installation made by the\
  user on the machine to be uninstalled.`;
 
   static examples = ["bazaar tool uninstall-all"];

@@ -5,7 +5,7 @@ import BaseCommand from "../../utils/base-command";
 export default class ToolInstallAllCommand extends BaseCommand<
   typeof ToolInstallAllCommand
 > {
-  static summary = "Install all tools required by Bazar";
+  static summary = "Install all tools required by Bazaar";
   static description = `\
 The tools will be downloaded by SMWCentral.
 

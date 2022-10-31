@@ -11,7 +11,7 @@ export default class OriginalRomAddCommand extends BaseCommand<
 The original ROM should be an unmodified ".sfc" file of vanilla Super Mario\
  World.
 
-The file provided will be copied and saved in Bazar's cache. This will ensure\
+The file provided will be copied and saved in Bazaar's cache. This will ensure\
  no accidental changes will be made to the original file.
 
 The original ROM is used to generate BPS files.

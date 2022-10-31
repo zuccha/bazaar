@@ -12,29 +12,29 @@ export default class ToolListCommand extends BaseCommand<
 > {
   static summary = "List tools and their installation status";
   static description = `\
-List tools and their installation status. Tools are programs required by Bazar\
+List tools and their installation status. Tools are programs required by Bazaar\
  to perform specific tasks, and need to be of a precise version to ensure\
  everything works correctly. For this reason, the user cannot choose to use a\
  custom version.
 
-The installation of tools is completely handled by Bazar. Installing and\
- uninstalling a tool with Bazar will not impact any other installation of the\
+The installation of tools is completely handled by Bazaar. Installing and\
+ uninstalling a tool with Bazaar will not impact any other installation of the\
  same tool done by the user on the same machine. This means that the user can\
- still use their preferred tools for hacking SMW without Bazar.
+ still use their preferred tools for hacking SMW without Bazaar.
 
 A tool can be either not installed, installed, or deprecated:
-- ${TE.b("not-installed")}: The tool is not installed in Bazar, tasks that\
+- ${TE.b("not-installed")}: The tool is not installed in Bazaar, tasks that\
  require the tool cannot be performed.
 - ${TE.b("installed")}: The correct version of the tool has been installed in\
- Bazar. If the version appears to be broken (doesn't work correctly), you can\
+ Bazaar. If the version appears to be broken (doesn't work correctly), you can\
  uninstall it and install it again (or force install it). For more, check\
  \`bazaar tool install --help\` and \`bazaar tool uninstall --help\`.
 - ${TE.b("deprecated")}: The wrong version of the tool has been installed in\
- Bazar. This can happen if the user upgraded Bazar, and the new version\
+ Bazaar. This can happen if the user upgraded Bazaar, and the new version\
  requires a different version of a tool previously installed. To upgrade a\
  tool, check \`bazaar tool update --help\`.
 
-Tools used by Bazar:
+Tools used by Bazaar:
 - ${TE.b("AddmusicK")}: Used to insert music.
 - ${TE.b("Asar")}: Used to apply patches.
 - ${TE.b("Flips")}: Used to produce releases (BPS files).

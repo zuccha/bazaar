@@ -111,7 +111,7 @@
         "description": "Manage UberASM code templates."
       },
       "tool": {
-        "description": "Manage tools that used by Bazar (e.g., Lunar Magic, Asar, ...)."
+        "description": "Manage required tools (e.g., Lunar Magic, Asar, ...)."
       }
     }
   },

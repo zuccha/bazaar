@@ -8,7 +8,7 @@ export default class OriginalRomRemoveCommand extends BaseCommand<
 > {
   static summary = "Remove the copy of the original vanilla ROM of SMW";
   static description = `\
-Removing the original ROM from Bazar will not remove the file used to add it.
+Removing the original ROM from Bazaar will not remove the file used to add it.
 
 Attempting to remove the original ROM if none was added will result in an\
  error.`;
