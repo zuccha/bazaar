@@ -16,9 +16,18 @@ export default abstract class ConfigManager<Config> extends Manager {
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
 
+  private get _configPath() {
+    return this.path("_config.json");
+  }
+
+  protected async hasConfig(): Promise<boolean> {
+    const configPath = this._configPath;
+    return this.fs.exists(configPath);
+  }
+
   protected async loadConfig(): Promise<Result<Config>> {
     const scope = this.scope("loadConfig");
-    const configPath = this.path("config.json");
+    const configPath = this._configPath;
 
     this.log("Checking if config exists or a default config is present...");
     const configPathExists = await this.fs.exists(configPath);
@@ -30,38 +39,38 @@ export default abstract class ConfigManager<Config> extends Manager {
     if (!configPathExists) {
       return R.Error(
         scope,
-        "config.json does not exist",
+        "_config.json does not exist",
         ConfigManager.ErrorCode.ConfigNotFound,
       );
     }
     this.log("A config exists");
 
-    this.log("Reading config.json...");
+    this.log("Reading _config.json...");
     const contentResult = await this.fs.readFile(configPath);
     if (R.isError(contentResult)) {
       return R.Stack(
         contentResult,
         scope,
-        "Failed to load config.json",
+        "Failed to load _config.json",
         ConfigManager.ErrorCode.FailedToLoadConfiguration,
       );
     }
-    this.log("config.json read");
+    this.log("_config.json read");
 
     let content: unknown;
     try {
-      this.log("Parsing config.json content...");
+      this.log("Parsing _config.json content...");
       content = JSON.parse(contentResult.data);
-      this.log("config.json content parsed");
+      this.log("_config.json content parsed");
     } catch {
       return R.Error(
         scope,
-        "config.json is not a valid JSON",
+        "_config.json is not a valid JSON",
         ConfigManager.ErrorCode.FailedToParseJson,
       );
     }
 
-    this.log("Validating config.json content...");
+    this.log("Validating _config.json content...");
     const configResult = this.ConfigSchema.safeParse(content);
     if (!configResult.success) {
       return R.Stack(
@@ -71,18 +80,18 @@ export default abstract class ConfigManager<Config> extends Manager {
           ConfigManager.ErrorCode.Generic,
         ),
         scope,
-        "Failed to parse config.json",
+        "Failed to parse _config.json",
         ConfigManager.ErrorCode.FailedToParseConfiguration,
       );
     }
-    this.log("config.json content validated");
+    this.log("_config.json content validated");
 
     return R.Ok(configResult.data);
   }
 
   protected async saveConfig(config: Config): Promise<ResultVoid> {
     const scope = this.scope("saveConfig");
-    const configPath = this.path("config.json");
+    const configPath = this._configPath;
 
     let content: string;
     try {
@@ -97,17 +106,17 @@ export default abstract class ConfigManager<Config> extends Manager {
       );
     }
 
-    this.log("Writing config.json...");
+    this.log("Writing _config.json...");
     const result = await this.fs.writeFile(configPath, content);
     if (R.isError(result)) {
       return R.Stack(
         result,
         scope,
-        "Failed to save config.json",
+        "Failed to save _config.json",
         ConfigManager.ErrorCode.FailedToSaveConfiguration,
       );
     }
-    this.log("config.json written");
+    this.log("_config.json written");
 
     return R.Void;
   }
