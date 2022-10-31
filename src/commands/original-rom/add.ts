@@ -1,4 +1,4 @@
-import { CliUx, Flags } from "@oclif/core";
+import { Flags } from "@oclif/core";
 import OriginalRomManager from "../../api/managers/original-rom-manager";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
@@ -36,25 +36,26 @@ The command will fail if an invalid file is provided.`;
   async run(): Promise<void> {
     const { flags } = await this.parse(OriginalRomAddCommand);
 
-    CliUx.ux.action.start("Adding original ROM...");
+    this.LogStart("Adding original ROM");
     const result = await this.api.originalRom.add(flags.path);
     if (R.isOk(result)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
     if (result.code === OriginalRomManager.ErrorCode.OriginalRomNotFound) {
+      this.LogFailure();
       this.Warn("The given file does not exist");
-      CliUx.ux.action.stop("interrupted");
       return;
     }
 
     if (result.code === OriginalRomManager.ErrorCode.OriginalRomNotValid) {
+      this.LogFailure();
       this.Warn("The given file is not actually a file");
-      CliUx.ux.action.stop("interrupted");
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to add original ROM\n${messages}`, 1);
   }

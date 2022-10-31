@@ -1,4 +1,3 @@
-import { CliUx } from "@oclif/core";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 
@@ -16,13 +15,14 @@ Uninstalling tools with Bazaar will not cause any other installation made by the
   static examples = ["bazaar tool uninstall-all"];
 
   async run(): Promise<void> {
-    CliUx.ux.action.start("Uninstalling tools");
+    this.LogStart("Uninstalling tools");
     const response = await this.api.tool.uninstallAll();
     if (R.isOk(response)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to uninstall tools\n${messages}`, 1);
   }

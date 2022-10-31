@@ -1,4 +1,3 @@
-import { CliUx } from "@oclif/core";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 
@@ -18,13 +17,14 @@ Updating a tool will not cause any other version of the tool installed manually\
   static examples = ["bazaar tool update-all"];
 
   async run(): Promise<void> {
-    CliUx.ux.action.start("Updating tools");
+    this.LogStart("Updating tools");
     const response = await this.api.tool.updateAll();
     if (R.isOk(response)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to update tools\n${messages}`, 1);
   }

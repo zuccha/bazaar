@@ -1,4 +1,3 @@
-// import ToolApi from "../../api/managers/tool-manager";
 import { CliUx } from "@oclif/core";
 import ToolManager from "../../api/managers/tool-manager";
 import { SupportedToolName } from "../../api/managers/tool-manager/supported-tool";

@@ -1,4 +1,4 @@
-import { CliUx, Flags } from "@oclif/core";
+import { Flags } from "@oclif/core";
 import ProjectManager from "../../api/managers/project-manager";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
@@ -55,7 +55,7 @@ The new project will be created in a new directory named after the project, in\
   async run(): Promise<void> {
     const { flags } = await this.parse(ProjectCreateFromBaseromCommand);
 
-    CliUx.ux.action.start(`Creating project ${flags.name}`);
+    this.LogStart(`Creating project ${flags.name}`);
     const project = this.api.project(flags.name, flags.path);
     const result = await project.createFromBaserom({
       baseromPath: flags.baserom,
@@ -64,28 +64,29 @@ The new project will be created in a new directory named after the project, in\
     });
 
     if (R.isOk(result)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
     if (result.code === ProjectManager.ErrorCode.BaseromFileNotFound) {
+      this.LogFailure();
       this.Warn("The given baserom was not found");
-      CliUx.ux.action.stop("interrupted");
       return;
     }
 
     if (result.code === ProjectManager.ErrorCode.BaseromNotFile) {
+      this.LogFailure();
       this.Warn("The given baserom is not a valid file");
-      CliUx.ux.action.stop("interrupted");
       return;
     }
 
     if (result.code === ProjectManager.ErrorCode.ProjectExists) {
+      this.LogFailure();
       this.Warn("A project with the chosen name already exists");
-      CliUx.ux.action.stop("interrupted");
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to create project\n${messages}`, 1);
   }

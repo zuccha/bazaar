@@ -1,5 +1,4 @@
-// import ToolApi from "../../api/managers/tool-manager";
-import { CliUx, Flags } from "@oclif/core";
+import { Flags } from "@oclif/core";
 import EditorManager from "../../api/managers/editor-manager";
 import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor";
 import { R } from "../../api/utils/result";
@@ -56,33 +55,34 @@ Supported editors are:
     const { args, flags } = await this.parse(EditorSetCommand);
     const editorName: SupportedEditorName = args["editor-name"];
 
-    CliUx.ux.action.start(`Setting ${editorName} parameters`);
+    this.LogStart(`Setting ${editorName} parameters`);
     const result = await this.api.editor.set(editorName, {
       exePath: flags["exe-path"],
       exeArgs: flags["exe-args"],
     });
 
     if (R.isOk(result)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
     if (result.code === EditorManager.ErrorCode.MissingParameters) {
-      this.Warn(
-        "No parameter was given, pass at least one of `--exe-path` or `--exe-args`",
-      );
-      CliUx.ux.action.stop("interrupted");
+      this.LogFailure();
+      const message =
+        "No parameter was given, pass at least one of `--exe-path` or `--exe-args`";
+      this.Warn(message);
       return;
     }
 
     if (result.code === EditorManager.ErrorCode.ExeFileNotFound) {
-      this.Warn(
-        "The given exe file does not exist, please provide a valid exe file",
-      );
-      CliUx.ux.action.stop("interrupted");
+      this.LogFailure();
+      const message =
+        "The given exe file does not exist, please provide a valid exe file";
+      this.Warn(message);
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to set ${editorName} properties\n${messages}`, 1);
   }

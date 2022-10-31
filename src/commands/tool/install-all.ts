@@ -1,4 +1,4 @@
-import { CliUx, Flags } from "@oclif/core";
+import { Flags } from "@oclif/core";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 
@@ -37,15 +37,16 @@ Installing a tool will not interfere with any other manual installation of the\
   async run(): Promise<void> {
     const { flags } = await this.parse(ToolInstallAllCommand);
 
-    CliUx.ux.action.start("Installing tools");
+    this.LogStart("Installing tools");
     const response = await this.api.tool.installAll({
       force: flags.force,
     });
     if (R.isOk(response)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to install tools\n${messages}`, 1);
   }

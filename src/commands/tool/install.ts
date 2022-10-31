@@ -1,4 +1,4 @@
-import { CliUx, Flags } from "@oclif/core";
+import { Flags } from "@oclif/core";
 import ToolManager, { ToolManagerError } from "../../api/managers/tool-manager";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
@@ -50,23 +50,24 @@ Installing a tool will not interfere with any other manual installation of the\
 
     const toolName = args["tool-name"];
 
-    CliUx.ux.action.start(`Installing ${toolName}`);
+    this.LogStart(`Installing ${toolName}`);
     const response = await this.api.tool.install(toolName, {
       force: flags.force,
     });
     if (R.isOk(response)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
     if (response.code === ToolManagerError.ToolAlreadyInstalled) {
+      this.LogFailure();
       this.Warn(`${toolName} is already installed!`);
       this.Warn("Run with `--force` if you want to force the installation");
       this.Warn(`  bazaar tool install ${toolName} --force`);
-      CliUx.ux.action.stop("interrupted");
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to install ${toolName}\n${messages}`, 1);
   }

@@ -1,4 +1,3 @@
-import { CliUx } from "@oclif/core";
 import OriginalRomManager from "../../api/managers/original-rom-manager";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
@@ -16,19 +15,20 @@ Attempting to remove the original ROM if none was added will result in an\
   static examples = ["bazaar original-rom remove"];
 
   async run(): Promise<void> {
-    CliUx.ux.action.start("Removing original ROM...");
+    this.LogStart("Removing original ROM...");
     const result = await this.api.originalRom.remove();
     if (R.isOk(result)) {
-      CliUx.ux.action.stop();
+      this.LogSuccess();
       return;
     }
 
     if (result.code === OriginalRomManager.ErrorCode.OriginalRomNotFound) {
+      this.LogFailure();
       this.Warn("No original ROM was present");
-      CliUx.ux.action.stop("interrupted");
       return;
     }
 
+    this.LogFailure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to remove original ROM\n${messages}`, 1);
   }
