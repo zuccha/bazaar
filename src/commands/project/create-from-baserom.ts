@@ -16,6 +16,8 @@ The new project will be created in a new directory named after the project, in\
   static examples = [
     "bazaar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc",
     "bazaar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc --path=..",
+    "bazaar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc --author=zuccha --author=john.doe",
+    "bazaar project create-from-baserom --name=test-hack --baserom=~\\vanilla-smw.smc --author=zuccha --version=0.1.0",
   ];
 
   static flags = {
@@ -30,6 +32,17 @@ The new project will be created in a new directory named after the project, in\
       description:
         "The name will be used to create a directory inside the chosen <path>.",
       required: true,
+    }),
+    author: Flags.string({
+      summary: "Author of the hack",
+      description: "You can specify authors several times.",
+      multiple: true,
+      required: false,
+    }),
+    version: Flags.string({
+      summary: "Initial version of the project",
+      description: "There is no restriction on what the version can be.",
+      required: false,
     }),
     path: Flags.string({
       summary: "Directory where the project will be created",
@@ -46,6 +59,8 @@ The new project will be created in a new directory named after the project, in\
     const project = this.api.project(flags.name, flags.path);
     const result = await project.createFromBaserom({
       baseromPath: flags.baserom,
+      authors: flags.author,
+      version: flags.version,
     });
 
     if (R.isOk(result)) {
