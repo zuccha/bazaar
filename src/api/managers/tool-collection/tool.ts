@@ -1,5 +1,5 @@
-import DirectoryManager from "../../utils/directory-manager";
 import { R, Result, ResultVoid } from "../../utils/result";
+import DirectoryManager from "../directory-manager";
 
 export type ToolInfo = {
   name: string;

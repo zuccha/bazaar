@@ -1,14 +1,14 @@
-import EditorCollection from "../managers/editor-collection";
-import ToolCollection from "../managers/tool-collection";
-import ConfigManager from "./config-manager";
+import Configurable from "./configurable";
 import { ManagerBag } from "./directory-manager";
+import EditorCollection from "./editor-collection";
+import ToolCollection from "./tool-collection";
 
 export type ResourceBag = {
   editors: EditorCollection;
   tools: ToolCollection;
 };
 
-export default abstract class Resource<Config> extends ConfigManager<Config> {
+export default abstract class Resource<Config> extends Configurable<Config> {
   protected editors: EditorCollection;
   protected tools: ToolCollection;
 

@@ -1,5 +1,5 @@
-import DirectoryManager, { ManagerBag } from "../../utils/directory-manager";
 import { R, Result } from "../../utils/result";
+import DirectoryManager, { ManagerBag } from "../directory-manager";
 import Editor, { EditorInfo } from "./editor";
 import CodeEditor from "./editors/code-editor";
 import Emulator from "./editors/emulator";

@@ -1,4 +1,4 @@
-import Resource from "../../utils/resource";
+import Resource from "../resource";
 import { R, ResultVoid } from "../../utils/result";
 import { ProjectConfig, ProjectConfigSchema } from "./project-config";
 

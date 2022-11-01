@@ -1,8 +1,8 @@
 import { z } from "zod";
 import DirectoryManager from "./directory-manager";
-import { R, Result, ResultVoid } from "./result";
+import { R, Result, ResultVoid } from "../utils/result";
 
-export default abstract class ConfigManager<Config> extends DirectoryManager {
+export default abstract class Configurable<Config> extends DirectoryManager {
   static ErrorCode = {
     ConfigNotFound: "ConfigManager.ConfigNotFound",
     FailedToLoadConfiguration: "ConfigManager.FailedToLoadConfiguration",
@@ -46,7 +46,7 @@ export default abstract class ConfigManager<Config> extends DirectoryManager {
       return R.Error(
         scope,
         `${this.configName} does not exist`,
-        ConfigManager.ErrorCode.ConfigNotFound,
+        Configurable.ErrorCode.ConfigNotFound,
       );
     }
 
@@ -60,7 +60,7 @@ export default abstract class ConfigManager<Config> extends DirectoryManager {
         contentResult,
         scope,
         `Failed to load ${this.configName}`,
-        ConfigManager.ErrorCode.FailedToLoadConfiguration,
+        Configurable.ErrorCode.FailedToLoadConfiguration,
       );
     }
     this.logger.success();
@@ -75,7 +75,7 @@ export default abstract class ConfigManager<Config> extends DirectoryManager {
       return R.Error(
         scope,
         `${this.configName} is not a valid JSON`,
-        ConfigManager.ErrorCode.FailedToParseJson,
+        Configurable.ErrorCode.FailedToParseJson,
       );
     }
 
@@ -87,11 +87,11 @@ export default abstract class ConfigManager<Config> extends DirectoryManager {
         R.Error(
           scope,
           configResult.error.message,
-          ConfigManager.ErrorCode.Generic,
+          Configurable.ErrorCode.Generic,
         ),
         scope,
         `Failed to parse ${this.configName}`,
-        ConfigManager.ErrorCode.FailedToParseConfiguration,
+        Configurable.ErrorCode.FailedToParseConfiguration,
       );
     }
     this.logger.success();
@@ -113,7 +113,7 @@ export default abstract class ConfigManager<Config> extends DirectoryManager {
       return R.Error(
         scope,
         "Configuration cannot be stringified",
-        ConfigManager.ErrorCode.FailedToStringifyJson,
+        Configurable.ErrorCode.FailedToStringifyJson,
       );
     }
 
@@ -125,7 +125,7 @@ export default abstract class ConfigManager<Config> extends DirectoryManager {
         result,
         scope,
         `Failed to save ${this.configName}`,
-        ConfigManager.ErrorCode.FailedToSaveConfiguration,
+        Configurable.ErrorCode.FailedToSaveConfiguration,
       );
     }
     this.logger.success();

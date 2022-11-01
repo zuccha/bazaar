@@ -1,6 +1,6 @@
-import { DirectoryInfo, FS } from "./fs";
-import { Logger } from "./logger";
-import { Result, ResultVoid } from "./result";
+import { DirectoryInfo, FS } from "../utils/fs";
+import { Logger } from "../utils/logger";
+import { Result, ResultVoid } from "../utils/result";
 
 export type ManagerBag = {
   fs: FS;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import ConfigManager from "../../utils/config-manager";
+import Configurable from "../configurable";
 import { ShellOutput } from "../../utils/fs";
 import { R, Result, ResultVoid } from "../../utils/result";
 
@@ -17,7 +17,7 @@ export type EditorInfo = {
 };
 
 const ErrorCode = {
-  ...ConfigManager.ErrorCode,
+  ...Configurable.ErrorCode,
   ExeNotFound: "Editor.ExeNotFound",
   ExeNotSet: "Editor.ExeNotSet",
   ExeNotValid: "Editor.ExeNotValid",
@@ -26,7 +26,7 @@ const ErrorCode = {
   Generic: "Editor.Generic",
 };
 
-export default abstract class Editor extends ConfigManager<EditorConfig> {
+export default abstract class Editor extends Configurable<EditorConfig> {
   static ErrorCode = ErrorCode;
 
   protected ConfigSchema = EditorConfigSchema;
