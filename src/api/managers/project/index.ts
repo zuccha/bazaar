@@ -113,7 +113,7 @@ export default class Project extends Resource<ProjectConfig> {
   }
 
   async openLunarMagic(): Promise<ResultVoid> {
-    return Promise.resolve(R.Void);
+    return this.tools.LunarMagic.open(this._baseromPath);
   }
 
   async saveAsTemplate(): Promise<ResultVoid> {

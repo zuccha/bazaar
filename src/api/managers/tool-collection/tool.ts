@@ -1,3 +1,4 @@
+import { ShellOutput } from "../../utils/fs";
 import { R, Result, ResultVoid } from "../../utils/result";
 import DirectoryManager from "../directory-manager";
 
@@ -9,6 +10,7 @@ export type ToolInfo = {
 };
 
 const ErrorCode = {
+  ExecutionFailed: "Tool.ExecutionFailed",
   FailedToCreateMainDirectory: "Tool.FailedToCreateMainDirectory",
   FailedToCreateVersionDirectory: "Tool.FailedToCreateVersionDirectory",
   FailedToExtractArchive: "Tool.FailedToExtractArchive",
@@ -18,6 +20,7 @@ const ErrorCode = {
   FailedToRemoveVersionDirectory: "Tool.FailedToRemoveVersionDirectory",
   ToolAlreadyInstalled: "Tool.ToolAlreadyInstalled",
   ToolIsUpToDate: "Tool.ToolIsUpToDate",
+  ToolIsNotUpToDate: "Tool.ToolIsNotUpToDate",
   ToolNotInstalled: "Tool.ToolNotInstalled",
   Generic: "Tool.Generic",
 };
@@ -29,6 +32,35 @@ export default abstract class Tool extends DirectoryManager {
   protected abstract exeName: string;
   protected abstract downloadUrl: string;
   protected abstract supportedVersion: string;
+
+  protected async exec(...args: string[]): Promise<Result<ShellOutput>> {
+    const scope = this.scope("exec");
+
+    const infoResult = await this.list();
+    if (R.isError(infoResult)) {
+      return infoResult;
+    }
+
+    const info = infoResult.data;
+    if (info.installationStatus !== "installed" || !info.installedVersion) {
+      const message = `${info.name} is not up to date`;
+      return R.Error(scope, message, ErrorCode.ToolIsNotUpToDate);
+    }
+
+    const exePath = this.path(info.installedVersion, this.exeName);
+    const command = `"${exePath}" ${args.map((arg) => `"${arg}"`).join(" ")}`;
+
+    this.logger.start(`Executing command \`${command}\``);
+    const execResult = await this.fs.exec(command);
+    if (R.isError(execResult)) {
+      this.logger.failure();
+      const message = `Failed to execute command \`${command}\``;
+      return R.Stack(execResult, scope, message, ErrorCode.ExecutionFailed);
+    }
+    this.logger.success();
+
+    return R.Ok(execResult.data);
+  }
 
   async list(): Promise<Result<ToolInfo>> {
     const scope = this.scope("list");
