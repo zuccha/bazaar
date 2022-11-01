@@ -1,5 +1,4 @@
-import { Logger } from "../../utils/logger";
-import { ManagerBag } from "../../utils/manager";
+import Manager, { ManagerBag } from "../../utils/manager";
 import { R, Result, ResultVoid } from "../../utils/result";
 import Tool, { ToolInfo } from "./tool";
 import AddmusicK from "./tools/addmusick";
@@ -14,10 +13,10 @@ const ErrorCode = {
   Generic: "ToolCollection.Generic",
 };
 
-export default class ToolCollection {
+export default class ToolCollection extends Manager {
   static ErrorCode = ErrorCode;
 
-  private _logger: Logger;
+  protected id = "tool-collection";
 
   readonly AddmusicK: AddmusicK;
   readonly Asar: Asar;
@@ -30,17 +29,22 @@ export default class ToolCollection {
   private readonly _tools: Tool[];
 
   constructor(directoryPath: string, bag: ManagerBag) {
-    const fs = bag.fs;
-    this._logger = bag.logger;
+    super(directoryPath, bag);
 
-    this.AddmusicK = new AddmusicK(fs.join(directoryPath, "AddmusicK"), bag);
-    this.Asar = new Asar(fs.join(directoryPath, "Asar"), bag);
-    this.Flips = new Flips(fs.join(directoryPath, "Flips"), bag);
-    this.GPS = new GPS(fs.join(directoryPath, "GPS"), bag);
-    this.LunarMagic = new LunarMagic(fs.join(directoryPath, "LunarMagic"), bag);
-    this.PIXI = new PIXI(fs.join(directoryPath, "PIXI"), bag);
+    this.AddmusicK = new AddmusicK(
+      this.fs.join(directoryPath, "AddmusicK"),
+      bag,
+    );
+    this.Asar = new Asar(this.fs.join(directoryPath, "Asar"), bag);
+    this.Flips = new Flips(this.fs.join(directoryPath, "Flips"), bag);
+    this.GPS = new GPS(this.fs.join(directoryPath, "GPS"), bag);
+    this.LunarMagic = new LunarMagic(
+      this.fs.join(directoryPath, "LunarMagic"),
+      bag,
+    );
+    this.PIXI = new PIXI(this.fs.join(directoryPath, "PIXI"), bag);
     this.UberASMTool = new UberASMTool(
-      fs.join(directoryPath, "UberASMTool"),
+      this.fs.join(directoryPath, "UberASMTool"),
       bag,
     );
 
@@ -55,10 +59,6 @@ export default class ToolCollection {
     ];
   }
 
-  protected scope(functionName: string): string {
-    return `ToolCollection.${functionName}`;
-  }
-
   async listAll(): Promise<Result<ToolInfo[]>> {
     const scope = this.scope("listAll");
 
@@ -68,7 +68,6 @@ export default class ToolCollection {
       const toolResult = await tool.list();
 
       if (R.isError(toolResult)) {
-        this._logger.failure();
         const message = "Failed to gather data for tool";
         return R.Stack(toolResult, scope, message, ErrorCode.Generic);
       }
