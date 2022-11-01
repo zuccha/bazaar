@@ -1,6 +1,13 @@
+import { z } from "zod";
 import Resource from "../resource";
 import { R, ResultVoid } from "../../utils/result";
-import { ProjectConfig, ProjectConfigSchema } from "./project-config";
+
+export const ProjectConfigSchema = z.object({
+  authors: z.array(z.string()),
+  version: z.string(),
+});
+
+export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 
 export default class Project extends Resource<ProjectConfig> {
   static ErrorCode = {
@@ -11,12 +18,16 @@ export default class Project extends Resource<ProjectConfig> {
     ProjectNotFound: "ProjectManager.ProjectNotFound",
   };
 
-  static BaseromName = "baserom.smc";
+  protected id = "Project";
 
   protected ConfigSchema = ProjectConfigSchema;
   protected defaultConfig = undefined;
 
-  protected id = "project";
+  private _baseromName = "baserom.smc";
+
+  private get _baseromPath(): string {
+    return this.path(this._baseromName);
+  }
 
   async createFromBaserom(params: {
     baseromPath: string;
@@ -67,10 +78,7 @@ export default class Project extends Resource<ProjectConfig> {
     this.logger.success();
 
     this.logger.start("Copying baserom file");
-    result = await this.fs.copyFile(
-      baseromPath,
-      this.path(Project.BaseromName),
-    );
+    result = await this.fs.copyFile(baseromPath, this._baseromPath);
     if (R.isError(result)) {
       this.logger.failure();
       await this.removeDirectory();
@@ -98,6 +106,10 @@ export default class Project extends Resource<ProjectConfig> {
 
   async openCodeEditor(): Promise<ResultVoid> {
     return this.editors.CodeEditor.open(this.path());
+  }
+
+  async openEmulator(): Promise<ResultVoid> {
+    return this.editors.Emulator.open(this._baseromPath);
   }
 
   async openLunarMagic(): Promise<ResultVoid> {
