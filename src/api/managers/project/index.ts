@@ -97,7 +97,7 @@ export default class Project extends Resource<ProjectConfig> {
   }
 
   async openCodeEditor(): Promise<ResultVoid> {
-    return Promise.resolve(R.Void);
+    return this.editors.CodeEditor.open(this.path());
   }
 
   async openLunarMagic(): Promise<ResultVoid> {

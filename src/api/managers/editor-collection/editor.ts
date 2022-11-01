@@ -1,5 +1,6 @@
 import { z } from "zod";
 import ConfigManager from "../../utils/config-manager";
+import { ShellOutput } from "../../utils/fs";
 import { R, Result, ResultVoid } from "../../utils/result";
 
 export const EditorConfigSchema = z.object({
@@ -18,6 +19,9 @@ export type EditorInfo = {
 const ErrorCode = {
   ...ConfigManager.ErrorCode,
   ExeNotFound: "Editor.ExeNotFound",
+  ExeNotSet: "Editor.ExeNotSet",
+  ExeNotValid: "Editor.ExeNotValid",
+  ExecutionFailed: "Editor.ExecutionFailed",
   MissingParameters: "Editor.MissingParameters",
   Generic: "Editor.Generic",
 };
@@ -29,6 +33,49 @@ export default abstract class Editor extends ConfigManager<EditorConfig> {
   protected defaultConfig = { exePath: "", exeArgs: "%1" };
 
   protected abstract displayName: string;
+
+  protected async exec(...args: string[]): Promise<Result<ShellOutput>> {
+    const scope = this.scope("exec");
+
+    const infoResult = await this.list();
+    if (R.isError(infoResult)) {
+      return infoResult;
+    }
+
+    const info = infoResult.data;
+    if (!info.exePath) {
+      const message = "No executable set";
+      return R.Error(scope, message, ErrorCode.ExeNotSet);
+    }
+
+    const exePathExists = await this.fs.exists(info.exePath);
+    if (!exePathExists) {
+      const message = "The executable was not found";
+      return R.Error(scope, message, ErrorCode.ExeNotFound);
+    }
+
+    const exePathIsValid = await this.fs.exists(info.exePath);
+    if (!exePathIsValid) {
+      const message = "The executable is not a file";
+      return R.Error(scope, message, ErrorCode.ExeNotValid);
+    }
+
+    let command = `${info.exePath} ${info.exeArgs}`;
+    for (const [i, arg] of args.entries()) {
+      command = command.replace(new RegExp(`%${i + 1}`, "g"), arg);
+    }
+
+    this.logger.start(`Executing command \`${command}\``);
+    const execResult = await this.fs.exec(command);
+    if (R.isError(execResult)) {
+      this.logger.failure();
+      const message = "There are no parameters to change";
+      return R.Stack(execResult, scope, message, ErrorCode.ExecutionFailed);
+    }
+    this.logger.success();
+
+    return R.Ok(execResult.data);
+  }
 
   async list(): Promise<Result<EditorInfo>> {
     const configResult = await this.loadConfig();
