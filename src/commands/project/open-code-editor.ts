@@ -1,15 +1,76 @@
-import { Command } from "@oclif/core";
+import { Flags } from "@oclif/core";
+import CodeEditor from "../../api/managers/editor-collection/editors/code-editor";
+import { R } from "../../api/utils/result";
+import BaseCommand from "../../utils/base-command";
 
-export default class ProjectOpenCodeEditor extends Command {
-  static summary = "Open the project in the code editor tool.";
+export default class ProjectOpenCodeEditorCommand extends BaseCommand<
+  typeof ProjectOpenCodeEditorCommand
+> {
+  static summary = "Open the project in the code editor";
   static description = `\
-Open the root directory in the code editor set via the 'tool' command.
-Bazaar will open the project running \`/path/to/code/editor .\`.
+Open the root directory in the code editor.
+
 If no code editor is set, this command will fail.`;
 
-  static examples = [];
+  static examples = [
+    "bazaar project open-code-editor",
+    "bazaar project open-code-editor --path=C:\\Users\\me\\Documents\\MyProject",
+  ];
+
+  static flags = {
+    path: Flags.string({
+      summary: "Project directory",
+      description: "By default it will be the current working directory.",
+      default: ".",
+      required: false,
+    }),
+  };
 
   async run(): Promise<void> {
-    this.log("Not implemented");
+    const { flags } = await this.parse(ProjectOpenCodeEditorCommand);
+
+    this.LogStart(`Opening project in code editor`);
+    const project = this.api.project(flags.path);
+    const result = await project.openCodeEditor();
+
+    if (R.isOk(result)) {
+      this.LogSuccess();
+      return;
+    }
+
+    if (result.code === CodeEditor.ErrorCode.PathNotFound) {
+      this.LogFailure();
+      const message = `The path "${flags.path}" does not exist, choose a valid project path`;
+      this.Warn(message);
+      return;
+    }
+
+    if (result.code === CodeEditor.ErrorCode.ExeNotSet) {
+      this.LogFailure();
+      const message = `The code editor is not configured
+Check \`bazaar editor set code-editor --help\` for more`;
+      this.Warn(message);
+      return;
+    }
+
+    if (result.code === CodeEditor.ErrorCode.ExeNotFound) {
+      this.LogFailure();
+      const message = `The configured code editor does not exist
+Configure a new one \`bazaar editor set code-editor --help\` for more`;
+      this.Warn(message);
+      return;
+    }
+
+    if (result.code === CodeEditor.ErrorCode.ExeNotValid) {
+      this.LogFailure();
+      const message = `The configured code editor is not a valid executable
+Configure a new one \`bazaar editor set code-editor --help\` for more`;
+      this.Warn(message);
+      return;
+    }
+
+    this.LogFailure();
+    const messages = R.messages(result, { verbose: true });
+    this.Error(`Failed to open project in code editor\n${messages}`, 1);
   }
 }
