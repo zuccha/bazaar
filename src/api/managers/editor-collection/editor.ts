@@ -17,7 +17,7 @@ export type EditorInfo = {
 
 const ErrorCode = {
   ...ConfigManager.ErrorCode,
-  ExeFileNotFound: "Editor.ExeFileNotFound",
+  ExeNotFound: "Editor.ExeNotFound",
   MissingParameters: "Editor.MissingParameters",
   Generic: "Editor.Generic",
 };
@@ -31,10 +31,8 @@ export default abstract class Editor extends ConfigManager<EditorConfig> {
   protected abstract displayName: string;
 
   async list(): Promise<Result<EditorInfo>> {
-    this.logger.start("Loading config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
-      this.logger.failure();
       return configResult;
     }
     this.logger.success();
@@ -76,7 +74,7 @@ export default abstract class Editor extends ConfigManager<EditorConfig> {
       if (!exePathExists && partialEditorConfig.exePath !== "") {
         this.logger.failure();
         const message = `The given executable "${partialEditorConfig.exePath}" does not exist`;
-        return R.Error(scope, message, ErrorCode.ExeFileNotFound);
+        return R.Error(scope, message, ErrorCode.ExeNotFound);
       }
 
       config.exePath = partialEditorConfig.exePath;

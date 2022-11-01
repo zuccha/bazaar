@@ -74,7 +74,7 @@ Supported editors are:
       return;
     }
 
-    if (result.code === Editor.ErrorCode.ExeFileNotFound) {
+    if (result.code === Editor.ErrorCode.ExeNotFound) {
       this.LogFailure();
       const message =
         "The given exe file does not exist, please provide a valid exe file";
