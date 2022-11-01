@@ -15,13 +15,13 @@ The original ROM is used to generate BPS files.`;
   static examples = ["bazaar original-rom list"];
 
   async run(): Promise<void> {
-    const originalRomResult = await this.api.originalRom.list();
-    if (R.isError(originalRomResult)) {
-      const messages = R.messages(originalRomResult, { verbose: true });
+    const originalRomInfoResult = await this.api.originalRom.list();
+    if (R.isError(originalRomInfoResult)) {
+      const messages = R.messages(originalRomInfoResult, { verbose: true });
       this.Error(`Failed to get original ROM\n${messages}`, 1);
       return;
     }
 
-    this.log(originalRomResult.data.filePath ?? TextEffect.i("<not set>"));
+    this.log(originalRomInfoResult.data.filePath ?? TextEffect.i("<not set>"));
   }
 }

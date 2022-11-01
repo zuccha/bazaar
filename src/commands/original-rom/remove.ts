@@ -1,4 +1,4 @@
-import OriginalRomManager from "../../api/managers/original-rom-manager";
+import OriginalRom from "../../api/managers/original-rom";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 
@@ -22,7 +22,7 @@ Attempting to remove the original ROM if none was added will result in an\
       return;
     }
 
-    if (result.code === OriginalRomManager.ErrorCode.OriginalRomNotFound) {
+    if (result.code === OriginalRom.ErrorCode.OriginalRomNotFound) {
       this.LogFailure();
       this.Warn("No original ROM was present");
       return;

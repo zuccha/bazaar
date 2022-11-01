@@ -1,5 +1,5 @@
 import EditorManager from "./managers/editor-manager";
-import OriginalRomManager from "./managers/original-rom-manager";
+import OriginalRom from "./managers/original-rom";
 import ProjectManager from "./managers/project-manager";
 import ToolCollection from "./managers/tool-collection";
 import { FS } from "./utils/fs";
@@ -10,7 +10,7 @@ export default class Api {
   readonly logger: Logger;
 
   readonly editor: EditorManager;
-  readonly originalRom: OriginalRomManager;
+  readonly originalRom: OriginalRom;
   readonly toolCollection: ToolCollection;
 
   constructor({
@@ -32,7 +32,7 @@ export default class Api {
       managerBag,
     );
 
-    this.originalRom = new OriginalRomManager(
+    this.originalRom = new OriginalRom(
       fs.join(cacheDirectoryPath, "OriginalROM"),
       managerBag,
     );

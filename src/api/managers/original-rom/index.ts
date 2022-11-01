@@ -1,8 +1,11 @@
 import Manager from "../../utils/manager";
 import { R, Result, ResultVoid } from "../../utils/result";
-import { OriginalRom } from "./original-rom";
 
-export default class OriginalRomManager extends Manager {
+export type OriginalRomInfo = {
+  filePath: string | undefined;
+};
+
+export default class OriginalRom extends Manager {
   static ErrorCode = {
     OriginalRomNotFound: "OriginalRomManager.OriginalRomNotFound",
     OriginalRomNotValid: "OriginalRomManager.OriginalRomNotValid",
@@ -23,11 +26,7 @@ export default class OriginalRomManager extends Manager {
     if (!sourceOriginalRomPathExists) {
       this.logger.failure();
       const message = "The given original ROM does not exists";
-      return R.Error(
-        scope,
-        message,
-        OriginalRomManager.ErrorCode.OriginalRomNotFound,
-      );
+      return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotFound);
     }
     this.logger.success();
 
@@ -38,18 +37,12 @@ export default class OriginalRomManager extends Manager {
     if (!sourceOriginalRomPathIsFile) {
       this.logger.failure();
       const message = "The given original ROM is not a file";
-      return R.Error(
-        scope,
-        message,
-        OriginalRomManager.ErrorCode.OriginalRomNotValid,
-      );
+      return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotValid);
     }
     this.logger.success();
 
     this.logger.start("Copying given original ROM");
-    const targetOriginalRomPath = this.path(
-      OriginalRomManager.OriginalRomFileName,
-    );
+    const targetOriginalRomPath = this.path(OriginalRom.OriginalRomFileName);
     const result = await this.fs.copyFile(
       sourceOriginalRomPath,
       targetOriginalRomPath,
@@ -57,20 +50,15 @@ export default class OriginalRomManager extends Manager {
     if (R.isError(result)) {
       this.logger.failure();
       const message = "Failed to copy given original ROM";
-      return R.Stack(
-        result,
-        scope,
-        message,
-        OriginalRomManager.ErrorCode.Generic,
-      );
+      return R.Stack(result, scope, message, OriginalRom.ErrorCode.Generic);
     }
     this.logger.success();
 
     return R.Void;
   }
 
-  async list(): Promise<Result<OriginalRom>> {
-    const originalRomPath = this.path(OriginalRomManager.OriginalRomFileName);
+  async list(): Promise<Result<OriginalRomInfo>> {
+    const originalRomPath = this.path(OriginalRom.OriginalRomFileName);
 
     this.logger.start("Checking if original ROM exists");
     const sourceOriginalRomPathExists = await this.fs.exists(originalRomPath);
@@ -86,18 +74,14 @@ export default class OriginalRomManager extends Manager {
   async remove(): Promise<ResultVoid> {
     const scope = this.scope("remove");
 
-    const originalRomPath = this.path(OriginalRomManager.OriginalRomFileName);
+    const originalRomPath = this.path(OriginalRom.OriginalRomFileName);
 
     this.logger.start("Checking if original ROM exists");
     const sourceOriginalRomPathExists = await this.fs.exists(originalRomPath);
     if (!sourceOriginalRomPathExists) {
       this.logger.failure();
       const message = "The given original ROM does not exists";
-      return R.Error(
-        scope,
-        message,
-        OriginalRomManager.ErrorCode.OriginalRomNotFound,
-      );
+      return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotFound);
     }
     this.logger.success();
 
@@ -106,12 +90,7 @@ export default class OriginalRomManager extends Manager {
     if (R.isError(result)) {
       this.logger.failure();
       const message = "Failed to remove original ROM";
-      return R.Stack(
-        result,
-        scope,
-        message,
-        OriginalRomManager.ErrorCode.Generic,
-      );
+      return R.Stack(result, scope, message, OriginalRom.ErrorCode.Generic);
     }
     this.logger.success();
 

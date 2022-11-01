@@ -1,5 +1,5 @@
 import { Flags } from "@oclif/core";
-import OriginalRomManager from "../../api/managers/original-rom-manager";
+import OriginalRom from "../../api/managers/original-rom";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 
@@ -43,13 +43,13 @@ The command will fail if an invalid file is provided.`;
       return;
     }
 
-    if (result.code === OriginalRomManager.ErrorCode.OriginalRomNotFound) {
+    if (result.code === OriginalRom.ErrorCode.OriginalRomNotFound) {
       this.LogFailure();
       this.Warn("The given file does not exist");
       return;
     }
 
-    if (result.code === OriginalRomManager.ErrorCode.OriginalRomNotValid) {
+    if (result.code === OriginalRom.ErrorCode.OriginalRomNotValid) {
       this.LogFailure();
       this.Warn("The given file is not actually a file");
       return;
