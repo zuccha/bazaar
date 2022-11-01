@@ -1,7 +1,7 @@
 import Tool from "../tool";
 
 export default class PIXI extends Tool {
-  protected id = "tool.pixi";
+  protected id = "PIXI";
 
   protected displayName = "PIXI";
   protected exeName = "pixi.exe";

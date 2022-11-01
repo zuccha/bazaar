@@ -10,7 +10,7 @@ const ErrorCode = {
 export default class CodeEditor extends Editor {
   static ErrorCode = ErrorCode;
 
-  protected id = "editor.code-editor";
+  protected id = "CodeEditor";
 
   protected configName = "_code-editor.json";
   protected displayName = "Code Editor";

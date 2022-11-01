@@ -11,7 +11,7 @@ const ErrorCode = {
 export default class EditorCollection extends DirectoryManager {
   static ErrorCode = ErrorCode;
 
-  protected id = "editor-collection";
+  protected id = "EditorCollection";
 
   CodeEditor: CodeEditor;
   Emulator: Emulator;

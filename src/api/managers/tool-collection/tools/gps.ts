@@ -1,7 +1,7 @@
 import Tool from "../tool";
 
 export default class GPS extends Tool {
-  protected id = "tool.gps";
+  protected id = "GPS";
 
   protected displayName = "GPS";
   protected exeName = "gps.exe";

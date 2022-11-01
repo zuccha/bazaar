@@ -1,7 +1,7 @@
 import Tool from "../tool";
 
 export default class AddmusicK extends Tool {
-  protected id = "tool.addmusick";
+  protected id = "AddmusicK";
 
   protected displayName = "AddmusicK";
   protected exeName = "AddmusicK.exe";

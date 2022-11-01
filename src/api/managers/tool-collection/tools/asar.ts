@@ -1,7 +1,7 @@
 import Tool from "../tool";
 
 export default class Asar extends Tool {
-  protected id = "tool.asar";
+  protected id = "Asar";
 
   protected displayName = "Asar";
   protected exeName = "asar.exe";

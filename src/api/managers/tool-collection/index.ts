@@ -16,7 +16,7 @@ const ErrorCode = {
 export default class ToolCollection extends DirectoryManager {
   static ErrorCode = ErrorCode;
 
-  protected id = "tool-collection";
+  protected id = "ToolCollection";
 
   readonly AddmusicK: AddmusicK;
   readonly Asar: Asar;

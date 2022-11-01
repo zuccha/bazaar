@@ -1,7 +1,7 @@
 import Tool from "../tool";
 
 export default class LunarMagic extends Tool {
-  protected id = "tool.lunar-magic";
+  protected id = "LunarMagic";
 
   protected displayName = "Lunar Magic";
   protected exeName = "Lunar Magic.exe";

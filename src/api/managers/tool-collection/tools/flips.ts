@@ -1,7 +1,7 @@
 import Tool from "../tool";
 
 export default class Flips extends Tool {
-  protected id = "tool.flips";
+  protected id = "Flips";
 
   protected displayName = "Flips";
   protected exeName = "flips.exe";

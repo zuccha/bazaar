@@ -1,7 +1,7 @@
 import Tool from "../tool";
 
 export default class UberASMTool extends Tool {
-  protected id = "tool.uberasmtool";
+  protected id = "UberASMTool";
 
   protected displayName = "UberASMTool";
   protected exeName = "UberASMTool.exe";
