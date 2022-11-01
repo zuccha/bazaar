@@ -31,10 +31,7 @@ the user on the machine to be uninstalled.`;
     const toolName: ToolName = args["tool-name"];
 
     this.LogStart(`Uninstalling ${toolName}`);
-    const response = await getTool(
-      this.api.toolCollection,
-      toolName,
-    ).uninstall();
+    const response = await getTool(this.api.tools, toolName).uninstall();
     if (R.isOk(response)) {
       this.LogSuccess();
       return;

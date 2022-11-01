@@ -33,7 +33,7 @@ Updating a tool will not cause any other version of the tool installed manually\
     const toolName: ToolName = args["tool-name"];
 
     this.LogStart(`Updating ${toolName}`);
-    const response = await getTool(this.api.toolCollection, toolName).update();
+    const response = await getTool(this.api.tools, toolName).update();
     if (R.isOk(response)) {
       this.LogSuccess();
       return;

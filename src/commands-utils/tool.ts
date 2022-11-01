@@ -11,24 +11,21 @@ export enum ToolName {
   UberASMTool = "uberasmtool",
 }
 
-export const getTool = (
-  toolCollection: ToolCollection,
-  toolName: ToolName,
-): Tool => {
+export const getTool = (tools: ToolCollection, toolName: ToolName): Tool => {
   switch (toolName) {
     case ToolName.AddmusicK:
-      return toolCollection.AddmusicK;
+      return tools.AddmusicK;
     case ToolName.Asar:
-      return toolCollection.Asar;
+      return tools.Asar;
     case ToolName.Flips:
-      return toolCollection.Flips;
+      return tools.Flips;
     case ToolName.GPS:
-      return toolCollection.GPS;
+      return tools.GPS;
     case ToolName.LunarMagic:
-      return toolCollection.LunarMagic;
+      return tools.LunarMagic;
     case ToolName.PIXI:
-      return toolCollection.PIXI;
+      return tools.PIXI;
     case ToolName.UberASMTool:
-      return toolCollection.UberASMTool;
+      return tools.UberASMTool;
   }
 };

@@ -56,7 +56,7 @@ Supported editors are:
     const editorName: EditorName = args["editor-name"];
 
     this.LogStart(`Setting ${editorName} parameters`);
-    const result = await getEditor(this.api.editor, editorName).set({
+    const result = await getEditor(this.api.editors, editorName).set({
       exePath: flags["exe-path"],
       exeArgs: flags["exe-args"],
     });

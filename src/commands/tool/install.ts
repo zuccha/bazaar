@@ -52,7 +52,7 @@ Installing a tool will not interfere with any other manual installation of the\
     const toolName = args["tool-name"];
 
     this.LogStart(`Installing ${toolName}`);
-    const response = await getTool(this.api.toolCollection, toolName).install({
+    const response = await getTool(this.api.tools, toolName).install({
       force: flags.force,
     });
     if (R.isOk(response)) {

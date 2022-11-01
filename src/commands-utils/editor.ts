@@ -7,13 +7,13 @@ export enum EditorName {
 }
 
 export const getEditor = (
-  toolCollection: EditorCollection,
+  tools: EditorCollection,
   toolName: EditorName,
 ): Editor => {
   switch (toolName) {
     case EditorName.CodeEditor:
-      return toolCollection.CodeEditor;
+      return tools.CodeEditor;
     case EditorName.Emulator:
-      return toolCollection.Emulator;
+      return tools.Emulator;
   }
 };

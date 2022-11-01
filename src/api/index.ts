@@ -9,9 +9,9 @@ export default class Api {
   readonly fs: FS;
   readonly logger: Logger;
 
-  readonly editor: EditorCollection;
+  readonly editors: EditorCollection;
   readonly originalRom: OriginalRom;
-  readonly toolCollection: ToolCollection;
+  readonly tools: ToolCollection;
 
   constructor({
     cacheDirectoryPath,
@@ -27,7 +27,7 @@ export default class Api {
     this.fs = fs;
     this.logger = logger;
 
-    this.editor = new EditorCollection(
+    this.editors = new EditorCollection(
       fs.join(cacheDirectoryPath, "Editors"),
       managerBag,
     );
@@ -37,7 +37,7 @@ export default class Api {
       managerBag,
     );
 
-    this.toolCollection = new ToolCollection(
+    this.tools = new ToolCollection(
       fs.join(cacheDirectoryPath, "Tools"),
       managerBag,
     );

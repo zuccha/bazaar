@@ -50,7 +50,7 @@ The difference between and editors and tools: editors are user-chosen programs,\
 
     if (editorName) {
       const editorInfoResult = await getEditor(
-        this.api.editor,
+        this.api.editors,
         editorName,
       ).list();
       if (R.isError(editorInfoResult)) {
@@ -61,7 +61,7 @@ The difference between and editors and tools: editors are user-chosen programs,\
 
       this.logEditorInfos([editorInfoResult.data]);
     } else {
-      const editorInfosResult = await this.api.editor.listAll();
+      const editorInfosResult = await this.api.editors.listAll();
       if (R.isError(editorInfosResult)) {
         const messages = R.messages(editorInfosResult, { verbose: true });
         this.Error(`Failed to list editors\n${messages}`, 1);
