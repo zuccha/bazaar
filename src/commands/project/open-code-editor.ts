@@ -1,6 +1,6 @@
-import { Flags } from "@oclif/core";
 import CodeEditor from "../../api/managers/editor-collection/editors/code-editor";
 import { R } from "../../api/utils/result";
+import { ProjectFlags } from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
 
 export default class ProjectOpenCodeEditorCommand extends BaseCommand<
@@ -10,7 +10,9 @@ export default class ProjectOpenCodeEditorCommand extends BaseCommand<
   static description = `\
 Open the root directory in the code editor.
 
-If no code editor is set, this command will fail.`;
+If no code editor is set, this command will fail.
+
+To configure and code-editor, check \`bazaar editor code-editor set --help\`.`;
 
   static examples = [
     "bazaar project open-code-editor",
@@ -18,12 +20,7 @@ If no code editor is set, this command will fail.`;
   ];
 
   static flags = {
-    path: Flags.string({
-      summary: "Project directory",
-      description: "By default it will be the current working directory.",
-      default: ".",
-      required: false,
-    }),
+    ...ProjectFlags,
   };
 
   async run(): Promise<void> {
