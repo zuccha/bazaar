@@ -60,16 +60,16 @@ export default abstract class Editor extends Configurable<EditorConfig> {
       return R.Error(scope, message, ErrorCode.ExeNotValid);
     }
 
-    let command = `${info.exePath} ${info.exeArgs}`;
+    let command = `"${info.exePath}" ${info.exeArgs}`;
     for (const [i, arg] of args.entries()) {
-      command = command.replace(new RegExp(`%${i + 1}`, "g"), arg);
+      command = command.replace(new RegExp(`%${i + 1}`, "g"), `"${arg}"`);
     }
 
     this.logger.start(`Executing command \`${command}\``);
     const execResult = await this.fs.exec(command);
     if (R.isError(execResult)) {
       this.logger.failure();
-      const message = "There are no parameters to change";
+      const message = `Failed to execute command \`${command}\``;
       return R.Stack(execResult, scope, message, ErrorCode.ExecutionFailed);
     }
     this.logger.success();
