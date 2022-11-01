@@ -439,6 +439,10 @@ const FSNode: FS = {
     return NodePath.join(...paths);
   },
 
+  resolve: (...paths: string[]): string => {
+    return NodePath.resolve(...paths);
+  },
+
   getDirectoryPath: (path: string): string => {
     return NodePath.dirname(path);
   },

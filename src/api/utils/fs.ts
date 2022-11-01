@@ -106,6 +106,7 @@ export type FS = {
   getFileInfo: (filePath: string) => Promise<Result<FileInfo>>;
 
   join: (...paths: string[]) => string;
+  resolve: (...paths: string[]) => string;
 
   getDirectoryPath: (path: string) => string;
   getName: (path: string) => string;
