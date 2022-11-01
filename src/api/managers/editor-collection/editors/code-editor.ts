@@ -18,6 +18,8 @@ export default class CodeEditor extends Editor {
   async open(path: string): Promise<ResultVoid> {
     const scope = this.scope("open");
 
+    path = this.fs.resolve(path);
+
     this.logger.start(`Checking if path "${path}" exists`);
     const pathExists = await this.fs.exists(path);
     if (!pathExists) {

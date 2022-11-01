@@ -18,6 +18,8 @@ export default class Emulator extends Editor {
   async open(romPath: string): Promise<ResultVoid> {
     const scope = this.scope("open");
 
+    romPath = this.fs.resolve(romPath);
+
     this.logger.start(`Checking if ROM "${romPath}" exists`);
     const pathExists = await this.fs.exists(romPath);
     if (!pathExists) {
