@@ -1,6 +1,6 @@
-import ToolManager, { ToolManagerError } from "../../api/managers/tool-manager";
-import { SupportedToolName } from "../../api/managers/tool-manager/supported-tool";
+import Tool from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
+import { getTool, ToolName } from "../../commands-utils/tool";
 import BaseCommand from "../../utils/base-command";
 
 export default class ToolUpdateCommand extends BaseCommand<
@@ -23,29 +23,29 @@ Updating a tool will not cause any other version of the tool installed manually\
       name: "tool-name",
       required: true,
       description: "Name of the tool",
-      options: ToolManager.ToolNames,
+      options: Object.values(ToolName),
     },
   ];
 
   async run(): Promise<void> {
     const { args } = await this.parse(ToolUpdateCommand);
 
-    const toolName: SupportedToolName = args["tool-name"];
+    const toolName: ToolName = args["tool-name"];
 
     this.LogStart(`Updating ${toolName}`);
-    const response = await this.api.tool.update(toolName);
+    const response = await getTool(this.api.toolCollection, toolName).update();
     if (R.isOk(response)) {
       this.LogSuccess();
       return;
     }
 
-    if (response.code === ToolManagerError.ToolIsUpToDate) {
+    if (response.code === Tool.ErrorCode.ToolIsUpToDate) {
       this.LogFailure();
       this.Warn(`${toolName} is up to date!`);
       return;
     }
 
-    if (response.code === ToolManagerError.ToolNotInstalled) {
+    if (response.code === Tool.ErrorCode.ToolNotInstalled) {
       this.LogFailure();
       this.Warn(`${toolName} is not installed!`);
       return;

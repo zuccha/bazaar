@@ -38,7 +38,7 @@ Installing a tool will not interfere with any other manual installation of the\
     const { flags } = await this.parse(ToolInstallAllCommand);
 
     this.LogStart("Installing tools");
-    const response = await this.api.tool.installAll({
+    const response = await this.api.toolCollection.installAll({
       force: flags.force,
     });
     if (R.isOk(response)) {

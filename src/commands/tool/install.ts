@@ -1,6 +1,7 @@
 import { Flags } from "@oclif/core";
-import ToolManager, { ToolManagerError } from "../../api/managers/tool-manager";
+import Tool from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
+import { getTool, ToolName } from "../../commands-utils/tool";
 import BaseCommand from "../../utils/base-command";
 import ToolListCommand from "./list";
 
@@ -31,7 +32,7 @@ Installing a tool will not interfere with any other manual installation of the\
       name: "tool-name",
       required: true,
       description: "Name of the tool",
-      options: ToolManager.ToolNames,
+      options: Object.values(ToolName),
     },
   ];
 
@@ -51,7 +52,7 @@ Installing a tool will not interfere with any other manual installation of the\
     const toolName = args["tool-name"];
 
     this.LogStart(`Installing ${toolName}`);
-    const response = await this.api.tool.install(toolName, {
+    const response = await getTool(this.api.toolCollection, toolName).install({
       force: flags.force,
     });
     if (R.isOk(response)) {
@@ -59,7 +60,7 @@ Installing a tool will not interfere with any other manual installation of the\
       return;
     }
 
-    if (response.code === ToolManagerError.ToolAlreadyInstalled) {
+    if (response.code === Tool.ErrorCode.ToolAlreadyInstalled) {
       this.LogFailure();
       this.Warn(`${toolName} is already installed!`);
       this.Warn("Run with `--force` if you want to force the installation");

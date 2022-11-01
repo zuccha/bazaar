@@ -1,6 +1,6 @@
-import { FS } from "./fs";
+import { DirectoryInfo, FS } from "./fs";
 import { Logger } from "./logger";
-import { ResultVoid } from "./result";
+import { Result, ResultVoid } from "./result";
 
 export type ManagerBag = {
   fs: FS;
@@ -34,6 +34,10 @@ export default abstract class Manager {
 
   protected async exists(): Promise<boolean> {
     return this.fs.exists(this.directoryPath);
+  }
+
+  protected async getDirectoryInfo(): Promise<Result<DirectoryInfo>> {
+    return this.fs.getDirectoryInfo(this.directoryPath);
   }
 
   protected async createDirectory(): Promise<ResultVoid> {

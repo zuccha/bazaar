@@ -1,6 +1,6 @@
-import ToolManager, { ToolManagerError } from "../../api/managers/tool-manager";
-import { SupportedToolName } from "../../api/managers/tool-manager/supported-tool";
+import Tool from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
+import { getTool, ToolName } from "../../commands-utils/tool";
 import BaseCommand from "../../utils/base-command";
 
 export default class ToolUninstallCommand extends BaseCommand<
@@ -21,23 +21,26 @@ the user on the machine to be uninstalled.`;
       name: "tool-name",
       required: true,
       description: "Name of the tool",
-      options: ToolManager.ToolNames,
+      options: Object.values(ToolName),
     },
   ];
 
   async run(): Promise<void> {
     const { args } = await this.parse(ToolUninstallCommand);
 
-    const toolName: SupportedToolName = args["tool-name"];
+    const toolName: ToolName = args["tool-name"];
 
     this.LogStart(`Uninstalling ${toolName}`);
-    const response = await this.api.tool.uninstall(toolName);
+    const response = await getTool(
+      this.api.toolCollection,
+      toolName,
+    ).uninstall();
     if (R.isOk(response)) {
       this.LogSuccess();
       return;
     }
 
-    if (response.code === ToolManagerError.ToolNotInstalled) {
+    if (response.code === Tool.ErrorCode.ToolNotInstalled) {
       this.LogFailure();
       this.Warn(`${toolName} is not installed!`);
       this.Warn("Install the tool before uninstalling it ;)");

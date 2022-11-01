@@ -1,8 +1,7 @@
 import { CliUx } from "@oclif/core";
-import ToolManager from "../../api/managers/tool-manager";
-import { SupportedToolName } from "../../api/managers/tool-manager/supported-tool";
-import { Tool } from "../../api/managers/tool-manager/tool";
+import { ToolInfo } from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
+import { getTool, ToolName } from "../../commands-utils/tool";
 import BaseCommand from "../../utils/base-command";
 import TE from "../../utils/text-effect";
 
@@ -54,7 +53,7 @@ The difference between tools and editors: tools need to be of specific versions\
       name: "tool-name",
       required: false,
       description: "Name of the tool",
-      options: ToolManager.ToolNames,
+      options: Object.values(ToolName),
     },
   ];
 
@@ -64,52 +63,55 @@ The difference between tools and editors: tools need to be of specific versions\
 
   async run(): Promise<void> {
     const { args } = await this.parse(ToolListCommand);
-    const toolName: SupportedToolName | undefined = args["tool-name"];
+    const toolName: ToolName | undefined = args["tool-name"];
 
     if (toolName) {
-      const toolResult = await this.api.tool.list(toolName);
-      if (R.isError(toolResult)) {
-        const messages = R.messages(toolResult, { verbose: true });
+      const toolInfoResult = await getTool(
+        this.api.toolCollection,
+        toolName,
+      ).list();
+      if (R.isError(toolInfoResult)) {
+        const messages = R.messages(toolInfoResult, { verbose: true });
         this.Error(`Failed to list ${toolName}\n${messages}`, 1);
         return;
       }
 
-      this.logTools([toolResult.data]);
+      this.logToolInfos([toolInfoResult.data]);
     } else {
-      const toolsResult = await this.api.tool.listAll();
-      if (R.isError(toolsResult)) {
-        const messages = R.messages(toolsResult, { verbose: true });
+      const toolInfosResult = await this.api.toolCollection.listAll();
+      if (R.isError(toolInfosResult)) {
+        const messages = R.messages(toolInfosResult, { verbose: true });
         this.Error(`Failed to list tools\n${messages}`, 1);
         return;
       }
 
-      this.logTools(toolsResult.data);
+      this.logToolInfos(toolInfosResult.data);
     }
   }
 
-  async logTools(tools: Tool[]): Promise<void> {
+  async logToolInfos(toolInfos: ToolInfo[]): Promise<void> {
     const { flags } = await this.parse(ToolListCommand);
 
     CliUx.ux.table(
-      tools,
+      toolInfos,
       {
         name: {
-          get: (tool) => tool.displayName,
+          get: (toolInfo) => toolInfo.name,
         },
         status: {
-          get: (tool) =>
+          get: (toolInfo) =>
             ({
               "not-installed": TE.failure("Not installed"),
               installed: TE.success("Installed"),
               deprecated: TE.warning("Deprecated"),
-            }[tool.installationStatus]),
+            }[toolInfo.installationStatus]),
         },
         supportedVersion: {
-          get: (tool) => tool.supportedVersion,
+          get: (toolInfo) => toolInfo.supportedVersion,
           header: "Version (supported)",
         },
         installedVersion: {
-          get: (tool) => tool.installedVersion || TE.i("<none>"),
+          get: (toolInfo) => toolInfo.installedVersion || TE.i("<none>"),
           header: "Version (installed)",
         },
       },

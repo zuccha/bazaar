@@ -18,7 +18,7 @@ Updating a tool will not cause any other version of the tool installed manually\
 
   async run(): Promise<void> {
     this.LogStart("Updating tools");
-    const response = await this.api.tool.updateAll();
+    const response = await this.api.toolCollection.updateAll();
     if (R.isOk(response)) {
       this.LogSuccess();
       return;
