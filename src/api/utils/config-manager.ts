@@ -16,8 +16,10 @@ export default abstract class ConfigManager<Config> extends Manager {
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
 
+  protected configName = "_config.json";
+
   private get _configPath() {
-    return this.path("_config.json");
+    return this.path(this.configName);
   }
 
   protected async hasConfig(): Promise<boolean> {
@@ -43,21 +45,21 @@ export default abstract class ConfigManager<Config> extends Manager {
       this.logger.failure();
       return R.Error(
         scope,
-        "_config.json does not exist",
+        `${this.configName} does not exist`,
         ConfigManager.ErrorCode.ConfigNotFound,
       );
     }
 
     this.logger.success();
 
-    this.logger.start("Reading _config.json");
+    this.logger.start(`Reading ${this.configName}`);
     const contentResult = await this.fs.readFile(configPath);
     if (R.isError(contentResult)) {
       this.logger.failure();
       return R.Stack(
         contentResult,
         scope,
-        "Failed to load _config.json",
+        `Failed to load ${this.configName}`,
         ConfigManager.ErrorCode.FailedToLoadConfiguration,
       );
     }
@@ -65,19 +67,19 @@ export default abstract class ConfigManager<Config> extends Manager {
 
     let content: unknown;
     try {
-      this.logger.start("Parsing _config.json content");
+      this.logger.start(`Parsing ${this.configName} content`);
       content = JSON.parse(contentResult.data);
       this.logger.success();
     } catch {
       this.logger.failure();
       return R.Error(
         scope,
-        "_config.json is not a valid JSON",
+        `${this.configName} is not a valid JSON`,
         ConfigManager.ErrorCode.FailedToParseJson,
       );
     }
 
-    this.logger.start("Validating _config.json content");
+    this.logger.start(`Validating ${this.configName} content`);
     const configResult = this.ConfigSchema.safeParse(content);
     if (!configResult.success) {
       this.logger.failure();
@@ -88,7 +90,7 @@ export default abstract class ConfigManager<Config> extends Manager {
           ConfigManager.ErrorCode.Generic,
         ),
         scope,
-        "Failed to parse _config.json",
+        `Failed to parse ${this.configName}`,
         ConfigManager.ErrorCode.FailedToParseConfiguration,
       );
     }
@@ -115,14 +117,14 @@ export default abstract class ConfigManager<Config> extends Manager {
       );
     }
 
-    this.logger.start("Writing _config.json");
+    this.logger.start(`Writing ${this.configName}`);
     const result = await this.fs.writeFile(configPath, content);
     if (R.isError(result)) {
       this.logger.failure();
       return R.Stack(
         result,
         scope,
-        "Failed to save _config.json",
+        `Failed to save ${this.configName}`,
         ConfigManager.ErrorCode.FailedToSaveConfiguration,
       );
     }
