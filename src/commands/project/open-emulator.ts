@@ -1,15 +1,66 @@
-import { Command } from "@oclif/core";
+import Emulator from "../../api/managers/editor-collection/editors/emulator";
+import { R } from "../../api/utils/result";
+import { ProjectFlags } from "../../commands-utils/project";
+import BaseCommand from "../../utils/base-command";
 
-export default class ProjectOpenEmulator extends Command {
-  static summary = "Run the ROM in the emulator tool.";
+export default class ProjectOpenEmulatorCommand extends BaseCommand<
+  typeof ProjectOpenEmulatorCommand
+> {
+  static summary = "Run the ROM hack in the emulator";
   static description = `\
-Run the ROM hack in the emulator tool set via the 'tool' command.
-Bazaar runs the emulator running \`/path/to/emulator baserom.smc\`.
-If no emulator is set, this command will fail.`;
+Run the ROM hack in the configured emulator.
 
-  static examples = [];
+If no emulator is set, this command will fail.
+
+To configure and emulator, check \`bazaar editor emulator set --help\`.`;
+
+  static examples = [
+    "bazaar project open-emulator",
+    "bazaar project open-emulator --path=C:\\Users\\me\\Documents\\MyProject",
+  ];
+
+  static flags = {
+    ...ProjectFlags,
+  };
 
   async run(): Promise<void> {
-    this.log("Not implemented");
+    const { flags } = await this.parse(ProjectOpenEmulatorCommand);
+
+    this.LogStart(`Running ROM hack in emulator`);
+    const project = this.api.project(flags.path);
+    const result = await project.openEmulator();
+
+    if (R.isOk(result)) {
+      this.LogSuccess();
+      return;
+    }
+
+    if (result.code === Emulator.ErrorCode.ExeNotSet) {
+      this.LogFailure();
+      const message = `The emulator is not configured
+Check \`bazaar editor set emulator --help\` for more`;
+      this.Warn(message);
+      return;
+    }
+
+    if (result.code === Emulator.ErrorCode.ExeNotFound) {
+      this.LogFailure();
+      const message = `The configured emulator does not exist
+Configure a new one \`bazaar editor set emulator --help\` for more`;
+      this.Warn(message);
+      return;
+    }
+
+    if (result.code === Emulator.ErrorCode.ExeNotValid) {
+      this.LogFailure();
+      const message = `The configured emulator is not a valid executable
+Configure a new one \`bazaar editor set emulator --help\` for more`;
+      this.Warn(message);
+      return;
+    }
+
+    this.LogFailure();
+    const messages = R.messages(result, { verbose: true });
+    this.Error(`Failed to run ROM hack in emulator\n${messages}`, 1);
   }
 }
