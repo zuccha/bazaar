@@ -1,4 +1,4 @@
-import EditorManager from "./managers/editor-manager";
+import EditorCollection from "./managers/editor-collection";
 import OriginalRom from "./managers/original-rom";
 import Project from "./managers/project";
 import ToolCollection from "./managers/tool-collection";
@@ -9,7 +9,7 @@ export default class Api {
   readonly fs: FS;
   readonly logger: Logger;
 
-  readonly editor: EditorManager;
+  readonly editor: EditorCollection;
   readonly originalRom: OriginalRom;
   readonly toolCollection: ToolCollection;
 
@@ -27,7 +27,7 @@ export default class Api {
     this.fs = fs;
     this.logger = logger;
 
-    this.editor = new EditorManager(
+    this.editor = new EditorCollection(
       fs.join(cacheDirectoryPath, "Editors"),
       managerBag,
     );

@@ -1,7 +1,7 @@
 import { Flags } from "@oclif/core";
-import EditorManager from "../../api/managers/editor-manager";
-import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor";
+import Editor from "../../api/managers/editor-collection/editor";
 import { R } from "../../api/utils/result";
+import { EditorName, getEditor } from "../../commands-utils/editor";
 import BaseCommand from "../../utils/base-command";
 import TE from "../../utils/text-effect";
 
@@ -32,7 +32,7 @@ Supported editors are:
       name: "editor-name",
       required: true,
       description: "Name of the editor",
-      options: EditorManager.EditorNames,
+      options: Object.values(EditorName),
     },
   ];
 
@@ -53,10 +53,10 @@ Supported editors are:
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(EditorSetCommand);
-    const editorName: SupportedEditorName = args["editor-name"];
+    const editorName: EditorName = args["editor-name"];
 
     this.LogStart(`Setting ${editorName} parameters`);
-    const result = await this.api.editor.set(editorName, {
+    const result = await getEditor(this.api.editor, editorName).set({
       exePath: flags["exe-path"],
       exeArgs: flags["exe-args"],
     });
@@ -66,7 +66,7 @@ Supported editors are:
       return;
     }
 
-    if (result.code === EditorManager.ErrorCode.MissingParameters) {
+    if (result.code === Editor.ErrorCode.MissingParameters) {
       this.LogFailure();
       const message =
         "No parameter was given, pass at least one of `--exe-path` or `--exe-args`";
@@ -74,7 +74,7 @@ Supported editors are:
       return;
     }
 
-    if (result.code === EditorManager.ErrorCode.ExeFileNotFound) {
+    if (result.code === Editor.ErrorCode.ExeFileNotFound) {
       this.LogFailure();
       const message =
         "The given exe file does not exist, please provide a valid exe file";

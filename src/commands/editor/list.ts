@@ -1,8 +1,7 @@
 import { CliUx } from "@oclif/core";
-import EditorManager from "../../api/managers/editor-manager";
-import { Editor } from "../../api/managers/editor-manager/editor";
-import { SupportedEditorName } from "../../api/managers/editor-manager/supported-editor";
+import { EditorInfo } from "../../api/managers/editor-collection/editor";
 import { R } from "../../api/utils/result";
+import { EditorName, getEditor } from "../../commands-utils/editor";
 import BaseCommand from "../../utils/base-command";
 import TE from "../../utils/text-effect";
 
@@ -37,7 +36,7 @@ The difference between and editors and tools: editors are user-chosen programs,\
       name: "editor-name",
       required: false,
       description: "Name of the editor",
-      options: EditorManager.EditorNames,
+      options: Object.values(EditorName),
     },
   ];
 
@@ -47,34 +46,37 @@ The difference between and editors and tools: editors are user-chosen programs,\
 
   async run(): Promise<void> {
     const { args } = await this.parse(EditorListCommand);
-    const editorName: SupportedEditorName | undefined = args["editor-name"];
+    const editorName: EditorName | undefined = args["editor-name"];
 
     if (editorName) {
-      const editorResult = await this.api.editor.list(editorName);
-      if (R.isError(editorResult)) {
-        const messages = R.messages(editorResult, { verbose: true });
+      const editorInfoResult = await getEditor(
+        this.api.editor,
+        editorName,
+      ).list();
+      if (R.isError(editorInfoResult)) {
+        const messages = R.messages(editorInfoResult, { verbose: true });
         this.Error(`Failed to list ${editorName}\n${messages}`, 1);
         return;
       }
 
-      this.logEditors([editorResult.data]);
+      this.logEditorInfos([editorInfoResult.data]);
     } else {
-      const editorsResult = await this.api.editor.listAll();
-      if (R.isError(editorsResult)) {
-        const messages = R.messages(editorsResult, { verbose: true });
+      const editorInfosResult = await this.api.editor.listAll();
+      if (R.isError(editorInfosResult)) {
+        const messages = R.messages(editorInfosResult, { verbose: true });
         this.Error(`Failed to list editors\n${messages}`, 1);
         return;
       }
 
-      this.logEditors(editorsResult.data);
+      this.logEditorInfos(editorInfosResult.data);
     }
   }
 
-  logEditors(editors: Editor[]): void {
-    for (const editor of editors) {
-      this.log(TE.b(editor.name));
-      this.log(`- Path: ${editor.config.exePath || TE.i("<not set>")}`);
-      this.log(`- Args: ${editor.config.exeArgs}`);
+  logEditorInfos(editorInfos: EditorInfo[]): void {
+    for (const editorInfo of editorInfos) {
+      this.log(TE.b(editorInfo.name));
+      this.log(`- Path: ${editorInfo.exePath || TE.i("<not set>")}`);
+      this.log(`- Args: ${editorInfo.exeArgs}`);
     }
   }
 }
