@@ -1,10 +1,10 @@
-import ConfigManager from "../../utils/config-manager";
+import Resource from "../../utils/resource";
 import { R, ResultVoid } from "../../utils/result";
 import { ProjectConfig, ProjectConfigSchema } from "./project-config";
 
-export default class Project extends ConfigManager<ProjectConfig> {
+export default class Project extends Resource<ProjectConfig> {
   static ErrorCode = {
-    ...ConfigManager.ErrorCode,
+    ...Resource.ErrorCode,
     BaseromFileNotFound: "ProjectManager.BaseromFileNotFound",
     BaseromNotFile: "ProjectManager.BaseromNotFile",
     ProjectExists: "ProjectManager.ProjectExists",
