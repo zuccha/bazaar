@@ -13,6 +13,8 @@ export type FileInfo = {
   extension: string;
 };
 
+export type ShellOutput = { stdout: string; stderr: string };
+
 export type CopyDirectoryOptions = { force: boolean };
 export type CopyFileOptions = { force: boolean };
 export type RenameDirectoryOptions = { force: boolean };
@@ -125,4 +127,6 @@ export type FS = {
     targetDirectoryPath: string,
     options?: Partial<UnzipFileOptions>,
   ) => Promise<ResultVoid>;
+
+  exec: (command: string) => Promise<Result<ShellOutput>>;
 };

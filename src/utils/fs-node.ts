@@ -1,3 +1,4 @@
+import * as NodeChildProcess from "node:child_process";
 import * as NodeFSNotPromise from "node:fs";
 import * as NodeFS from "node:fs/promises";
 import * as NodeHTTPS from "node:https";
@@ -25,6 +26,7 @@ import {
   RemoveFileOptions,
   RenameDirectoryOptions,
   RenameFileOptions,
+  ShellOutput,
   UnzipFileOptions,
   ZipDirectoryOptions,
 } from "../api/utils/fs";
@@ -619,6 +621,24 @@ const FSNode: FS = {
     } catch {
       return R.Error(scope, "Unknown error", FSErrorCode.Generic);
     }
+  },
+
+  exec: (command: string): Promise<Result<ShellOutput>> => {
+    const scope = "FS.exec";
+
+    return new Promise((resolve) => {
+      NodeChildProcess.exec(command, (error, stdout, stderr) => {
+        const result = error
+          ? R.Stack(
+              R.Error(scope, error.message, FSErrorCode.Generic),
+              scope,
+              "Failed to run shell command",
+              FSErrorCode.Generic,
+            )
+          : R.Ok({ stdout, stderr });
+        resolve(result);
+      });
+    });
   },
 };
 
