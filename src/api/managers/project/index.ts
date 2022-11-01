@@ -2,7 +2,7 @@ import ConfigManager from "../../utils/config-manager";
 import { R, ResultVoid } from "../../utils/result";
 import { ProjectConfig, ProjectConfigSchema } from "./project-config";
 
-export default class ProjectManager extends ConfigManager<ProjectConfig> {
+export default class Project extends ConfigManager<ProjectConfig> {
   static ErrorCode = {
     ...ConfigManager.ErrorCode,
     BaseromFileNotFound: "ProjectManager.BaseromFileNotFound",
@@ -35,7 +35,7 @@ export default class ProjectManager extends ConfigManager<ProjectConfig> {
     if (await this.exists()) {
       this.logger.failure();
       const message = `A project named "${this.name}" already exists (directory "${this.path}")`;
-      return R.Error(scope, message, ProjectManager.ErrorCode.ProjectExists);
+      return R.Error(scope, message, Project.ErrorCode.ProjectExists);
     }
     this.logger.success();
 
@@ -44,11 +44,7 @@ export default class ProjectManager extends ConfigManager<ProjectConfig> {
     if (!baseromPathExists) {
       this.logger.failure();
       const message = `The baserom file was not found`;
-      return R.Error(
-        scope,
-        message,
-        ProjectManager.ErrorCode.BaseromFileNotFound,
-      );
+      return R.Error(scope, message, Project.ErrorCode.BaseromFileNotFound);
     }
     this.logger.success();
 
@@ -57,7 +53,7 @@ export default class ProjectManager extends ConfigManager<ProjectConfig> {
     if (!baseromIsFile) {
       this.logger.failure();
       const message = `The baserom file is not actually a file`;
-      return R.Error(scope, message, ProjectManager.ErrorCode.BaseromNotFile);
+      return R.Error(scope, message, Project.ErrorCode.BaseromNotFile);
     }
     this.logger.success();
 
@@ -66,20 +62,20 @@ export default class ProjectManager extends ConfigManager<ProjectConfig> {
     if (R.isError(result)) {
       this.logger.failure();
       const message = "Failed to create project directory";
-      return R.Stack(result, scope, message, ProjectManager.ErrorCode.Generic);
+      return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
 
     this.logger.start("Copying baserom file");
     result = await this.fs.copyFile(
       baseromPath,
-      this.path(ProjectManager.BaseromName),
+      this.path(Project.BaseromName),
     );
     if (R.isError(result)) {
       this.logger.failure();
       await this.removeDirectory();
       const message = "Failed to copy baserom file";
-      return R.Stack(result, scope, message, ProjectManager.ErrorCode.Generic);
+      return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
 
@@ -89,7 +85,7 @@ export default class ProjectManager extends ConfigManager<ProjectConfig> {
       this.logger.failure();
       await this.removeDirectory();
       const message = "Failed to save metadata";
-      return R.Stack(result, scope, message, ProjectManager.ErrorCode.Generic);
+      return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
 

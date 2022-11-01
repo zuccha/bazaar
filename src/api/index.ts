@@ -1,6 +1,6 @@
 import EditorManager from "./managers/editor-manager";
 import OriginalRom from "./managers/original-rom";
-import ProjectManager from "./managers/project-manager";
+import Project from "./managers/project";
 import ToolCollection from "./managers/tool-collection";
 import { FS } from "./utils/fs";
 import { Logger } from "./utils/logger";
@@ -43,8 +43,8 @@ export default class Api {
     );
   }
 
-  project(name: string, path: string): ProjectManager {
+  project(name: string, path: string): Project {
     const managerBag = { fs: this.fs, logger: this.logger };
-    return new ProjectManager(this.fs.join(path, name), managerBag);
+    return new Project(this.fs.join(path, name), managerBag);
   }
 }

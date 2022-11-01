@@ -1,5 +1,5 @@
 import { Flags } from "@oclif/core";
-import ProjectManager from "../../api/managers/project-manager";
+import Project from "../../api/managers/project";
 import { R } from "../../api/utils/result";
 import BaseCommand from "../../utils/base-command";
 
@@ -68,19 +68,19 @@ The new project will be created in a new directory named after the project, in\
       return;
     }
 
-    if (result.code === ProjectManager.ErrorCode.BaseromFileNotFound) {
+    if (result.code === Project.ErrorCode.BaseromFileNotFound) {
       this.LogFailure();
       this.Warn("The given baserom was not found");
       return;
     }
 
-    if (result.code === ProjectManager.ErrorCode.BaseromNotFile) {
+    if (result.code === Project.ErrorCode.BaseromNotFile) {
       this.LogFailure();
       this.Warn("The given baserom is not a valid file");
       return;
     }
 
-    if (result.code === ProjectManager.ErrorCode.ProjectExists) {
+    if (result.code === Project.ErrorCode.ProjectExists) {
       this.LogFailure();
       this.Warn("A project with the chosen name already exists");
       return;
