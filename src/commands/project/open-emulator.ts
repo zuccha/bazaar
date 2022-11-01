@@ -26,40 +26,40 @@ To configure and emulator, check \`bazaar editor emulator set --help\`.`;
   async run(): Promise<void> {
     const { flags } = await this.parse(ProjectOpenEmulatorCommand);
 
-    this.LogStart(`Running ROM hack in emulator`);
+    this.Info.start(`Running ROM hack in emulator`);
     const project = this.api.project(flags.path);
     const result = await project.openEmulator();
 
     if (R.isOk(result)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (result.code === Emulator.ErrorCode.ExeNotSet) {
-      this.LogFailure();
+      this.Info.failure();
       const message = `The emulator is not configured
 Check \`bazaar editor set emulator --help\` for more`;
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
     if (result.code === Emulator.ErrorCode.ExeNotFound) {
-      this.LogFailure();
+      this.Info.failure();
       const message = `The configured emulator does not exist
 Configure a new one \`bazaar editor set emulator --help\` for more`;
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
     if (result.code === Emulator.ErrorCode.ExeNotValid) {
-      this.LogFailure();
+      this.Info.failure();
       const message = `The configured emulator is not a valid executable
 Configure a new one \`bazaar editor set emulator --help\` for more`;
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to run ROM hack in emulator\n${messages}`, 1);
   }

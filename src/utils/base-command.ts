@@ -1,5 +1,6 @@
 import { CliUx, Command, Config, Flags, Interfaces } from "@oclif/core";
 import Api from "../api";
+import { Logger } from "../api/utils/logger";
 import FSNode from "./fs-node";
 import TE from "./text-effect";
 
@@ -42,14 +43,7 @@ export default abstract class BaseCommand<
           ? `${process.env.HOME}/Library/Application Support/${config.dirname}`
           : this.config.cacheDir,
       fs: FSNode,
-      logger: {
-        log: this.Log,
-        start: this.LogStart,
-        done: this.LogDone,
-        success: this.LogSuccess,
-        failure: this.LogFailure,
-        stop: this.LogStop,
-      },
+      logger: this.Verbose,
     });
   }
 
@@ -58,14 +52,6 @@ export default abstract class BaseCommand<
     const constructor = this.constructor as Interfaces.Command.Class;
     const { flags } = await this.parse(constructor);
     this.flags = flags;
-  }
-
-  protected async catch(err: Error & { exitCode?: number }): Promise<any> {
-    return super.catch(err);
-  }
-
-  protected async finally(_: Error | undefined): Promise<any> {
-    return super.finally(_);
   }
 
   private get _isDebug(): boolean {
@@ -83,47 +69,44 @@ export default abstract class BaseCommand<
     return logLevel !== LogLevel.Error;
   }
 
-  protected Log = (message: string): void => {
-    if (this.flags.verbose && this._isInfo) {
-      this.log(TE.dim(message));
-    }
+  private get _isVerbose(): boolean {
+    const verbose = this.flags.verbose;
+    return verbose && this._isInfo;
+  }
+
+  private _createLogger = (
+    transformText: (text: string) => string,
+    isAbleToLog: () => boolean,
+  ): Logger => {
+    const log = (message: string): void => {
+      if (isAbleToLog()) {
+        this.log(transformText(message));
+      }
+    };
+
+    const start = (message: string): void => {
+      if (isAbleToLog()) {
+        CliUx.ux.action.start(transformText(message));
+      }
+    };
+
+    const done = (message = "done"): void => {
+      if (isAbleToLog()) {
+        CliUx.ux.action.stop(transformText(message));
+      }
+    };
+
+    const success = (): void => done("✓");
+    const failure = (): void => done("✗");
+    const stop = (): void => done("interrupted");
+
+    return { log, start, done, success, failure, stop };
   };
 
-  protected LogStart = (message: string): void => {
-    if (this.flags.verbose && this._isInfo) {
-      CliUx.ux.action.start(TE.dim(message));
-    }
-  };
-
-  protected LogDone = (message = "done"): void => {
-    if (this.flags.verbose && this._isInfo) {
-      CliUx.ux.action.stop(TE.dim(message));
-    }
-  };
-
-  protected LogSuccess = (): void => this.LogDone("✓");
-
-  protected LogFailure = (): void => this.LogDone("✗");
-
-  protected LogStop = (): void => this.LogDone("interrupted");
-
-  protected Debug = (message: string): void => {
-    if (this._isDebug) {
-      this.log(`${TE.b("Debug:")} ${message}`);
-    }
-  };
-
-  protected Info = (message: string): void => {
-    if (this._isInfo) {
-      this.log(TE.info(message));
-    }
-  };
-
-  protected Warn = (message: string): void => {
-    if (this._isWarning) {
-      this.log(TE.warning(message));
-    }
-  };
+  Verbose = this._createLogger(TE.dim, () => this._isVerbose);
+  Debug = this._createLogger(TE.b, () => this._isDebug);
+  Info = this._createLogger(TE.info, () => this._isInfo);
+  Warning = this._createLogger(TE.warning, () => this._isWarning);
 
   protected Error = (
     message: string,

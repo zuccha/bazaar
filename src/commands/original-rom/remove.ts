@@ -15,20 +15,20 @@ Attempting to remove the original ROM if none was added will result in an\
   static examples = ["bazaar original-rom remove"];
 
   async run(): Promise<void> {
-    this.LogStart("Removing original ROM...");
+    this.Info.start("Removing original ROM...");
     const result = await this.api.originalRom.remove();
     if (R.isOk(result)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (result.code === OriginalRom.ErrorCode.OriginalRomNotFound) {
-      this.LogFailure();
-      this.Warn("No original ROM was present");
+      this.Info.failure();
+      this.Warning.log("No original ROM was present");
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to remove original ROM\n${messages}`, 1);
   }

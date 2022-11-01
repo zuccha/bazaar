@@ -30,21 +30,21 @@ the user on the machine to be uninstalled.`;
 
     const toolName: ToolName = args["tool-name"];
 
-    this.LogStart(`Uninstalling ${toolName}`);
+    this.Info.start(`Uninstalling ${toolName}`);
     const response = await getTool(this.api.tools, toolName).uninstall();
     if (R.isOk(response)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (response.code === Tool.ErrorCode.ToolNotInstalled) {
-      this.LogFailure();
-      this.Warn(`${toolName} is not installed!`);
-      this.Warn("Install the tool before uninstalling it ;)");
+      this.Info.failure();
+      this.Warning.log(`${toolName} is not installed!`);
+      this.Warning.log("Install the tool before uninstalling it ;)");
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to uninstall ${toolName}\n${messages}`, 1);
   }

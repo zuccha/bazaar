@@ -37,16 +37,16 @@ Installing a tool will not interfere with any other manual installation of the\
   async run(): Promise<void> {
     const { flags } = await this.parse(ToolInstallAllCommand);
 
-    this.LogStart("Installing tools");
+    this.Info.start("Installing tools");
     const response = await this.api.tools.installAll({
       force: flags.force,
     });
     if (R.isOk(response)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to install tools\n${messages}`, 1);
   }

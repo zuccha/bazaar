@@ -32,26 +32,26 @@ Updating a tool will not cause any other version of the tool installed manually\
 
     const toolName: ToolName = args["tool-name"];
 
-    this.LogStart(`Updating ${toolName}`);
+    this.Info.start(`Updating ${toolName}`);
     const response = await getTool(this.api.tools, toolName).update();
     if (R.isOk(response)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (response.code === Tool.ErrorCode.ToolIsUpToDate) {
-      this.LogFailure();
-      this.Warn(`${toolName} is up to date!`);
+      this.Info.failure();
+      this.Warning.log(`${toolName} is up to date!`);
       return;
     }
 
     if (response.code === Tool.ErrorCode.ToolNotInstalled) {
-      this.LogFailure();
-      this.Warn(`${toolName} is not installed!`);
+      this.Info.failure();
+      this.Warning.log(`${toolName} is not installed!`);
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to update ${toolName}\n${messages}`, 1);
   }

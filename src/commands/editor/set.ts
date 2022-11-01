@@ -55,34 +55,34 @@ Supported editors are:
     const { args, flags } = await this.parse(EditorSetCommand);
     const editorName: EditorName = args["editor-name"];
 
-    this.LogStart(`Setting ${editorName} parameters`);
+    this.Info.start(`Setting ${editorName} parameters`);
     const result = await getEditor(this.api.editors, editorName).set({
       exePath: flags["exe-path"],
       exeArgs: flags["exe-args"],
     });
 
     if (R.isOk(result)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (result.code === Editor.ErrorCode.MissingParameters) {
-      this.LogFailure();
+      this.Info.failure();
       const message =
         "No parameter was given, pass at least one of `--exe-path` or `--exe-args`";
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
     if (result.code === Editor.ErrorCode.ExeNotFound) {
-      this.LogFailure();
+      this.Info.failure();
       const message =
         "The given exe file does not exist, please provide a valid exe file";
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to set ${editorName} properties\n${messages}`, 1);
   }

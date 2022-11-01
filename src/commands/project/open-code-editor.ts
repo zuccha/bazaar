@@ -26,47 +26,47 @@ To configure and code-editor, check \`bazaar editor code-editor set --help\`.`;
   async run(): Promise<void> {
     const { flags } = await this.parse(ProjectOpenCodeEditorCommand);
 
-    this.LogStart(`Opening project in code editor`);
+    this.Info.start(`Opening project in code editor`);
     const project = this.api.project(flags.path);
     const result = await project.openCodeEditor();
 
     if (R.isOk(result)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (result.code === CodeEditor.ErrorCode.PathNotFound) {
-      this.LogFailure();
+      this.Info.failure();
       const message = `The path "${flags.path}" does not exist, choose a valid project path`;
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
     if (result.code === CodeEditor.ErrorCode.ExeNotSet) {
-      this.LogFailure();
+      this.Info.failure();
       const message = `The code editor is not configured
 Check \`bazaar editor set code-editor --help\` for more`;
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
     if (result.code === CodeEditor.ErrorCode.ExeNotFound) {
-      this.LogFailure();
+      this.Info.failure();
       const message = `The configured code editor does not exist
 Configure a new one \`bazaar editor set code-editor --help\` for more`;
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
     if (result.code === CodeEditor.ErrorCode.ExeNotValid) {
-      this.LogFailure();
+      this.Info.failure();
       const message = `The configured code editor is not a valid executable
 Configure a new one \`bazaar editor set code-editor --help\` for more`;
-      this.Warn(message);
+      this.Warning.log(message);
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to open project in code editor\n${messages}`, 1);
   }

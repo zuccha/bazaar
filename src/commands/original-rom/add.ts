@@ -36,26 +36,26 @@ The command will fail if an invalid file is provided.`;
   async run(): Promise<void> {
     const { flags } = await this.parse(OriginalRomAddCommand);
 
-    this.LogStart("Adding original ROM");
+    this.Info.start("Adding original ROM");
     const result = await this.api.originalRom.add(flags.path);
     if (R.isOk(result)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (result.code === OriginalRom.ErrorCode.OriginalRomNotFound) {
-      this.LogFailure();
-      this.Warn("The given file does not exist");
+      this.Info.failure();
+      this.Warning.log("The given file does not exist");
       return;
     }
 
     if (result.code === OriginalRom.ErrorCode.OriginalRomNotValid) {
-      this.LogFailure();
-      this.Warn("The given file is not actually a file");
+      this.Info.failure();
+      this.Warning.log("The given file is not actually a file");
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to add original ROM\n${messages}`, 1);
   }

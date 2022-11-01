@@ -55,7 +55,7 @@ The new project will be created in a new directory named after the project, in\
   async run(): Promise<void> {
     const { flags } = await this.parse(ProjectCreateFromBaseromCommand);
 
-    this.LogStart(`Creating project ${flags.name}`);
+    this.Info.start(`Creating project ${flags.name}`);
     const project = this.api.project(flags.path, flags.name);
     const result = await project.createFromBaserom({
       baseromPath: flags.baserom,
@@ -64,29 +64,29 @@ The new project will be created in a new directory named after the project, in\
     });
 
     if (R.isOk(result)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
     if (result.code === Project.ErrorCode.BaseromFileNotFound) {
-      this.LogFailure();
-      this.Warn("The given baserom was not found");
+      this.Info.failure();
+      this.Warning.log("The given baserom was not found");
       return;
     }
 
     if (result.code === Project.ErrorCode.BaseromNotFile) {
-      this.LogFailure();
-      this.Warn("The given baserom is not a valid file");
+      this.Info.failure();
+      this.Warning.log("The given baserom is not a valid file");
       return;
     }
 
     if (result.code === Project.ErrorCode.ProjectExists) {
-      this.LogFailure();
-      this.Warn("A project with the chosen name already exists");
+      this.Info.failure();
+      this.Warning.log("A project with the chosen name already exists");
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to create project\n${messages}`, 1);
   }

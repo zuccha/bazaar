@@ -15,14 +15,14 @@ Uninstalling tools with Bazaar will not cause any other installation made by the
   static examples = ["bazaar tool uninstall-all"];
 
   async run(): Promise<void> {
-    this.LogStart("Uninstalling tools");
+    this.Info.start("Uninstalling tools");
     const response = await this.api.tools.uninstallAll();
     if (R.isOk(response)) {
-      this.LogSuccess();
+      this.Info.success();
       return;
     }
 
-    this.LogFailure();
+    this.Info.failure();
     const messages = R.messages(response, { verbose: true });
     this.Error(`Failed to uninstall tools\n${messages}`, 1);
   }
