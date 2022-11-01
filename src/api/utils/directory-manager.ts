@@ -7,7 +7,7 @@ export type ManagerBag = {
   logger: Logger;
 };
 
-export default abstract class Manager {
+export default abstract class DirectoryManager {
   protected abstract id: string;
 
   protected directoryPath: string;

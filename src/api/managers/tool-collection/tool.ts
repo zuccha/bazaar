@@ -1,4 +1,4 @@
-import Manager from "../../utils/manager";
+import DirectoryManager from "../../utils/directory-manager";
 import { R, Result, ResultVoid } from "../../utils/result";
 
 export type ToolInfo = {
@@ -22,7 +22,7 @@ const ErrorCode = {
   Generic: "Tool.Generic",
 };
 
-export default abstract class Tool extends Manager {
+export default abstract class Tool extends DirectoryManager {
   static ErrorCode = ErrorCode;
 
   protected abstract displayName: string;

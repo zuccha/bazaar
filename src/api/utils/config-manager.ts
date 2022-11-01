@@ -1,8 +1,8 @@
 import { z } from "zod";
-import Manager from "./manager";
+import DirectoryManager from "./directory-manager";
 import { R, Result, ResultVoid } from "./result";
 
-export default abstract class ConfigManager<Config> extends Manager {
+export default abstract class ConfigManager<Config> extends DirectoryManager {
   static ErrorCode = {
     ConfigNotFound: "ConfigManager.ConfigNotFound",
     FailedToLoadConfiguration: "ConfigManager.FailedToLoadConfiguration",

@@ -1,4 +1,4 @@
-import Manager, { ManagerBag } from "../../utils/manager";
+import DirectoryManager, { ManagerBag } from "../../utils/directory-manager";
 import { R, Result } from "../../utils/result";
 import Editor, { EditorInfo } from "./editor";
 import CodeEditor from "./editors/code-editor";
@@ -8,7 +8,7 @@ const ErrorCode = {
   Generic: "EditorCollection.Generic",
 };
 
-export default class EditorCollection extends Manager {
+export default class EditorCollection extends DirectoryManager {
   static ErrorCode = ErrorCode;
 
   protected id = "editor-collection";
