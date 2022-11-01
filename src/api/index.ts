@@ -43,8 +43,10 @@ export default class Api {
     );
   }
 
-  project(name: string, path: string): Project {
+  project(path: string, name?: string): Project {
+    const directoryPath = name ? this.fs.join(path, name) : path;
     const managerBag = { fs: this.fs, logger: this.logger };
-    return new Project(this.fs.join(path, name), managerBag);
+    const resourceBag = { editors: this.editors, tools: this.tools };
+    return new Project(directoryPath, managerBag, resourceBag);
   }
 }

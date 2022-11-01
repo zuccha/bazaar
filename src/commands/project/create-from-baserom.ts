@@ -56,7 +56,7 @@ The new project will be created in a new directory named after the project, in\
     const { flags } = await this.parse(ProjectCreateFromBaseromCommand);
 
     this.LogStart(`Creating project ${flags.name}`);
-    const project = this.api.project(flags.name, flags.path);
+    const project = this.api.project(flags.path, flags.name);
     const result = await project.createFromBaserom({
       baseromPath: flags.baserom,
       authors: flags.author,
