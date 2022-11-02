@@ -97,6 +97,28 @@ export default class Project extends Resource<ProjectConfig> {
     }
     this.logger.success();
 
+    this.logger.start("Checking if the original ROM is available");
+    const originalRomInfoResult = await this.originalRom.list();
+    if (R.isError(originalRomInfoResult)) {
+      this.logger.failure();
+      this.logger.log("Failed to tell if original ROM is available, ignoring");
+    } else if (originalRomInfoResult.data.filePath) {
+      this.logger.success();
+      this.logger.start("Copying original ROM in sysLMRestore directory");
+      result = await this.fs.copyFile(
+        originalRomInfoResult.data.filePath,
+        this.path("sysLMRestore", "smwOrig.smc"),
+      );
+      if (R.isError(result)) {
+        this.logger.failure();
+      } else {
+        this.logger.success();
+      }
+    } else {
+      this.logger.failure();
+      this.logger.log("Original ROM is not available, ignoring");
+    }
+
     return Promise.resolve(R.Void);
   }
 
