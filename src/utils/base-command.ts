@@ -74,6 +74,38 @@ export default abstract class BaseCommand<
     return verbose && this._isInfo;
   }
 
+  private _logs: string[] = [];
+  private _lastLogOperation: "start" | "stop" = "stop";
+  private _logDepth = 0;
+
+  private _logPrefix = (depth: number): string => TE.dim("| ".repeat(depth));
+
+  private _log = (message: string): void => {
+    const prefix = this._logPrefix(this._logDepth);
+    this.log(`${prefix}${message}`);
+  };
+
+  private _logStart = (message: string): void => {
+    const prefix = this._logPrefix(this._logDepth++);
+    this._logs.push(message);
+
+    if (this._lastLogOperation === "start") CliUx.ux.action.stop("");
+    CliUx.ux.action.start(`${prefix}${message}`);
+
+    this._lastLogOperation = "start";
+  };
+
+  private _logStop = (message: string): void => {
+    const prefix = this._logPrefix(--this._logDepth);
+    const log = this._logs.pop();
+
+    if (this._lastLogOperation === "stop")
+      this.log(`${prefix}${log}... ${message}`);
+    else CliUx.ux.action.stop(message);
+
+    this._lastLogOperation = "stop";
+  };
+
   private _createLogger = (
     transformText: (text: string) => string,
     isAbleToLog: () => boolean,
@@ -86,13 +118,13 @@ export default abstract class BaseCommand<
 
     const start = (message: string): void => {
       if (isAbleToLog()) {
-        CliUx.ux.action.start(transformText(message));
+        this._logStart(transformText(message));
       }
     };
 
     const done = (message = "done"): void => {
       if (isAbleToLog()) {
-        CliUx.ux.action.stop(transformText(message));
+        this._logStop(transformText(message));
       }
     };
 
