@@ -4,16 +4,21 @@ import { R, Result, ResultVoid } from "../utils/result";
 
 export type ConfigurableBag = DirectoryBag;
 
-export default abstract class Configurable<Config> extends Directory {
-  static ErrorCode = {
-    ConfigNotFound: "ConfigManager.ConfigNotFound",
-    FailedToLoadConfiguration: "ConfigManager.FailedToLoadConfiguration",
-    FailedToParseConfiguration: "ConfigManager.FailedToParseConfiguration",
-    FailedToSaveConfiguration: "ConfigManager.FailedToSaveConfiguration",
-    FailedToParseJson: "ConfigManager.FailedToParseJson",
-    FailedToStringifyJson: "ConfigManager.FailedToStringifyJson",
-    Generic: "ConfigManager.Generic",
-  };
+const ErrorCode = {
+  ConfigIsEmpty: "ConfigManager.ConfigIsEmpty",
+  ConfigNotFound: "ConfigManager.ConfigNotFound",
+  FailedToLoadConfiguration: "ConfigManager.FailedToLoadConfiguration",
+  FailedToParseConfiguration: "ConfigManager.FailedToParseConfiguration",
+  FailedToSaveConfiguration: "ConfigManager.FailedToSaveConfiguration",
+  FailedToParseJson: "ConfigManager.FailedToParseJson",
+  FailedToStringifyJson: "ConfigManager.FailedToStringifyJson",
+  Generic: "ConfigManager.Generic",
+};
+
+export default abstract class Configurable<
+  Config extends Record<string | number | symbol, unknown>,
+> extends Directory {
+  static ErrorCode = ErrorCode;
 
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
@@ -43,7 +48,7 @@ export default abstract class Configurable<Config> extends Directory {
       return R.Error(
         scope,
         `${this.configName} does not exist`,
-        Configurable.ErrorCode.ConfigNotFound,
+        ErrorCode.ConfigNotFound,
       );
     }
 
@@ -57,7 +62,7 @@ export default abstract class Configurable<Config> extends Directory {
         contentResult,
         scope,
         `Failed to load ${this.configName}`,
-        Configurable.ErrorCode.FailedToLoadConfiguration,
+        ErrorCode.FailedToLoadConfiguration,
       );
     }
     this.logger.success();
@@ -72,7 +77,7 @@ export default abstract class Configurable<Config> extends Directory {
       return R.Error(
         scope,
         `${this.configName} is not a valid JSON`,
-        Configurable.ErrorCode.FailedToParseJson,
+        ErrorCode.FailedToParseJson,
       );
     }
 
@@ -81,14 +86,10 @@ export default abstract class Configurable<Config> extends Directory {
     if (!configResult.success) {
       this.logger.failure();
       return R.Stack(
-        R.Error(
-          scope,
-          configResult.error.message,
-          Configurable.ErrorCode.Generic,
-        ),
+        R.Error(scope, configResult.error.message, ErrorCode.Generic),
         scope,
         `Failed to parse ${this.configName}`,
-        Configurable.ErrorCode.FailedToParseConfiguration,
+        ErrorCode.FailedToParseConfiguration,
       );
     }
     this.logger.success();
@@ -110,7 +111,7 @@ export default abstract class Configurable<Config> extends Directory {
       return R.Error(
         scope,
         `Failed to stringify config`,
-        Configurable.ErrorCode.FailedToStringifyJson,
+        ErrorCode.FailedToStringifyJson,
       );
     }
 
@@ -122,7 +123,7 @@ export default abstract class Configurable<Config> extends Directory {
         result,
         scope,
         `Failed to write config "${this.configPath}"`,
-        Configurable.ErrorCode.FailedToSaveConfiguration,
+        ErrorCode.FailedToSaveConfiguration,
       );
     }
     this.logger.success();
@@ -133,6 +134,13 @@ export default abstract class Configurable<Config> extends Directory {
   protected async updateConfig(
     partialConfig: Partial<Config>,
   ): Promise<ResultVoid> {
+    const scope = this.scope("updateConfig");
+
+    if (Object.keys(partialConfig).length === 0) {
+      const message = "The given config is empty, there is nothing to update";
+      return R.Error(scope, message, ErrorCode.ConfigIsEmpty);
+    }
+
     this.logger.start("Loading config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {

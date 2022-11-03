@@ -3,7 +3,7 @@ import Manager from "../manager";
 import Resource from "../resource";
 
 export default abstract class Template<
-  C,
+  C extends Record<string | number | symbol, unknown>,
   R extends Resource<C>,
 > extends Manager {
   protected abstract resource: R;

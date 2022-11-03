@@ -10,7 +10,9 @@ export type ResourceBag = {
   tools: ToolCollection;
 } & ConfigurableBag;
 
-export default abstract class Resource<Config> extends Configurable<Config> {
+export default abstract class Resource<
+  Config extends Record<string | number | symbol, unknown>,
+> extends Configurable<Config> {
   protected bag: ResourceBag;
 
   constructor(directoryPath: string, bag: ResourceBag) {
