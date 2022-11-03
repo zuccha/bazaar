@@ -1,6 +1,6 @@
 import { z } from "zod";
 import Resource from "../resource";
-import { R, ResultVoid } from "../../utils/result";
+import { R, Result, ResultVoid } from "../../utils/result";
 
 export const ProjectConfigSchema = z.object({
   authors: z.array(z.string()),
@@ -260,5 +260,29 @@ export default class Project extends Resource<ProjectConfig> {
     this.logger.success();
 
     return this.tools.LunarMagic.open(this._baseromPath);
+  }
+
+  async getMetadata(): Promise<Result<ProjectConfig>> {
+    this.logger.start("Verifying that project is valid");
+    const result = await this.validate();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return this.loadConfig();
+  }
+
+  async updateMetadata(metadata: Partial<ProjectConfig>): Promise<ResultVoid> {
+    this.logger.start("Verifying that project is valid");
+    const result = await this.validate();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return this.updateConfig(metadata);
   }
 }
