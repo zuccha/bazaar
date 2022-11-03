@@ -1,6 +1,7 @@
 import { Flags } from "@oclif/core";
 import Project from "../../../api/managers/project";
 import { R } from "../../../api/utils/result";
+import { ProjectConfigFlags } from "../../../commands-utils/project";
 import BaseCommand from "../../../utils/base-command";
 
 export default class TemplateProjectCreateFromBaseromCommand extends BaseCommand<
@@ -18,6 +19,7 @@ The project template will contain only the baserom (no patches, blocks, etc.).`;
   ];
 
   static flags = {
+    ...ProjectConfigFlags,
     baserom: Flags.string({
       summary: "Path to the baserom",
       description:
@@ -29,17 +31,6 @@ The project template will contain only the baserom (no patches, blocks, etc.).`;
       description:
         "The name must be unique, you cannot chose a name that already exists for another project template.",
       required: true,
-    }),
-    author: Flags.string({
-      summary: "Author of the hack",
-      description: "You can specify authors several times.",
-      multiple: true,
-      required: false,
-    }),
-    version: Flags.string({
-      summary: "Initial version of the project",
-      description: "There is no restriction on what the version can be.",
-      required: false,
     }),
   };
 

@@ -1,6 +1,7 @@
 import { Flags } from "@oclif/core";
 import Project from "../../api/managers/project";
 import { R } from "../../api/utils/result";
+import { ProjectFlags } from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
 
 export default class ProjectSaveAsTemplateCommand extends BaseCommand<
@@ -22,17 +23,12 @@ Saving a project as a template includes:
   ];
 
   static flags = {
+    ...ProjectFlags,
     template: Flags.string({
       summary: "Name of the template",
       description:
         "Project templates can be listed with `bazaar template project list`.",
       required: true,
-    }),
-    path: Flags.string({
-      summary: "Directory where the project will be created",
-      description: 'The project folder will be "<path>\\<name>".',
-      default: ".",
-      required: false,
     }),
     force: Flags.boolean({
       summary: "Force saving the project as a template",

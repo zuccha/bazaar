@@ -1,6 +1,10 @@
 import { Flags } from "@oclif/core";
 import Project from "../../api/managers/project";
 import { R } from "../../api/utils/result";
+import {
+  ProjectConfigFlags,
+  ProjectCreationFlags,
+} from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
 
 export default class ProjectCreateFromBaseromCommand extends BaseCommand<
@@ -21,34 +25,13 @@ The new project will be created in a new directory named after the project, in\
   ];
 
   static flags = {
+    ...ProjectCreationFlags,
+    ...ProjectConfigFlags,
     baserom: Flags.string({
       summary: "Path to the baserom",
       description:
         "The baserom must be a working smc ROM. This must be a valid path.",
       required: true,
-    }),
-    name: Flags.string({
-      summary: "Name of the project",
-      description:
-        "The name will be used to create a directory inside the chosen <path>.",
-      required: true,
-    }),
-    author: Flags.string({
-      summary: "Author of the hack",
-      description: "You can specify authors several times.",
-      multiple: true,
-      required: false,
-    }),
-    version: Flags.string({
-      summary: "Initial version of the project",
-      description: "There is no restriction on what the version can be.",
-      required: false,
-    }),
-    path: Flags.string({
-      summary: "Directory where the project will be created",
-      description: 'The project folder will be "<path>\\<name>".',
-      default: ".",
-      required: false,
     }),
   };
 
