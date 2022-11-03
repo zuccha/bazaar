@@ -1,6 +1,5 @@
 import { R, Result } from "../../utils/result";
-import DirectoryManager from "../directory-manager";
-import { ManagerBag } from "../manager";
+import Directory, { DirectoryBag } from "../directory";
 import Editor, { EditorInfo } from "./editor";
 import CodeEditor from "./editors/code-editor";
 import Emulator from "./editors/emulator";
@@ -9,7 +8,7 @@ const ErrorCode = {
   Generic: "EditorCollection.Generic",
 };
 
-export default class EditorCollection extends DirectoryManager {
+export default class EditorCollection extends Directory {
   static ErrorCode = ErrorCode;
 
   protected id = "EditorCollection";
@@ -19,11 +18,11 @@ export default class EditorCollection extends DirectoryManager {
 
   private _editors: Editor[];
 
-  constructor(directoryPath: string, managerBag: ManagerBag) {
-    super(directoryPath, managerBag);
+  constructor(directoryPath: string, bag: DirectoryBag) {
+    super(directoryPath, bag);
 
-    this.CodeEditor = new CodeEditor(directoryPath, managerBag);
-    this.Emulator = new Emulator(directoryPath, managerBag);
+    this.CodeEditor = new CodeEditor(directoryPath, bag);
+    this.Emulator = new Emulator(directoryPath, bag);
 
     this._editors = [this.CodeEditor, this.Emulator];
   }

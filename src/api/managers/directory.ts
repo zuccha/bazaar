@@ -2,15 +2,18 @@ import { DirectoryInfo } from "../utils/fs";
 import { Result, ResultVoid } from "../utils/result";
 import Manager, { ManagerBag } from "./manager";
 
-export default abstract class DirectoryManager extends Manager {
+export type DirectoryBag = ManagerBag;
+
+export default abstract class Directory extends Manager {
   protected abstract id: string;
 
   protected directoryPath: string;
+  protected bag: DirectoryBag;
 
-  constructor(directoryPath: string, managerBag: ManagerBag) {
-    super(managerBag);
-
+  constructor(directoryPath: string, bag: DirectoryBag) {
+    super(bag);
     this.directoryPath = directoryPath;
+    this.bag = bag;
   }
 
   protected get name(): string {

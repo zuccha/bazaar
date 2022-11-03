@@ -1,5 +1,5 @@
 import { R, Result, ResultVoid } from "../../utils/result";
-import DirectoryManager from "../directory-manager";
+import Directory from "../directory";
 import { ManagerBag } from "../manager";
 import Tool, { ToolInfo } from "./tool";
 import AddmusicK from "./tools/addmusick";
@@ -14,7 +14,7 @@ const ErrorCode = {
   Generic: "ToolCollection.Generic",
 };
 
-export default class ToolCollection extends DirectoryManager {
+export default class ToolCollection extends Directory {
   static ErrorCode = ErrorCode;
 
   protected id = "ToolCollection";

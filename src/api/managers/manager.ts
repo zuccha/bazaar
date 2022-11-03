@@ -9,10 +9,10 @@ export type ManagerBag = {
 export default abstract class Manager {
   protected abstract id: string;
 
-  protected managerBag: ManagerBag;
+  protected bag: ManagerBag;
 
-  constructor(managerBag: ManagerBag) {
-    this.managerBag = managerBag;
+  constructor(bag: ManagerBag) {
+    this.bag = bag;
   }
 
   protected scope(functionName: string): string {
@@ -20,10 +20,10 @@ export default abstract class Manager {
   }
 
   protected get fs(): FS {
-    return this.managerBag.fs;
+    return this.bag.fs;
   }
 
   protected get logger(): Logger {
-    return this.managerBag.logger;
+    return this.bag.logger;
   }
 }

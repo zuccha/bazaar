@@ -1,30 +1,18 @@
-import DirectoryManager from "../directory-manager";
-import { ManagerBag } from "../manager";
+import Directory from "../directory";
 import { ResourceBag } from "../resource";
 import ProjectTemplate from "./templates/project-template";
 
-export default class TemplateCollection extends DirectoryManager {
+export default class TemplateCollection extends Directory {
   protected id = "TemplateCollection";
 
-  private _managerBag: ManagerBag;
-  private _resourceBag: ResourceBag;
+  private _bag: ResourceBag;
 
-  constructor(
-    directoryPath: string,
-    managerBag: ManagerBag,
-    resourceBag: ResourceBag,
-  ) {
-    super(directoryPath, managerBag);
-
-    this._managerBag = managerBag;
-    this._resourceBag = resourceBag;
+  constructor(directoryPath: string, bag: ResourceBag) {
+    super(directoryPath, bag);
+    this._bag = bag;
   }
 
   project(name: string): ProjectTemplate {
-    return new ProjectTemplate(
-      this.path("Projects", name),
-      this._managerBag,
-      this._resourceBag,
-    );
+    return new ProjectTemplate(this.path("Projects", name), this._bag);
   }
 }

@@ -1,6 +1,6 @@
 import { ShellOutput } from "../../utils/fs";
 import { R, Result, ResultVoid } from "../../utils/result";
-import DirectoryManager from "../directory-manager";
+import Directory from "../directory";
 
 export type ToolInfo = {
   name: string;
@@ -25,7 +25,7 @@ const ErrorCode = {
   Generic: "Tool.Generic",
 };
 
-export default abstract class Tool extends DirectoryManager {
+export default abstract class Tool extends Directory {
   static ErrorCode = ErrorCode;
 
   protected abstract displayName: string;

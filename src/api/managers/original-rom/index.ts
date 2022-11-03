@@ -1,11 +1,11 @@
 import { R, Result, ResultVoid } from "../../utils/result";
-import DirectoryManager from "../directory-manager";
+import Directory from "../directory";
 
 export type OriginalRomInfo = {
   filePath: string | undefined;
 };
 
-export default class OriginalRom extends DirectoryManager {
+export default class OriginalRom extends Directory {
   static ErrorCode = {
     OriginalRomNotFound: "OriginalRomManager.OriginalRomNotFound",
     OriginalRomNotValid: "OriginalRomManager.OriginalRomNotValid",

@@ -1,8 +1,10 @@
 import { z } from "zod";
-import DirectoryManager from "./directory-manager";
+import Directory, { DirectoryBag } from "./directory";
 import { R, Result, ResultVoid } from "../utils/result";
 
-export default abstract class Configurable<Config> extends DirectoryManager {
+export type ConfigurableBag = DirectoryBag;
+
+export default abstract class Configurable<Config> extends Directory {
   static ErrorCode = {
     ConfigNotFound: "ConfigManager.ConfigNotFound",
     FailedToLoadConfiguration: "ConfigManager.FailedToLoadConfiguration",
