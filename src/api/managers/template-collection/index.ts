@@ -22,7 +22,7 @@ export default class TemplateCollection extends DirectoryManager {
 
   project(name: string): ProjectTemplate {
     return new ProjectTemplate(
-      this.path("Project", name),
+      this.path("Projects", name),
       this._managerBag,
       this._resourceBag,
     );
