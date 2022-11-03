@@ -130,8 +130,8 @@ export default abstract class BaseCommand<
       }
     };
 
-    const success = (): void => done("✓");
-    const failure = (): void => done("✗");
+    const success = (): void => done(TE.success("✓"));
+    const failure = (): void => done(TE.failure("✗"));
     const stop = (): void => done("interrupted");
 
     return { log, start, done, success, failure, stop };
