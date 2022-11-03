@@ -1,23 +1,16 @@
-import { DirectoryInfo, FS } from "../utils/fs";
-import { Logger } from "../utils/logger";
+import { DirectoryInfo } from "../utils/fs";
 import { Result, ResultVoid } from "../utils/result";
+import Manager, { ManagerBag } from "./manager";
 
-export type ManagerBag = {
-  fs: FS;
-  logger: Logger;
-};
-
-export default abstract class DirectoryManager {
+export default abstract class DirectoryManager extends Manager {
   protected abstract id: string;
 
   protected directoryPath: string;
-  protected fs: FS;
-  protected logger: Logger;
 
-  constructor(directoryPath: string, { fs, logger }: ManagerBag) {
+  constructor(directoryPath: string, managerBag: ManagerBag) {
+    super(managerBag);
+
     this.directoryPath = directoryPath;
-    this.fs = fs;
-    this.logger = logger;
   }
 
   protected get name(): string {
@@ -26,10 +19,6 @@ export default abstract class DirectoryManager {
 
   protected path(...paths: string[]): string {
     return this.fs.join(this.directoryPath, ...paths);
-  }
-
-  protected scope(functionName: string): string {
-    return `${this.id}.${functionName}`;
   }
 
   protected async exists(): Promise<boolean> {

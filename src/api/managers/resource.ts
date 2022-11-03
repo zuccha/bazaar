@@ -1,6 +1,7 @@
+import { ResultVoid } from "../utils/result";
 import Configurable from "./configurable";
-import { ManagerBag } from "./directory-manager";
 import EditorCollection from "./editor-collection";
+import { ManagerBag } from "./manager";
 import OriginalRom from "./original-rom";
 import ToolCollection from "./tool-collection";
 
@@ -11,9 +12,7 @@ export type ResourceBag = {
 };
 
 export default abstract class Resource<Config> extends Configurable<Config> {
-  protected originalRom: OriginalRom;
-  protected editors: EditorCollection;
-  protected tools: ToolCollection;
+  protected resourceBag: ResourceBag;
 
   constructor(
     directoryPath: string,
@@ -22,8 +21,25 @@ export default abstract class Resource<Config> extends Configurable<Config> {
   ) {
     super(directoryPath, managerBag);
 
-    this.originalRom = resourceBag.originalRom;
-    this.editors = resourceBag.editors;
-    this.tools = resourceBag.tools;
+    this.resourceBag = resourceBag;
   }
+
+  protected get originalRom(): OriginalRom {
+    return this.resourceBag.originalRom;
+  }
+
+  protected get editors(): EditorCollection {
+    return this.resourceBag.editors;
+  }
+
+  protected get tools(): ToolCollection {
+    return this.resourceBag.tools;
+  }
+
+  abstract validate(): Promise<ResultVoid>;
+
+  abstract snapshot(
+    resource: Resource<Config>,
+    partialOptions?: Partial<{ force: boolean }>,
+  ): Promise<ResultVoid>;
 }

@@ -1,5 +1,6 @@
 import { R, Result, ResultVoid } from "../../utils/result";
-import DirectoryManager, { ManagerBag } from "../directory-manager";
+import DirectoryManager from "../directory-manager";
+import { ManagerBag } from "../manager";
 import Tool, { ToolInfo } from "./tool";
 import AddmusicK from "./tools/addmusick";
 import Asar from "./tools/asar";

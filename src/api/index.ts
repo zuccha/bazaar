@@ -1,17 +1,24 @@
 import EditorCollection from "./managers/editor-collection";
+import Manager from "./managers/manager";
 import OriginalRom from "./managers/original-rom";
 import Project from "./managers/project";
+import { ResourceBag } from "./managers/resource";
+import TemplateCollection from "./managers/template-collection";
 import ToolCollection from "./managers/tool-collection";
 import { FS } from "./utils/fs";
 import { Logger } from "./utils/logger";
 
-export default class Api {
-  readonly fs: FS;
-  readonly logger: Logger;
+export default class Api extends Manager {
+  protected id = "Api";
+
+  private readonly _resourceBag: ResourceBag;
+
+  readonly originalRom: OriginalRom;
 
   readonly editors: EditorCollection;
-  readonly originalRom: OriginalRom;
   readonly tools: ToolCollection;
+
+  readonly templates: TemplateCollection;
 
   constructor({
     cacheDirectoryPath,
@@ -22,31 +29,38 @@ export default class Api {
     fs: FS;
     logger: Logger;
   }) {
-    const managerBag = { fs, logger };
-
-    this.fs = fs;
-    this.logger = logger;
-
-    this.editors = new EditorCollection(
-      fs.join(cacheDirectoryPath, "Editors"),
-      managerBag,
-    );
+    super({ fs, logger });
 
     this.originalRom = new OriginalRom(
       fs.join(cacheDirectoryPath, "OriginalROM"),
-      managerBag,
+      this.managerBag,
+    );
+
+    this.editors = new EditorCollection(
+      fs.join(cacheDirectoryPath, "Editors"),
+      this.managerBag,
     );
 
     this.tools = new ToolCollection(
       fs.join(cacheDirectoryPath, "Tools"),
-      managerBag,
+      this.managerBag,
+    );
+
+    this._resourceBag = {
+      originalRom: this.originalRom,
+      editors: this.editors,
+      tools: this.tools,
+    };
+
+    this.templates = new TemplateCollection(
+      fs.join(cacheDirectoryPath, "Templates"),
+      this.managerBag,
+      this._resourceBag,
     );
   }
 
   project(path: string, name?: string): Project {
-    const directoryPath = name ? this.fs.join(path, name) : path;
-    const managerBag = { fs: this.fs, logger: this.logger };
-    const resourceBag = { editors: this.editors, tools: this.tools };
-    return new Project(directoryPath, managerBag, resourceBag);
+    const directoryPath = name ? this.managerBag.fs.join(path, name) : path;
+    return new Project(directoryPath, this.managerBag, this._resourceBag);
   }
 }

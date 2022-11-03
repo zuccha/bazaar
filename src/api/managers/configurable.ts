@@ -18,18 +18,18 @@ export default abstract class Configurable<Config> extends DirectoryManager {
 
   protected configName = "_config.json";
 
-  private get _configPath() {
+  protected get configPath(): string {
     return this.path(this.configName);
   }
 
   protected async hasConfig(): Promise<boolean> {
-    const configPath = this._configPath;
+    const configPath = this.configPath;
     return this.fs.exists(configPath);
   }
 
   protected async loadConfig(): Promise<Result<Config>> {
     const scope = this.scope("loadConfig");
-    const configPath = this._configPath;
+    const configPath = this.configPath;
 
     this.logger.start("Checking if config exists");
     const configPathExists = await this.fs.exists(configPath);
@@ -101,7 +101,7 @@ export default abstract class Configurable<Config> extends DirectoryManager {
 
   protected async saveConfig(config: Config): Promise<ResultVoid> {
     const scope = this.scope("saveConfig");
-    const configPath = this._configPath;
+    const configPath = this.configPath;
 
     let content: string;
     try {
