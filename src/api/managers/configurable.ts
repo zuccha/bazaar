@@ -132,4 +132,22 @@ export default abstract class Configurable<Config> extends DirectoryManager {
 
     return R.Void;
   }
+
+  protected async updateConfig(
+    partialConfig: Partial<Config>,
+  ): Promise<ResultVoid> {
+    const configResult = await this.loadConfig();
+    if (R.isError(configResult)) {
+      return configResult;
+    }
+
+    const config = { ...configResult.data, ...partialConfig };
+
+    const result = await this.saveConfig(config);
+    if (R.isError(result)) {
+      return result;
+    }
+
+    return R.Void;
+  }
 }

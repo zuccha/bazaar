@@ -17,6 +17,7 @@ export default class Project extends Resource<ProjectConfig> {
     ProjectExists: "ProjectManager.ProjectExists",
     ProjectNotFound: "ProjectManager.ProjectNotFound",
     ProjectNotValid: "ProjectManager.ProjectNotValid",
+    SnapshotTargetExists: "ProjectManager.SnapshotTargetExists",
   };
 
   protected id = "Project";
@@ -86,7 +87,7 @@ export default class Project extends Resource<ProjectConfig> {
       this.logger.failure();
       if (!options.force) {
         const message = `Target project "${targetProject.path()}" already exists`;
-        return R.Error(scope, message, Project.ErrorCode.Generic);
+        return R.Error(scope, message, Project.ErrorCode.SnapshotTargetExists);
       }
 
       this.logger.start(`Removing target project "${targetProject.path()}"`);
@@ -120,6 +121,16 @@ export default class Project extends Resource<ProjectConfig> {
       return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
+
+    if (config) {
+      this.logger.start("Updating config");
+      result = await targetProject.updateConfig(config);
+      if (R.isError(result)) {
+        this.logger.failure();
+        return result;
+      }
+      this.logger.success();
+    }
 
     return R.Void;
   }
