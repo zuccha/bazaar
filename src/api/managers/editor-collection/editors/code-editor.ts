@@ -13,14 +13,14 @@ export default class CodeEditor extends Editor {
   protected id = "CodeEditor";
 
   protected configName = "_code-editor.json";
-  protected displayName = "Code Editor";
+  displayName = "Code Editor";
 
   async open(path: string): Promise<ResultVoid> {
     const scope = this.scope("open");
 
     path = this.fs.resolve(path);
 
-    this.logger.start(`Checking if path "${path}" exists`);
+    this.logger.start(`Checking if path to open exists`);
     const pathExists = await this.fs.exists(path);
     if (!pathExists) {
       this.logger.failure();
@@ -29,10 +29,13 @@ export default class CodeEditor extends Editor {
     }
     this.logger.success();
 
+    this.logger.start(`Executing code editor command`);
     const execResult = await this.exec(path);
     if (R.isError(execResult)) {
+      this.logger.failure();
       return execResult;
     }
+    this.logger.success();
 
     if (execResult.data.stderr) {
       const message = `Failed to open "${path}"`;

@@ -32,7 +32,7 @@ export default abstract class Editor extends Configurable<EditorConfig> {
   protected ConfigSchema = EditorConfigSchema;
   protected defaultConfig = { exePath: "", exeArgs: "%1" };
 
-  protected abstract displayName: string;
+  abstract displayName: string;
 
   protected async exec(...args: string[]): Promise<Result<ShellOutput>> {
     const scope = this.scope("exec");
@@ -42,34 +42,44 @@ export default abstract class Editor extends Configurable<EditorConfig> {
       return infoResult;
     }
 
+    this.logger.start("Checking if an editor executable has been set");
     const info = infoResult.data;
     if (!info.exePath) {
+      this.logger.failure();
       const message = "No executable set";
       return R.Error(scope, message, ErrorCode.ExeNotSet);
     }
+    this.logger.success();
 
+    this.logger.start("Checking if editor executable exists");
     const exePathExists = await this.fs.exists(info.exePath);
     if (!exePathExists) {
-      const message = "The executable was not found";
+      this.logger.failure();
+      const message = `The editor executable "${info.exePath}" was not found`;
       return R.Error(scope, message, ErrorCode.ExeNotFound);
     }
+    this.logger.success();
 
-    const exePathIsValid = await this.fs.exists(info.exePath);
+    this.logger.start("Checking if the editor executable is valid");
+    const exePathIsValid = await this.fs.isFile(info.exePath);
     if (!exePathIsValid) {
-      const message = "The executable is not a file";
+      this.logger.failure();
+      const message = `Editor executable "${info.exePath}" is not valid`;
       return R.Error(scope, message, ErrorCode.ExeNotValid);
     }
+    this.logger.success();
 
     let command = `"${info.exePath}" ${info.exeArgs}`;
     for (const [i, arg] of args.entries()) {
       command = command.replace(new RegExp(`%${i + 1}`, "g"), `"${arg}"`);
     }
 
-    this.logger.start(`Executing command \`${command}\``);
+    this.logger.start(`Executing editor command`);
+    this.logger.log(`$ ${command}`);
     const execResult = await this.fs.exec(command);
     if (R.isError(execResult)) {
       this.logger.failure();
-      const message = `Failed to execute command \`${command}\``;
+      const message = `Failed to execute editor command \`${command}\``;
       return R.Stack(execResult, scope, message, ErrorCode.ExecutionFailed);
     }
     this.logger.success();
@@ -78,8 +88,10 @@ export default abstract class Editor extends Configurable<EditorConfig> {
   }
 
   async list(): Promise<Result<EditorInfo>> {
+    this.logger.start("Loading editor config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
+      this.logger.failure();
       return configResult;
     }
     this.logger.success();
@@ -105,15 +117,15 @@ export default abstract class Editor extends Configurable<EditorConfig> {
       return R.Error(scope, message, ErrorCode.MissingParameters);
     }
 
-    this.logger.start("Loading config");
+    this.logger.start("Loading editor config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
       this.logger.failure();
       return configResult;
     }
+    this.logger.success();
 
     const config = configResult.data;
-    this.logger.success();
 
     if (partialEditorConfig.exePath !== undefined) {
       this.logger.start("Setting exe path");

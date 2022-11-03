@@ -10,12 +10,12 @@ const ErrorCode = {
 export default class LunarMagic extends Tool {
   static ErrorCode = ErrorCode;
 
-  protected id = "LunarMagic";
+  protected readonly id = "LunarMagic";
 
-  protected displayName = "Lunar Magic";
-  protected exeName = "Lunar Magic.exe";
-  protected downloadUrl = "https://dl.smwcentral.net/32211/lm333.zip";
-  protected supportedVersion = "3.33";
+  readonly displayName = "Lunar Magic";
+  protected readonly exeName = "Lunar Magic.exe";
+  protected readonly downloadUrl = "https://dl.smwcentral.net/32211/lm333.zip";
+  protected readonly supportedVersion = "3.33";
 
   async open(romPath: string): Promise<ResultVoid> {
     const scope = this.scope("open");

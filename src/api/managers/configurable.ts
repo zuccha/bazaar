@@ -24,11 +24,6 @@ export default abstract class Configurable<Config> extends Directory {
     return this.path(this.configName);
   }
 
-  protected async hasConfig(): Promise<boolean> {
-    const configPath = this.configPath;
-    return this.fs.exists(configPath);
-  }
-
   protected async loadConfig(): Promise<Result<Config>> {
     const scope = this.scope("loadConfig");
     const configPath = this.configPath;
@@ -54,7 +49,7 @@ export default abstract class Configurable<Config> extends Directory {
 
     this.logger.success();
 
-    this.logger.start(`Reading ${this.configName}`);
+    this.logger.start(`Reading config`);
     const contentResult = await this.fs.readFile(configPath);
     if (R.isError(contentResult)) {
       this.logger.failure();
@@ -69,7 +64,7 @@ export default abstract class Configurable<Config> extends Directory {
 
     let content: unknown;
     try {
-      this.logger.start(`Parsing ${this.configName} content`);
+      this.logger.start(`Parsing config content`);
       content = JSON.parse(contentResult.data);
       this.logger.success();
     } catch {
@@ -81,7 +76,7 @@ export default abstract class Configurable<Config> extends Directory {
       );
     }
 
-    this.logger.start(`Validating ${this.configName} content`);
+    this.logger.start(`Validating config content`);
     const configResult = this.ConfigSchema.safeParse(content);
     if (!configResult.success) {
       this.logger.failure();
@@ -114,19 +109,19 @@ export default abstract class Configurable<Config> extends Directory {
       this.logger.failure();
       return R.Error(
         scope,
-        "Configuration cannot be stringified",
+        `Failed to stringify config`,
         Configurable.ErrorCode.FailedToStringifyJson,
       );
     }
 
-    this.logger.start(`Writing ${this.configName}`);
+    this.logger.start(`Writing config`);
     const result = await this.fs.writeFile(configPath, content);
     if (R.isError(result)) {
       this.logger.failure();
       return R.Stack(
         result,
         scope,
-        `Failed to save ${this.configName}`,
+        `Failed to write config "${this.configPath}"`,
         Configurable.ErrorCode.FailedToSaveConfiguration,
       );
     }
@@ -138,17 +133,23 @@ export default abstract class Configurable<Config> extends Directory {
   protected async updateConfig(
     partialConfig: Partial<Config>,
   ): Promise<ResultVoid> {
+    this.logger.start("Loading config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
+      this.logger.failure();
       return configResult;
     }
+    this.logger.success();
 
     const config = { ...configResult.data, ...partialConfig };
 
+    this.logger.start("Saving config");
     const result = await this.saveConfig(config);
     if (R.isError(result)) {
+      this.logger.failure();
       return result;
     }
+    this.logger.success();
 
     return R.Void;
   }

@@ -66,13 +66,15 @@ export default class ToolCollection extends Directory {
     const tools: ToolInfo[] = [];
 
     for (const tool of this._tools) {
+      this.logger.start(`Gathering ${tool.displayName} information`);
       const toolResult = await tool.list();
-
       if (R.isError(toolResult)) {
+        this.logger.failure();
         const message = "Failed to gather data for tool";
         return R.Stack(toolResult, scope, message, ErrorCode.Generic);
       }
 
+      this.logger.success();
       tools.push(toolResult.data);
     }
 
@@ -87,15 +89,17 @@ export default class ToolCollection extends Directory {
     const options = { force: false, ...partialOptions };
 
     for (const tool of this._tools) {
+      this.logger.start(`Installing ${tool.displayName}`);
       const result = await tool.install({
         force: options.force,
         ignoreIfAlreadyInstalled: true,
       });
-
       if (R.isError(result)) {
+        this.logger.failure();
         const message = "Failed to install all tools";
         return R.Stack(result, scope, message, ErrorCode.Generic);
       }
+      this.logger.success();
     }
 
     return R.Void;
@@ -105,12 +109,14 @@ export default class ToolCollection extends Directory {
     const scope = this.scope("uninstallAll");
 
     for (const tool of this._tools) {
+      this.logger.start(`Uninstalling ${tool.displayName}`);
       const result = await tool.uninstall({ ignoreIfNotInstalled: true });
-
       if (R.isError(result)) {
+        this.logger.failure();
         const message = "Failed to uninstall all tools";
         return R.Stack(result, scope, message, ErrorCode.Generic);
       }
+      this.logger.success();
     }
 
     return R.Void;
@@ -120,15 +126,17 @@ export default class ToolCollection extends Directory {
     const scope = this.scope("updateAll");
 
     for (const tool of this._tools) {
+      this.logger.start(`Updating ${tool.displayName}`);
       const result = await tool.update({
         ignoreIfNotInstalled: true,
         ignoreIfUpToDate: true,
       });
-
       if (R.isError(result)) {
+        this.logger.failure();
         const message = "Failed to update all tools";
         return R.Stack(result, scope, message, ErrorCode.Generic);
       }
+      this.logger.success();
     }
 
     return R.Void;

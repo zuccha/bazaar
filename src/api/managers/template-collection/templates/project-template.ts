@@ -19,7 +19,15 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     baseromPath: string,
     config?: Partial<ProjectConfig>,
   ): Promise<ResultVoid> {
-    return this.resource.createFromBaserom(baseromPath, config);
+    this.logger.start("Creating project from baserom");
+    const result = await this.resource.createFromBaserom(baseromPath, config);
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+
+    this.logger.success();
+    return result;
   }
 
   async createFromProject(

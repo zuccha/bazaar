@@ -33,12 +33,14 @@ export default class EditorCollection extends Directory {
     const editorInfos: EditorInfo[] = [];
 
     for (const editor of this._editors) {
+      this.logger.start(`Gathering ${editor.displayName} info`);
       const editorResult = await editor.list();
-
       if (R.isError(editorResult)) {
+        this.logger.failure();
         const message = "Failed to gather data for editor";
         return R.Stack(editorResult, scope, message, ErrorCode.Generic);
       }
+      this.logger.success();
 
       editorInfos.push(editorResult.data);
     }

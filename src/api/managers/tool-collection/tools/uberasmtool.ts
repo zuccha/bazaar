@@ -1,10 +1,11 @@
 import Tool from "../tool";
 
 export default class UberASMTool extends Tool {
-  protected id = "UberASMTool";
+  protected readonly id = "UberASMTool";
 
-  protected displayName = "UberASMTool";
-  protected exeName = "UberASMTool.exe";
-  protected downloadUrl = "https://dl.smwcentral.net/28974/UberASMTool15.zip";
-  protected supportedVersion = "1.5";
+  readonly displayName = "UberASMTool";
+  protected readonly exeName = "UberASMTool.exe";
+  protected readonly downloadUrl =
+    "https://dl.smwcentral.net/28974/UberASMTool15.zip";
+  protected readonly supportedVersion = "1.5";
 }

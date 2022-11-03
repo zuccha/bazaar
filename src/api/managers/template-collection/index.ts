@@ -30,9 +30,7 @@ export default class TemplateCollection extends Directory {
   async listProjects(): Promise<Result<TemplateInfo[]>> {
     const scope = this.scope("listProjects");
 
-    this.logger.start(
-      `Getting "${this.projectsDirectoryPath()}" directory info`,
-    );
+    this.logger.start(`Gathering info about project templates' directory`);
     const directoryInfoResult = await this.fs.getDirectoryInfo(
       this.projectsDirectoryPath(),
     );

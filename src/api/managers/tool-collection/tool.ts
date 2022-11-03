@@ -28,18 +28,21 @@ const ErrorCode = {
 export default abstract class Tool extends Directory {
   static ErrorCode = ErrorCode;
 
-  protected abstract displayName: string;
-  protected abstract exeName: string;
-  protected abstract downloadUrl: string;
-  protected abstract supportedVersion: string;
+  abstract readonly displayName: string;
+  protected abstract readonly exeName: string;
+  protected abstract readonly downloadUrl: string;
+  protected abstract readonly supportedVersion: string;
 
   protected async exec(...args: string[]): Promise<Result<ShellOutput>> {
     const scope = this.scope("exec");
 
+    this.logger.start("Gathering information about tool");
     const infoResult = await this.list();
     if (R.isError(infoResult)) {
+      this.logger.failure();
       return infoResult;
     }
+    this.logger.success();
 
     const info = infoResult.data;
     if (info.installationStatus !== "installed" || !info.installedVersion) {
@@ -50,7 +53,8 @@ export default abstract class Tool extends Directory {
     const exePath = this.path(info.installedVersion, this.exeName);
     const command = `"${exePath}" ${args.map((arg) => `"${arg}"`).join(" ")}`;
 
-    this.logger.start(`Executing command \`${command}\``);
+    this.logger.start(`Executing tool command`);
+    this.logger.log(`$ ${command}`);
     const execResult = await this.fs.exec(command);
     if (R.isError(execResult)) {
       this.logger.failure();
@@ -70,7 +74,7 @@ export default abstract class Tool extends Directory {
       supportedVersion: this.supportedVersion,
     };
 
-    this.logger.start(`Checking if ${this.displayName} directory exists`);
+    this.logger.start(`Checking if tool directory exists`);
     const toolDirectoryPathExists = await this.exists();
     if (!toolDirectoryPathExists) {
       this.logger.failure();
@@ -82,11 +86,11 @@ export default abstract class Tool extends Directory {
     }
     this.logger.success();
 
-    this.logger.start(`Collecting ${this.displayName} directory information`);
+    this.logger.start(`Gathering directory information`);
     const toolDirectoryInfoResult = await this.getDirectoryInfo();
     if (R.isError(toolDirectoryInfoResult)) {
       this.logger.failure();
-      const message = "Failed to read directory content";
+      const message = `Failed to gather directory "${this.path()}" information`;
       return R.Stack(
         toolDirectoryInfoResult,
         scope,
@@ -135,7 +139,7 @@ export default abstract class Tool extends Directory {
       ...partialOptions,
     };
 
-    this.logger.start(`Checking if ${this.displayName} is already installed`);
+    this.logger.start(`Checking if tool is already installed`);
     const toolDirectoryPathExists = await this.exists();
     if (toolDirectoryPathExists) {
       if (options.ignoreIfAlreadyInstalled) {
@@ -168,7 +172,7 @@ export default abstract class Tool extends Directory {
       this.logger.success();
     }
 
-    this.logger.start(`Creating ${this.displayName} directory`);
+    this.logger.start(`Creating tool directory`);
     result = await this.createDirectory();
     if (R.isError(result)) {
       this.logger.failure();
@@ -181,7 +185,7 @@ export default abstract class Tool extends Directory {
     }
     this.logger.success();
 
-    this.logger.start(`Downloading ${this.displayName}`);
+    this.logger.start(`Downloading tool`);
     const toolZipFilePath = this.path(`${this.supportedVersion}.zip`);
     result = await this.fs.downloadFile(toolZipFilePath, this.downloadUrl);
     if (R.isError(result)) {
@@ -195,7 +199,7 @@ export default abstract class Tool extends Directory {
     }
     this.logger.success();
 
-    this.logger.start(`Extracting ${this.displayName} archive`);
+    this.logger.start(`Extracting tool archive`);
     const toolVersionDirectoryPath = this.path(this.supportedVersion);
     result = await this.fs.unzipFile(
       toolZipFilePath,
@@ -213,7 +217,7 @@ export default abstract class Tool extends Directory {
     }
     this.logger.success();
 
-    this.logger.start(`Removing ${this.displayName} archive`);
+    this.logger.start(`Removing tool archive`);
     result = await this.fs.removeFile(toolZipFilePath);
     if (R.isError(result)) {
       this.logger.failure();
@@ -238,10 +242,10 @@ export default abstract class Tool extends Directory {
 
     const options = { ignoreIfNotInstalled: false, ...partialOptions };
 
-    this.logger.start(`Checking if ${this.displayName} is installed`);
+    this.logger.start(`Checking if tool is installed`);
     const toolDirectoryPathExists = await this.exists();
     if (options.ignoreIfNotInstalled && !toolDirectoryPathExists) {
-      this.logger.stop();
+      this.logger.done("not installed, ignoring");
       return R.Void;
     }
 
@@ -255,7 +259,7 @@ export default abstract class Tool extends Directory {
     }
     this.logger.success();
 
-    this.logger.start(`Removing ${this.displayName} directory`);
+    this.logger.start(`Removing tool directory`);
     const result = await this.removeDirectory();
     if (R.isError(result)) {
       return R.Error(
@@ -285,7 +289,7 @@ export default abstract class Tool extends Directory {
 
     const toolVersionDirectoryPath = this.path(this.supportedVersion);
 
-    this.logger.start(`Checking if ${this.displayName} is up to date`);
+    this.logger.start(`Checking if tool is up to date`);
     const toolVersionDirectoryPathExists = await this.fs.exists(
       toolVersionDirectoryPath,
     );
@@ -297,15 +301,13 @@ export default abstract class Tool extends Directory {
       this.logger.failure();
       return R.Error(
         scope,
-        `${this.displayName} is up to date`,
+        `${this.displayName} is already up to date`,
         ErrorCode.ToolIsUpToDate,
       );
     }
     this.logger.failure();
 
-    this.logger.start(
-      `Checking if another ${this.displayName} version is installed`,
-    );
+    this.logger.start(`Checking if another tool version is installed`);
     const toolDirectoryPathExists = await this.exists();
     if (!toolDirectoryPathExists) {
       if (options.ignoreIfNotInstalled) {

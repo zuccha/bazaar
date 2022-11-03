@@ -34,7 +34,7 @@ export default class Project extends Resource<ProjectConfig> {
   async validate(): Promise<ResultVoid> {
     const scope = this.scope("validate");
 
-    this.logger.start(`Checking if project "${this.path()}" exists`);
+    this.logger.start(`Checking if project exists`);
     const exists = await this.exists();
     if (!exists) {
       this.logger.failure();
@@ -43,7 +43,7 @@ export default class Project extends Resource<ProjectConfig> {
     }
     this.logger.success();
 
-    this.logger.start(`Checking if config "${this.configPath}" exists`);
+    this.logger.start(`Checking if config exists`);
     const configIsFile = await this.fs.isFile(this.configPath);
     if (!configIsFile) {
       this.logger.failure();
@@ -52,7 +52,7 @@ export default class Project extends Resource<ProjectConfig> {
     }
     this.logger.success();
 
-    this.logger.start(`Checking if baserom "${this._baseromPath}" exists`);
+    this.logger.start(`Checking if baserom exists`);
     const baseromIsFile = await this.fs.isFile(this._baseromPath);
     if (!baseromIsFile) {
       this.logger.failure();
@@ -74,14 +74,15 @@ export default class Project extends Resource<ProjectConfig> {
 
     const options = { force: false, ...partialOptions };
 
+    this.logger.start("Verifying that source project is valid");
     result = await this.validate();
     if (R.isError(result)) {
+      this.logger.failure();
       return result;
     }
+    this.logger.success();
 
-    this.logger.start(
-      `Checking that target project "${targetProject.path()}" does't already exist`,
-    );
+    this.logger.start(`Checking that target project does't already exist`);
     const targetProjectExists = await targetProject.exists();
     if (targetProjectExists) {
       this.logger.failure();
@@ -90,11 +91,11 @@ export default class Project extends Resource<ProjectConfig> {
         return R.Error(scope, message, Project.ErrorCode.SnapshotTargetExists);
       }
 
-      this.logger.start(`Removing target project "${targetProject.path()}"`);
+      this.logger.start(`Removing target project`);
       result = await targetProject.removeDirectory();
       if (R.isError(result)) {
         this.logger.failure();
-        const message = `Failed to remove target project directory "${targetProject.path()}"`;
+        const message = `Failed to remove target project "${targetProject.path()}"`;
         return R.Stack(result, scope, message, Project.ErrorCode.Generic);
       }
       this.logger.success();
@@ -102,23 +103,23 @@ export default class Project extends Resource<ProjectConfig> {
       this.logger.success();
     }
 
-    this.logger.start("Saving baserom");
+    this.logger.start("Copying baserom");
     result = await this.fs.copyFile(
       this._baseromPath,
       targetProject._baseromPath,
     );
     if (R.isError(result)) {
       this.logger.failure();
-      const message = "Failed to copy baserom";
+      const message = `Failed to copy baserom from "${this._baseromPath}" to "${targetProject._baseromPath}"`;
       return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
 
-    this.logger.start("Saving config");
+    this.logger.start("Copying config");
     result = await this.fs.copyFile(this.configPath, targetProject.configPath);
     if (R.isError(result)) {
       this.logger.failure();
-      const message = "Failed to copy config";
+      const message = `Failed to copy baserom from "${this.configPath}" to "${targetProject.configPath}"`;
       return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
@@ -147,25 +148,25 @@ export default class Project extends Resource<ProjectConfig> {
     this.logger.start("Checking if a project with same name already exists");
     if (await this.exists()) {
       this.logger.failure();
-      const message = `A project named "${this.name}" already exists (directory "${this.path}")`;
+      const message = `The project "${this.path()}" already exists`;
       return R.Error(scope, message, Project.ErrorCode.ProjectExists);
     }
     this.logger.success();
 
-    this.logger.start("Checking if the baserom file exists");
+    this.logger.start("Checking if the baserom exists");
     const baseromPathExists = await this.fs.exists(baseromPath);
     if (!baseromPathExists) {
       this.logger.failure();
-      const message = `The baserom file was not found`;
+      const message = `The baserom "${baseromPath}" was not found`;
       return R.Error(scope, message, Project.ErrorCode.BaseromFileNotFound);
     }
     this.logger.success();
 
-    this.logger.start("Checking if the baserom file is valid");
+    this.logger.start("Checking if the baserom is valid");
     const baseromIsFile = await this.fs.isFile(baseromPath);
     if (!baseromIsFile) {
       this.logger.failure();
-      const message = `The baserom file is not actually a file`;
+      const message = `The baserom "${baseromPath}" is not valid`;
       return R.Error(scope, message, Project.ErrorCode.BaseromNotFile);
     }
     this.logger.success();
@@ -174,7 +175,7 @@ export default class Project extends Resource<ProjectConfig> {
     result = await this.createDirectory();
     if (R.isError(result)) {
       this.logger.failure();
-      const message = "Failed to create project directory";
+      const message = `Failed to create project directory "${this.path()}"`;
       return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
@@ -184,7 +185,7 @@ export default class Project extends Resource<ProjectConfig> {
     if (R.isError(result)) {
       this.logger.failure();
       await this.removeDirectory();
-      const message = "Failed to copy baserom file";
+      const message = `Failed to copy baserom file from "${baseromPath}" to "${this._baseromPath}"`;
       return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
@@ -226,22 +227,37 @@ export default class Project extends Resource<ProjectConfig> {
   }
 
   async openCodeEditor(): Promise<ResultVoid> {
+    this.logger.start("Verifying that project is valid");
     const result = await this.validate();
-    if (R.isError(result)) return result;
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
 
     return this.editors.CodeEditor.open(this.path());
   }
 
   async openEmulator(): Promise<ResultVoid> {
+    this.logger.start("Verifying that project is valid");
     const result = await this.validate();
-    if (R.isError(result)) return result;
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
 
     return this.editors.Emulator.open(this._baseromPath);
   }
 
   async openLunarMagic(): Promise<ResultVoid> {
+    this.logger.start("Verifying that project is valid");
     const result = await this.validate();
-    if (R.isError(result)) return result;
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
 
     return this.tools.LunarMagic.open(this._baseromPath);
   }

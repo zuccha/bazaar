@@ -1,10 +1,11 @@
 import Tool from "../tool";
 
 export default class Asar extends Tool {
-  protected id = "Asar";
+  protected readonly id = "Asar";
 
-  protected displayName = "Asar";
-  protected exeName = "asar.exe";
-  protected downloadUrl = "https://dl.smwcentral.net/25953/asar181.zip";
-  protected supportedVersion = "1.81";
+  readonly displayName = "Asar";
+  protected readonly exeName = "asar.exe";
+  protected readonly downloadUrl =
+    "https://dl.smwcentral.net/25953/asar181.zip";
+  protected readonly supportedVersion = "1.81";
 }

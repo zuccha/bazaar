@@ -13,14 +13,14 @@ export default class Emulator extends Editor {
   protected id = "Emulator";
 
   protected configName = "_emulator.json";
-  protected displayName = "Emulator";
+  displayName = "Emulator";
 
   async open(romPath: string): Promise<ResultVoid> {
     const scope = this.scope("open");
 
     romPath = this.fs.resolve(romPath);
 
-    this.logger.start(`Checking if ROM "${romPath}" exists`);
+    this.logger.start(`Checking if ROM exists`);
     const pathExists = await this.fs.exists(romPath);
     if (!pathExists) {
       this.logger.failure();
@@ -29,10 +29,13 @@ export default class Emulator extends Editor {
     }
     this.logger.success();
 
+    this.logger.start(`Executing emulator command`);
     const execResult = await this.exec(romPath);
     if (R.isError(execResult)) {
+      this.logger.failure();
       return execResult;
     }
+    this.logger.success();
 
     if (execResult.data.stderr) {
       const message = `Failed to run "${romPath}" in emulator`;

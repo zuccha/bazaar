@@ -1,10 +1,11 @@
 import Tool from "../tool";
 
 export default class Flips extends Tool {
-  protected id = "Flips";
+  protected readonly id = "Flips";
 
-  protected displayName = "Flips";
-  protected exeName = "flips.exe";
-  protected downloadUrl = "https://dl.smwcentral.net/11474/floating.zip";
-  protected supportedVersion = "1.31";
+  readonly displayName = "Flips";
+  protected readonly exeName = "flips.exe";
+  protected readonly downloadUrl =
+    "https://dl.smwcentral.net/11474/floating.zip";
+  protected readonly supportedVersion = "1.31";
 }

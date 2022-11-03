@@ -12,15 +12,18 @@ export default abstract class Template<
     sourceResource: R,
     partialOptions?: Partial<{ force: boolean }>,
   ): Promise<ResultVoid> {
+    this.logger.start("Taking snapshot of source project into template");
     const result = await sourceResource.snapshot(
       this.resource,
       undefined,
       partialOptions,
     );
     if (R.isError(result)) {
+      this.logger.failure();
       return result;
     }
 
+    this.logger.success();
     return R.Void;
   }
 
@@ -29,15 +32,18 @@ export default abstract class Template<
     config?: Partial<C>,
     partialOptions?: Partial<{ force: boolean }>,
   ): Promise<ResultVoid> {
+    this.logger.start("Taking snapshot of template into project");
     const result = await this.resource.snapshot(
       targetResource,
       config,
       partialOptions,
     );
     if (R.isError(result)) {
+      this.logger.failure();
       return result;
     }
 
+    this.logger.success();
     return R.Void;
   }
 }

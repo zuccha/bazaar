@@ -19,29 +19,29 @@ export default class OriginalRom extends Directory {
   async add(sourceOriginalRomPath: string): Promise<ResultVoid> {
     const scope = this.scope("add");
 
-    this.logger.start("Checking if the given original ROM exists");
+    this.logger.start("Checking if the original ROM exists");
     const sourceOriginalRomPathExists = await this.fs.exists(
       sourceOriginalRomPath,
     );
     if (!sourceOriginalRomPathExists) {
       this.logger.failure();
-      const message = "The given original ROM does not exists";
+      const message = `The original ROM "${sourceOriginalRomPath}" does not exists`;
       return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotFound);
     }
     this.logger.success();
 
-    this.logger.start("Checking if the given original ROM is a file");
+    this.logger.start("Checking if the original ROM is a file");
     const sourceOriginalRomPathIsFile = await this.fs.isFile(
       sourceOriginalRomPath,
     );
     if (!sourceOriginalRomPathIsFile) {
       this.logger.failure();
-      const message = "The given original ROM is not a file";
+      const message = `The original ROM "${sourceOriginalRomPath}" is not a file`;
       return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotValid);
     }
     this.logger.success();
 
-    this.logger.start("Copying given original ROM");
+    this.logger.start("Copying original ROM");
     const targetOriginalRomPath = this.path(OriginalRom.OriginalRomFileName);
     const result = await this.fs.copyFile(
       sourceOriginalRomPath,
@@ -49,7 +49,7 @@ export default class OriginalRom extends Directory {
     );
     if (R.isError(result)) {
       this.logger.failure();
-      const message = "Failed to copy given original ROM";
+      const message = `Failed to copy original ROM "${sourceOriginalRomPath}"`;
       return R.Stack(result, scope, message, OriginalRom.ErrorCode.Generic);
     }
     this.logger.success();
@@ -77,10 +77,10 @@ export default class OriginalRom extends Directory {
     const originalRomPath = this.path(OriginalRom.OriginalRomFileName);
 
     this.logger.start("Checking if original ROM exists");
-    const sourceOriginalRomPathExists = await this.fs.exists(originalRomPath);
-    if (!sourceOriginalRomPathExists) {
+    const originalRomPathExists = await this.fs.exists(originalRomPath);
+    if (!originalRomPathExists) {
       this.logger.failure();
-      const message = "The given original ROM does not exists";
+      const message = `The original ROM "${originalRomPath}" does not exists`;
       return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotFound);
     }
     this.logger.success();
@@ -89,7 +89,7 @@ export default class OriginalRom extends Directory {
     const result = await this.fs.removeFile(originalRomPath);
     if (R.isError(result)) {
       this.logger.failure();
-      const message = "Failed to remove original ROM";
+      const message = `Failed to remove original ROM "${originalRomPath}"`;
       return R.Stack(result, scope, message, OriginalRom.ErrorCode.Generic);
     }
     this.logger.success();
