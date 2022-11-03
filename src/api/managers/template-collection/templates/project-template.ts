@@ -28,10 +28,13 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
   ): Promise<ResultVoid> {
     const project = new Project(projectDirectoryPath, this._bag);
 
+    this.logger.start("Creating template from project");
     const result = await this.createFromResource(project, partialOptions);
     if (R.isError(result)) {
+      this.logger.failure();
       return result;
     }
+    this.logger.success();
 
     return R.Void;
   }
@@ -44,7 +47,7 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
   ): Promise<ResultVoid> {
     const project = new Project(this.fs.join(directoryPath, name), this._bag);
 
-    this.logger.start("Initializing resource");
+    this.logger.start("Initializing project");
     const result = await this.initResource(project, config, partialOptions);
     if (R.isError(result)) {
       this.logger.failure();

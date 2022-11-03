@@ -98,8 +98,9 @@ export default class Project extends Resource<ProjectConfig> {
         return R.Stack(result, scope, message, Project.ErrorCode.Generic);
       }
       this.logger.success();
+    } else {
+      this.logger.success();
     }
-    this.logger.success();
 
     this.logger.start("Saving baserom");
     result = await this.fs.copyFile(
