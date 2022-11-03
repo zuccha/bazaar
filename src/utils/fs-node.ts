@@ -601,7 +601,7 @@ const FSNode: FS = {
 
       const tempDirectoryPath = `${targetDirectoryPath}-temp`;
       result = await FSNode.renameDirectory(
-        NodePath.join(targetDirectoryPath, directoryNames[0]),
+        NodePath.join(targetDirectoryPath, directoryNames[0]!),
         tempDirectoryPath,
         { force: true },
       );

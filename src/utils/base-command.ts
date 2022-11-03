@@ -111,12 +111,8 @@ export default abstract class BaseCommand<
   protected Error = (
     message: string,
     exit: number,
-    options: { suggestions?: string[]; ref?: string } = {},
+    options?: Partial<{ suggestions: string[]; ref: string }>,
   ): void => {
-    this.error(message, {
-      exit,
-      suggestions: options.suggestions,
-      ref: options.ref,
-    });
+    this.error(message, { ...options, exit });
   };
 }

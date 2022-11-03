@@ -57,10 +57,9 @@ The new project will be created in a new directory named after the project, in\
 
     this.Info.start(`Creating project ${flags.name}`);
     const project = this.api.project(flags.path, flags.name);
-    const result = await project.createFromBaserom({
-      baseromPath: flags.baserom,
-      authors: flags.author,
-      version: flags.version,
+    const result = await project.createFromBaserom(flags.baserom, {
+      ...(flags.author ? { authors: flags.author } : {}),
+      ...(flags.version ? { version: flags.version } : {}),
     });
 
     if (R.isOk(result)) {

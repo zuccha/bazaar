@@ -57,8 +57,8 @@ Supported editors are:
 
     this.Info.start(`Setting ${editorName} parameters`);
     const result = await getEditor(this.api.editors, editorName).set({
-      exePath: flags["exe-path"],
-      exeArgs: flags["exe-args"],
+      ...(flags["exe-path"] ? { exePath: flags["exe-path"] } : {}),
+      ...(flags["exe-args"] ? { exeArgs: flags["exe-args"] } : {}),
     });
 
     if (R.isOk(result)) {

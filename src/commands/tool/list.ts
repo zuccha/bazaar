@@ -112,6 +112,11 @@ The difference between tools and editors: tools need to be of specific versions\
           header: "Version (installed)",
         },
       },
+      // `flags` can contain `undefined` values, TS complains because of the
+      // `exactOptionalPropertyTypes` rule. Removing `undefined` props is a pain
+      // and `CliUx.ux.table` allows `undefined` values, so we ignore the error.
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       flags,
     );
   }

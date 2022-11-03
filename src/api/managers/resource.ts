@@ -39,7 +39,8 @@ export default abstract class Resource<Config> extends Configurable<Config> {
   abstract validate(): Promise<ResultVoid>;
 
   abstract snapshot(
-    resource: Resource<Config>,
-    partialOptions?: Partial<{ force: boolean }>,
+    targetResource: unknown,
+    config?: Partial<Config>,
+    partialOptions?: Partial<{ force: boolean; config: Partial<Config> }>,
   ): Promise<ResultVoid>;
 }

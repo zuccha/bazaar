@@ -22,7 +22,7 @@ export default class Project extends Resource<ProjectConfig> {
   protected id = "Project";
 
   protected ConfigSchema = ProjectConfigSchema;
-  protected defaultConfig = undefined;
+  protected defaultConfig?: ProjectConfig;
 
   private _baseromName = "baserom.smc";
 
@@ -65,6 +65,7 @@ export default class Project extends Resource<ProjectConfig> {
 
   async snapshot(
     targetProject: Project,
+    config?: Partial<ProjectConfig>,
     partialOptions?: Partial<{ force: boolean }>,
   ): Promise<ResultVoid> {
     const scope = this.scope("snapshot");
@@ -123,18 +124,13 @@ export default class Project extends Resource<ProjectConfig> {
     return R.Void;
   }
 
-  async createFromBaserom(params: {
-    baseromPath: string;
-    authors?: string[];
-    version?: string;
-  }): Promise<ResultVoid> {
+  async createFromBaserom(
+    baseromPath: string,
+    partialConfig?: Partial<ProjectConfig>,
+  ): Promise<ResultVoid> {
     const scope = this.scope("createFromBaserom");
 
     let result: ResultVoid;
-
-    const baseromPath = params.baseromPath;
-    const authors = params.authors ?? [];
-    const version = params.version ?? "";
 
     this.logger.start("Checking if a project with same name already exists");
     if (await this.exists()) {
@@ -182,7 +178,8 @@ export default class Project extends Resource<ProjectConfig> {
     this.logger.success();
 
     this.logger.start("Saving metadata");
-    result = await this.saveConfig({ authors, version });
+    const config = { authors: [], version: "", ...partialConfig };
+    result = await this.saveConfig(config);
     if (R.isError(result)) {
       this.logger.failure();
       await this.removeDirectory();
