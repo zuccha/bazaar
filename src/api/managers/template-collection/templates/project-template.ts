@@ -1,4 +1,4 @@
-import { R, ResultVoid } from "../../../utils/result";
+import { R, Result, ResultVoid } from "../../../utils/result";
 import Project, { ProjectConfig } from "../../project";
 import { ResourceBag } from "../../resource";
 import Template from "../template";
@@ -64,5 +64,29 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     this.logger.success();
 
     return R.Void;
+  }
+
+  async getMetadata(): Promise<Result<ProjectConfig>> {
+    this.logger.start("Gathering project metadata");
+    const metadataResult = await this.resource.getMetadata();
+    if (R.isError(metadataResult)) {
+      this.logger.failure();
+      return metadataResult;
+    }
+    this.logger.success();
+
+    return metadataResult;
+  }
+
+  async updateMetadata(metadata: Partial<ProjectConfig>): Promise<ResultVoid> {
+    this.logger.start("Updating project metadata");
+    const result = await this.resource.updateMetadata(metadata);
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return result;
   }
 }
