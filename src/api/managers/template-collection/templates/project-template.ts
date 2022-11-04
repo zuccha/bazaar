@@ -66,6 +66,18 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     return R.Void;
   }
 
+  async remove(): Promise<ResultVoid> {
+    this.logger.start("Removing project");
+    const result = await this.resource.remove();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
   async getMetadata(): Promise<Result<ProjectConfig>> {
     this.logger.start("Gathering project metadata");
     const metadataResult = await this.resource.getMetadata();
@@ -87,6 +99,6 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     }
     this.logger.success();
 
-    return result;
+    return R.Void;
   }
 }

@@ -228,40 +228,92 @@ export default class Project extends Resource<ProjectConfig> {
     return Promise.resolve(R.Void);
   }
 
-  async openCodeEditor(): Promise<ResultVoid> {
+  async remove(): Promise<ResultVoid> {
+    let result: ResultVoid;
+
     this.logger.start("Verifying that project is valid");
-    const result = await this.validate();
+    result = await this.validate();
     if (R.isError(result)) {
       this.logger.failure();
       return result;
     }
     this.logger.success();
 
-    return this.editors.CodeEditor.open(this.path());
+    this.logger.start("Removing project directory");
+    result = await this.removeDirectory();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
+  async openCodeEditor(): Promise<ResultVoid> {
+    let result: ResultVoid;
+
+    this.logger.start("Verifying that project is valid");
+    result = await this.validate();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    this.logger.start("Opening project in code editor");
+    result = await this.editors.CodeEditor.open(this.path());
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return R.Void;
   }
 
   async openEmulator(): Promise<ResultVoid> {
+    let result: ResultVoid;
+
     this.logger.start("Verifying that project is valid");
-    const result = await this.validate();
+    result = await this.validate();
     if (R.isError(result)) {
       this.logger.failure();
       return result;
     }
     this.logger.success();
 
-    return this.editors.Emulator.open(this._baseromPath);
+    this.logger.start("Running project baserom in emulator");
+    result = await this.editors.Emulator.open(this._baseromPath);
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return R.Void;
   }
 
   async openLunarMagic(): Promise<ResultVoid> {
+    let result: ResultVoid;
+
     this.logger.start("Verifying that project is valid");
-    const result = await this.validate();
+    result = await this.validate();
     if (R.isError(result)) {
       this.logger.failure();
       return result;
     }
     this.logger.success();
 
-    return this.tools.LunarMagic.open(this._baseromPath);
+    this.logger.start("Opening the project in Lunar Magic");
+    result = await this.tools.LunarMagic.open(this._baseromPath);
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return R.Void;
   }
 
   async getMetadata(): Promise<Result<ProjectConfig>> {
