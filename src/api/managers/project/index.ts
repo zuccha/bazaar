@@ -1,6 +1,7 @@
 import { z } from "zod";
 import Resource from "../resource";
 import { R, Result, ResultVoid } from "../../utils/result";
+import SemVer from "../../utils/sem-ver";
 
 export const ProjectConfigSchema = z.object({
   authors: z.array(z.string()),
@@ -12,12 +13,13 @@ export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 export default class Project extends Resource<ProjectConfig> {
   static ErrorCode = {
     ...Resource.ErrorCode,
-    BaseromFileNotFound: "ProjectManager.BaseromFileNotFound",
-    BaseromNotFile: "ProjectManager.BaseromNotFile",
-    ProjectExists: "ProjectManager.ProjectExists",
-    ProjectNotFound: "ProjectManager.ProjectNotFound",
-    ProjectNotValid: "ProjectManager.ProjectNotValid",
-    SnapshotTargetExists: "ProjectManager.SnapshotTargetExists",
+    BaseromFileNotFound: "Project.BaseromFileNotFound",
+    BaseromNotFile: "Project.BaseromNotFile",
+    ProjectExists: "Project.ProjectExists",
+    ProjectNotFound: "Project.ProjectNotFound",
+    ProjectNotValid: "Project.ProjectNotValid",
+    SnapshotTargetExists: "Project.SnapshotTargetExists",
+    VersionNotValid: "Project.VersionNotValid",
   };
 
   protected id = "Project";
@@ -284,5 +286,62 @@ export default class Project extends Resource<ProjectConfig> {
     this.logger.success();
 
     return this.updateConfig(metadata);
+  }
+
+  private async _increaseVersion(
+    scope: string,
+    increase: (version: string) => Result<string>,
+  ): Promise<ResultVoid> {
+    let result: ResultVoid;
+
+    this.logger.start("Verifying that project is valid");
+    result = await this.validate();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    this.logger.start("Reading metadata");
+    const configResult = await this.loadConfig();
+    if (R.isError(configResult)) {
+      this.logger.failure();
+      return configResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Incrementing version automatically");
+    const versionResult = increase(configResult.data.version);
+    if (R.isError(versionResult)) {
+      this.logger.failure();
+      const message = `The version "${configResult.data.version}" of the project cannot be incremented automatically`;
+      return R.Error(scope, message, Project.ErrorCode.VersionNotValid);
+    }
+    this.logger.success();
+
+    this.logger.start("Writing metadata");
+    result = await this.updateConfig({ version: versionResult.data });
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
+  async increaseMajorVersion(): Promise<ResultVoid> {
+    const scope = this.scope("increaseMajorVersion");
+    return this._increaseVersion(scope, SemVer.increaseMajor);
+  }
+
+  async increaseMinorVersion(): Promise<ResultVoid> {
+    const scope = this.scope("increaseMinorVersion");
+    return this._increaseVersion(scope, SemVer.increaseMinor);
+  }
+
+  async increasePatchVersion(): Promise<ResultVoid> {
+    const scope = this.scope("increasePatchVersion");
+    return this._increaseVersion(scope, SemVer.increasePatch);
   }
 }
