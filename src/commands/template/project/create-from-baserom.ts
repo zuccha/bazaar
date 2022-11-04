@@ -1,7 +1,10 @@
 import { Flags } from "@oclif/core";
 import Project from "../../../api/managers/project";
 import { R } from "../../../api/utils/result";
-import { ProjectConfigFlags } from "../../../commands-utils/project";
+import {
+  ProjectConfigFlags,
+  ProjectTemplateFlags,
+} from "../../../commands-utils/project";
 import BaseCommand from "../../../utils/base-command";
 
 export default class TemplateProjectCreateFromBaseromCommand extends BaseCommand<
@@ -20,16 +23,11 @@ The project template will contain only the baserom (no patches, blocks, etc.).`;
 
   static flags = {
     ...ProjectConfigFlags,
+    ...ProjectTemplateFlags,
     baserom: Flags.string({
       summary: "Path to the baserom",
       description:
         "The baserom must be a working smc ROM. This must be a valid path.",
-      required: true,
-    }),
-    name: Flags.string({
-      summary: "Name of the template",
-      description:
-        "The name must be unique, you cannot chose a name that already exists for another project template.",
       required: true,
     }),
   };

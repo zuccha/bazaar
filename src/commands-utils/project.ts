@@ -41,3 +41,11 @@ export const ProjectConfigFlags = {
     required: false,
   }),
 };
+
+export const ProjectTemplateFlags = {
+  name: Flags.string({
+    summary: "Name of the template",
+    description: "The name is unique for each project template.",
+    required: true,
+  }),
+};
