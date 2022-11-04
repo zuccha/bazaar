@@ -13,12 +13,9 @@ export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 export default class Project extends Resource<ProjectConfig> {
   static ErrorCode = {
     ...Resource.ErrorCode,
-    BaseromFileNotFound: "Project.BaseromFileNotFound",
-    BaseromNotFile: "Project.BaseromNotFile",
+    BaseromNotFound: "Project.BaseromNotFound",
+    BaseromNotValid: "Project.BaseromNotValid",
     ProjectExists: "Project.ProjectExists",
-    ProjectNotFound: "Project.ProjectNotFound",
-    ProjectNotValid: "Project.ProjectNotValid",
-    SnapshotTargetExists: "Project.SnapshotTargetExists",
     VersionNotValid: "Project.VersionNotValid",
   };
 
@@ -36,30 +33,17 @@ export default class Project extends Resource<ProjectConfig> {
   async validate(): Promise<ResultVoid> {
     const scope = this.scope("validate");
 
-    this.logger.start(`Checking if project exists`);
-    const exists = await this.exists();
-    if (!exists) {
-      this.logger.failure();
-      const message = `Project "${this.path()}" does not exist`;
-      return R.Error(scope, message, Project.ErrorCode.ProjectNotFound);
+    const result = await super.validate();
+    if (R.isError(result)) {
+      return result;
     }
-    this.logger.success();
 
-    this.logger.start(`Checking if config exists`);
-    const configIsFile = await this.fs.isFile(this.configPath);
-    if (!configIsFile) {
-      this.logger.failure();
-      const message = `Config "${this.configPath}" does not exist`;
-      return R.Error(scope, message, Project.ErrorCode.ProjectNotValid);
-    }
-    this.logger.success();
-
-    this.logger.start(`Checking if baserom exists`);
+    this.logger.start(`Checking if baserom is valid`);
     const baseromIsFile = await this.fs.isFile(this._baseromPath);
     if (!baseromIsFile) {
       this.logger.failure();
-      const message = `Baserom "${this._baseromPath}" does not exist`;
-      return R.Error(scope, message, Project.ErrorCode.ProjectNotValid);
+      const message = `Baserom "${this._baseromPath}" is not valid`;
+      return R.Error(scope, message, Project.ErrorCode.BaseromNotFound);
     }
     this.logger.success();
 
@@ -74,35 +58,9 @@ export default class Project extends Resource<ProjectConfig> {
     const scope = this.scope("snapshot");
     let result: ResultVoid;
 
-    const options = { force: false, ...partialOptions };
-
-    this.logger.start("Verifying that source project is valid");
-    result = await this.validate();
+    result = await super.snapshot(targetProject, config, partialOptions);
     if (R.isError(result)) {
-      this.logger.failure();
       return result;
-    }
-    this.logger.success();
-
-    this.logger.start(`Checking that target project does't already exist`);
-    const targetProjectExists = await targetProject.exists();
-    if (targetProjectExists) {
-      this.logger.failure();
-      if (!options.force) {
-        const message = `Target project "${targetProject.path()}" already exists`;
-        return R.Error(scope, message, Project.ErrorCode.SnapshotTargetExists);
-      }
-
-      this.logger.start(`Removing target project`);
-      result = await targetProject.removeDirectory();
-      if (R.isError(result)) {
-        this.logger.failure();
-        const message = `Failed to remove target project "${targetProject.path()}"`;
-        return R.Stack(result, scope, message, Project.ErrorCode.Generic);
-      }
-      this.logger.success();
-    } else {
-      this.logger.success();
     }
 
     this.logger.start("Copying baserom");
@@ -116,25 +74,6 @@ export default class Project extends Resource<ProjectConfig> {
       return R.Stack(result, scope, message, Project.ErrorCode.Generic);
     }
     this.logger.success();
-
-    this.logger.start("Copying config");
-    result = await this.fs.copyFile(this.configPath, targetProject.configPath);
-    if (R.isError(result)) {
-      this.logger.failure();
-      const message = `Failed to copy baserom from "${this.configPath}" to "${targetProject.configPath}"`;
-      return R.Stack(result, scope, message, Project.ErrorCode.Generic);
-    }
-    this.logger.success();
-
-    if (config) {
-      this.logger.start("Updating config");
-      result = await targetProject.updateConfig(config);
-      if (R.isError(result)) {
-        this.logger.failure();
-        return result;
-      }
-      this.logger.success();
-    }
 
     return R.Void;
   }
@@ -160,7 +99,7 @@ export default class Project extends Resource<ProjectConfig> {
     if (!baseromPathExists) {
       this.logger.failure();
       const message = `The baserom "${baseromPath}" was not found`;
-      return R.Error(scope, message, Project.ErrorCode.BaseromFileNotFound);
+      return R.Error(scope, message, Project.ErrorCode.BaseromNotFound);
     }
     this.logger.success();
 
@@ -169,7 +108,7 @@ export default class Project extends Resource<ProjectConfig> {
     if (!baseromIsFile) {
       this.logger.failure();
       const message = `The baserom "${baseromPath}" is not valid`;
-      return R.Error(scope, message, Project.ErrorCode.BaseromNotFile);
+      return R.Error(scope, message, Project.ErrorCode.BaseromNotValid);
     }
     this.logger.success();
 
