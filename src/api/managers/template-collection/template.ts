@@ -1,17 +1,30 @@
 import { R, ResultVoid } from "../../utils/result";
 import Manager from "../manager";
-import Resource from "../resource";
+import Resource, { ResourceErrorCodes } from "../resource";
+
+export type TemplateErrorCodes = {
+  CreateFromResource: ResourceErrorCodes["Snapshot"];
+  InitResource: ResourceErrorCodes["Snapshot"];
+};
 
 export default abstract class Template<
   C extends Record<string | number | symbol, unknown>,
-  R extends Resource<C>,
+  E extends {
+    Snapshot: string | number;
+    Validate: string | number;
+  },
+  R extends Resource<C, E>,
 > extends Manager {
   protected abstract resource: R;
 
   async createFromResource(
     sourceResource: R,
     partialOptions?: Partial<{ force: boolean }>,
-  ): Promise<ResultVoid> {
+  ): Promise<
+    ResultVoid<
+      TemplateErrorCodes["CreateFromResource"] | E["Snapshot"] | E["Validate"]
+    >
+  > {
     this.logger.start("Taking snapshot of source project into template");
     const result = await sourceResource.snapshot(
       this.resource,
@@ -31,7 +44,11 @@ export default abstract class Template<
     targetResource: R,
     config?: Partial<C>,
     partialOptions?: Partial<{ force: boolean }>,
-  ): Promise<ResultVoid> {
+  ): Promise<
+    ResultVoid<
+      TemplateErrorCodes["InitResource"] | E["Snapshot"] | E["Validate"]
+    >
+  > {
     this.logger.start("Taking snapshot of template into project");
     const result = await this.resource.snapshot(
       targetResource,

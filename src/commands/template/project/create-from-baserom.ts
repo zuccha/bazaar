@@ -1,5 +1,5 @@
 import { Flags } from "@oclif/core";
-import Project from "../../../api/managers/project";
+import { ProjectErrorCode } from "../../../api/managers/project";
 import { R } from "../../../api/utils/result";
 import {
   ProjectConfigFlags,
@@ -47,19 +47,19 @@ The project template will contain only the baserom (no patches, blocks, etc.).`;
       return;
     }
 
-    if (result.code === Project.ErrorCode.BaseromFileNotFound) {
+    if (result.code === ProjectErrorCode.BaseromNotFound) {
       this.Info.failure();
       this.Warning.log("The given baserom was not found");
       return;
     }
 
-    if (result.code === Project.ErrorCode.BaseromNotFile) {
+    if (result.code === ProjectErrorCode.BaseromNotValid) {
       this.Info.failure();
       this.Warning.log("The given baserom is not a valid file");
       return;
     }
 
-    if (result.code === Project.ErrorCode.ProjectExists) {
+    if (result.code === ProjectErrorCode.ProjectExists) {
       this.Info.failure();
       this.Warning.log("A project with the chosen name already exists");
       return;

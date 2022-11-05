@@ -1,4 +1,4 @@
-import Tool from "../../api/managers/tool-collection/tool";
+import { ToolErrorCode } from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
 import { getTool, ToolName } from "../../commands-utils/tool";
 import BaseCommand from "../../utils/base-command";
@@ -37,7 +37,7 @@ the user on the machine to be uninstalled.`;
       return;
     }
 
-    if (response.code === Tool.ErrorCode.ToolNotInstalled) {
+    if (response.code === ToolErrorCode.ToolNotInstalled) {
       this.Info.failure();
       this.Warning.log(`${toolName} is not installed!`);
       this.Warning.log("Install the tool before uninstalling it ;)");

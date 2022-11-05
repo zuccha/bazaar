@@ -1,8 +1,19 @@
-import { DirectoryInfo } from "../utils/fs";
+import {
+  CreateDirectory,
+  DirectoryInfo,
+  GetDirectoryInfo,
+  RemoveDirectory,
+} from "../utils/fs";
 import { Result, ResultVoid } from "../utils/result";
 import Manager, { ManagerBag } from "./manager";
 
 export type DirectoryBag = ManagerBag;
+
+export type DirectoryErrorCodes = {
+  GetDirectoryInfo: GetDirectoryInfo.ErrorCode;
+  CreateDirectory: CreateDirectory.ErrorCode;
+  RemoveDirectory: RemoveDirectory.ErrorCode;
+};
 
 export default abstract class Directory extends Manager {
   protected abstract id: string;
@@ -28,15 +39,21 @@ export default abstract class Directory extends Manager {
     return this.fs.exists(this.directoryPath);
   }
 
-  protected async getDirectoryInfo(): Promise<Result<DirectoryInfo>> {
+  protected async getDirectoryInfo(): Promise<
+    Result<DirectoryInfo, DirectoryErrorCodes["GetDirectoryInfo"]>
+  > {
     return this.fs.getDirectoryInfo(this.directoryPath);
   }
 
-  protected async createDirectory(): Promise<ResultVoid> {
+  protected async createDirectory(): Promise<
+    ResultVoid<DirectoryErrorCodes["CreateDirectory"]>
+  > {
     return this.fs.createDirectory(this.directoryPath);
   }
 
-  protected async removeDirectory(): Promise<ResultVoid> {
+  protected async removeDirectory(): Promise<
+    ResultVoid<DirectoryErrorCodes["RemoveDirectory"]>
+  > {
     return this.fs.removeDirectory(this.directoryPath);
   }
 }

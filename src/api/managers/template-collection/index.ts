@@ -7,13 +7,15 @@ export type TemplateInfo = {
   name: string;
 };
 
-const ErrorCode = {
-  Generic: "TemplateCollection.Generic",
+export enum TemplateCollectionErrorCode {
+  Internal,
+}
+
+export type TemplateCollectionErrorCodes = {
+  ListProjects: TemplateCollectionErrorCode.Internal;
 };
 
 export default class TemplateCollection extends Directory {
-  static ErrorCode = ErrorCode;
-
   protected id = "TemplateCollection";
 
   private _bag: ResourceBag;
@@ -27,7 +29,9 @@ export default class TemplateCollection extends Directory {
     return this.path("Projects", ...paths);
   }
 
-  async listProjects(): Promise<Result<TemplateInfo[]>> {
+  async listProjects(): Promise<
+    Result<TemplateInfo[], TemplateCollectionErrorCodes["ListProjects"]>
+  > {
     const scope = this.scope("listProjects");
 
     this.logger.start(`Gathering info about project templates' directory`);
@@ -37,7 +41,12 @@ export default class TemplateCollection extends Directory {
     if (R.isError(directoryInfoResult)) {
       this.logger.failure();
       const message = `Failed to get "${this.projectsDirectoryPath()}" directory info`;
-      return R.Stack(directoryInfoResult, scope, message, ErrorCode.Generic);
+      return R.Stack(
+        directoryInfoResult,
+        scope,
+        message,
+        TemplateCollectionErrorCode.Internal,
+      );
     }
     this.logger.success();
 

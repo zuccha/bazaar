@@ -1,4 +1,6 @@
-import Project from "../../api/managers/project";
+import { ConfigurableErrorCode } from "../../api/managers/configurable";
+import { ProjectErrorCode } from "../../api/managers/project";
+import { ResourceErrorCode } from "../../api/managers/resource";
 import { R } from "../../api/utils/result";
 import { ProjectFlags } from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
@@ -43,20 +45,41 @@ while these are not:
       return;
     }
 
-    if (result.code === Project.ErrorCode.ProjectNotFound) {
+    if (result.code === ResourceErrorCode.DirectoryNotFound) {
       this.Info.failure();
       this.Warning.log(`The project "${flags.path}" does not exist`);
       return;
     }
 
-    if (result.code === Project.ErrorCode.ProjectNotValid) {
+    if (result.code === ConfigurableErrorCode.ConfigNotFound) {
       this.Info.failure();
-      const message = `The project "${flags.path}" is not valid (missing baserom, invalid config, etc.)`;
+      const message = `The project "${flags.path}" is not valid, no config was found`;
       this.Warning.log(message);
       return;
     }
 
-    if (result.code === Project.ErrorCode.VersionNotValid) {
+    if (result.code === ConfigurableErrorCode.ConfigNotValid) {
+      this.Info.failure();
+      const message = `The project "${flags.path}" is not valid, the config is not valid`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ProjectErrorCode.BaseromNotFound) {
+      this.Info.failure();
+      const message = `The project "${flags.path}" is not valid, no baserom was found`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ProjectErrorCode.BaseromNotValid) {
+      this.Info.failure();
+      const message = `The project "${flags.path}" is not valid, the baserom is not valid`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ProjectErrorCode.VersionNotValid) {
       this.Info.failure();
       this.Warning.log(`Project version doesn't follow the SemVer format`);
       this.Warning.log(

@@ -10,13 +10,18 @@ import LunarMagic from "./tools/lunar-magic";
 import PIXI from "./tools/pixi";
 import UberASMTool from "./tools/uberasmtool";
 
-const ErrorCode = {
-  Generic: "ToolCollection.Generic",
+export enum ToolCollectionErrorCode {
+  Internal,
+}
+
+export type ToolCollectionErrorCodes = {
+  ListAll: ToolCollectionErrorCode.Internal;
+  InstallAll: ToolCollectionErrorCode.Internal;
+  UninstallAll: ToolCollectionErrorCode.Internal;
+  UpdateAll: ToolCollectionErrorCode.Internal;
 };
 
 export default class ToolCollection extends Directory {
-  static ErrorCode = ErrorCode;
-
   protected id = "ToolCollection";
 
   readonly AddmusicK: AddmusicK;
@@ -60,7 +65,9 @@ export default class ToolCollection extends Directory {
     ];
   }
 
-  async listAll(): Promise<Result<ToolInfo[]>> {
+  async listAll(): Promise<
+    Result<ToolInfo[], ToolCollectionErrorCodes["ListAll"]>
+  > {
     const scope = this.scope("listAll");
 
     const tools: ToolInfo[] = [];
@@ -71,7 +78,12 @@ export default class ToolCollection extends Directory {
       if (R.isError(toolResult)) {
         this.logger.failure();
         const message = "Failed to gather data for tool";
-        return R.Stack(toolResult, scope, message, ErrorCode.Generic);
+        return R.Stack(
+          toolResult,
+          scope,
+          message,
+          ToolCollectionErrorCode.Internal,
+        );
       }
 
       this.logger.success();
@@ -83,7 +95,7 @@ export default class ToolCollection extends Directory {
 
   async installAll(
     partialOptions?: Partial<{ force: boolean }>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ToolCollectionErrorCodes["InstallAll"]>> {
     const scope = this.scope("installAll");
 
     const options = { force: false, ...partialOptions };
@@ -97,7 +109,12 @@ export default class ToolCollection extends Directory {
       if (R.isError(result)) {
         this.logger.failure();
         const message = "Failed to install all tools";
-        return R.Stack(result, scope, message, ErrorCode.Generic);
+        return R.Stack(
+          result,
+          scope,
+          message,
+          ToolCollectionErrorCode.Internal,
+        );
       }
       this.logger.success();
     }
@@ -105,7 +122,9 @@ export default class ToolCollection extends Directory {
     return R.Void;
   }
 
-  async uninstallAll(): Promise<ResultVoid> {
+  async uninstallAll(): Promise<
+    ResultVoid<ToolCollectionErrorCodes["UninstallAll"]>
+  > {
     const scope = this.scope("uninstallAll");
 
     for (const tool of this._tools) {
@@ -114,7 +133,12 @@ export default class ToolCollection extends Directory {
       if (R.isError(result)) {
         this.logger.failure();
         const message = "Failed to uninstall all tools";
-        return R.Stack(result, scope, message, ErrorCode.Generic);
+        return R.Stack(
+          result,
+          scope,
+          message,
+          ToolCollectionErrorCode.Internal,
+        );
       }
       this.logger.success();
     }
@@ -122,7 +146,9 @@ export default class ToolCollection extends Directory {
     return R.Void;
   }
 
-  async updateAll(): Promise<ResultVoid> {
+  async updateAll(): Promise<
+    ResultVoid<ToolCollectionErrorCodes["UpdateAll"]>
+  > {
     const scope = this.scope("updateAll");
 
     for (const tool of this._tools) {
@@ -134,7 +160,12 @@ export default class ToolCollection extends Directory {
       if (R.isError(result)) {
         this.logger.failure();
         const message = "Failed to update all tools";
-        return R.Stack(result, scope, message, ErrorCode.Generic);
+        return R.Stack(
+          result,
+          scope,
+          message,
+          ToolCollectionErrorCode.Internal,
+        );
       }
       this.logger.success();
     }

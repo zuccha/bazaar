@@ -13,121 +13,310 @@ export type FileInfo = {
   extension: string;
 };
 
-export type ShellOutput = { stdout: string; stderr: string };
-
-export type CopyDirectoryOptions = { force: boolean };
-export type CopyFileOptions = { force: boolean };
-export type RenameDirectoryOptions = { force: boolean };
-export type RenameFileOptions = { force: boolean };
-export type RemoveDirectoryOptions = { silent: boolean };
-export type RemoveFileOptions = { silent: boolean };
-export type DownloadFileOptions = { force: boolean };
-export type ZipDirectoryOptions = { force: boolean };
-export type UnzipFileOptions = {
-  force: boolean;
-  collapseSingleDirectoryArchive: boolean;
+export type ShellOutput = {
+  stdout: string;
+  stderr: string;
 };
 
-export const defaultCopyDirectoryOptions: CopyDirectoryOptions = {
-  force: false,
-};
-export const defaultCopyFileOptions: CopyFileOptions = { force: false };
-export const defaultRenameDirectoryOptions: RenameDirectoryOptions = {
-  force: false,
-};
-export const defaultRenameFileOptions: RenameFileOptions = { force: false };
-export const defaultRemoveDirectoryOptions: RemoveDirectoryOptions = {
-  silent: false,
-};
-export const defaultRemoveFileOptions: RemoveFileOptions = { silent: false };
-export const defaultDownloadFileOptions: DownloadFileOptions = { force: false };
-export const defaultZipDirectoryOptions: ZipDirectoryOptions = { force: false };
-export const defaultUnzipFileOptions: UnzipFileOptions = {
-  force: false,
-  collapseSingleDirectoryArchive: false,
-};
+export enum FSErrorCode {
+  Internal,
+  DirectoryAlreadyExists,
+  DirectoryNotFound,
+  DirectoryNotValid,
+  FileAlreadyExists,
+  FileNotFound,
+  FileNotValid,
+}
 
-export const FSErrorCode = {
-  DirectoryAlreadyExists: "FS.DirectoryAlreadyExists",
-  DirectoryNotFound: "FS.DirectoryNotFound",
-  FailedToReadFile: "FS.FailedToReadFile",
-  FailedToWriteFile: "FS.FailedToWriteFile",
-  FailedToUnzip: "FS.FailedToUnzip",
-  FailedToZip: "FS.FailedToZip",
-  FileAlreadyExists: "FS.FileAlreadyExists",
-  FileNotFound: "FS.FileNotFound",
-  NotDirectory: "FS.NotDirectory",
-  NotFile: "FS.NotFile",
-  Generic: "FS.Generic",
-};
+export namespace CreateDirectory {
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.DirectoryAlreadyExists;
 
-export type FS = {
-  createDirectory: (directoryPath: string) => Promise<ResultVoid>;
+  export type Fn = (directoryPath: string) => Promise<ResultVoid<ErrorCode>>;
+}
 
-  copyDirectory: (
+export namespace CopyDirectory {
+  export type Options = { force: boolean };
+
+  export const defaultOptions: Options = {
+    force: false,
+  };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.DirectoryAlreadyExists
+    | FSErrorCode.DirectoryNotFound
+    | FSErrorCode.DirectoryNotValid;
+
+  export type Fn = (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    options?: Partial<CopyDirectoryOptions>,
-  ) => Promise<ResultVoid>;
-  copyFile: (
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
+
+export namespace CopyFile {
+  export type Options = { force: boolean };
+
+  export const defaultOptions: Options = { force: false };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.FileAlreadyExists
+    | FSErrorCode.FileNotFound
+    | FSErrorCode.FileNotValid;
+
+  export type Fn = (
     sourceFilePath: string,
     targetFilePath: string,
-    options?: Partial<CopyFileOptions>,
-  ) => Promise<ResultVoid>;
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
 
-  renameDirectory: (
+export namespace RenameDirectory {
+  export type Options = { force: boolean };
+
+  export const defaultOptions: Options = {
+    force: false,
+  };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.DirectoryAlreadyExists
+    | FSErrorCode.DirectoryNotFound
+    | FSErrorCode.DirectoryNotValid;
+
+  export type Fn = (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    options?: Partial<RenameDirectoryOptions>,
-  ) => Promise<ResultVoid>;
-  renameFile: (
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
+
+export namespace RenameFile {
+  export type Options = { force: boolean };
+
+  export const defaultOptions: Options = { force: false };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.FileAlreadyExists
+    | FSErrorCode.FileNotFound
+    | FSErrorCode.FileNotValid;
+
+  export type Fn = (
     sourceFilePath: string,
     targetFilePath: string,
-    options?: Partial<RenameFileOptions>,
-  ) => Promise<ResultVoid>;
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
 
-  removeDirectory: (
+export namespace RemoveDirectory {
+  export type Options = { silent: boolean };
+
+  export const defaultOptions: Options = {
+    silent: false,
+  };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.DirectoryNotFound
+    | FSErrorCode.DirectoryNotValid;
+
+  export type Fn = (
     directoryPath: string,
-    options?: Partial<RemoveDirectoryOptions>,
-  ) => Promise<ResultVoid>;
-  removeFile: (
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
+
+export namespace RemoveFile {
+  export type Options = { silent: boolean };
+
+  export const defaultOptions: Options = { silent: false };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.FileNotFound
+    | FSErrorCode.FileNotValid;
+
+  export type Fn = (
     filePath: string,
-    options?: Partial<RemoveFileOptions>,
-  ) => Promise<ResultVoid>;
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
 
-  exists: (path: string) => Promise<boolean>;
-  isDirectory: (directoryPath: string) => Promise<boolean>;
-  isFile: (filePath: string) => Promise<boolean>;
+export namespace Exists {
+  export type Fn = (path: string) => Promise<boolean>;
+}
 
-  readFile: (filePath: string) => Promise<Result<string>>;
-  writeFile: (filePath: string, content: string) => Promise<ResultVoid>;
+export namespace IsDirectory {
+  export type Fn = (directoryPath: string) => Promise<boolean>;
+}
 
-  getDirectoryInfo: (directoryPath: string) => Promise<Result<DirectoryInfo>>;
-  getFileInfo: (filePath: string) => Promise<Result<FileInfo>>;
+export namespace IsFile {
+  export type Fn = (filePath: string) => Promise<boolean>;
+}
 
-  join: (...paths: string[]) => string;
-  resolve: (...paths: string[]) => string;
+export namespace ReadFile {
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.FileNotFound
+    | FSErrorCode.FileNotValid;
 
-  getDirectoryPath: (path: string) => string;
-  getName: (path: string) => string;
-  getExtension: (path: string) => string;
+  export type Fn = (filePath: string) => Promise<Result<string, ErrorCode>>;
+}
 
-  downloadFile: (
+export namespace WriteFile {
+  export type ErrorCode = FSErrorCode.Internal | FSErrorCode.FileNotValid;
+
+  export type Fn = (
+    filePath: string,
+    content: string,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
+
+export namespace GetDirectoryInfo {
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.DirectoryNotFound
+    | FSErrorCode.DirectoryNotValid;
+
+  export type Fn = (
+    directoryPath: string,
+  ) => Promise<Result<DirectoryInfo, ErrorCode>>;
+}
+
+export namespace GetFileInfo {
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.FileNotFound
+    | FSErrorCode.FileNotValid;
+
+  export type Fn = (filePath: string) => Promise<Result<FileInfo, ErrorCode>>;
+}
+
+export namespace Join {
+  export type Fn = (...paths: string[]) => string;
+}
+
+export namespace Resolve {
+  export type Fn = (...paths: string[]) => string;
+}
+
+export namespace GetDirectoryPath {
+  export type Fn = (path: string) => string;
+}
+
+export namespace GetName {
+  export type Fn = (path: string) => string;
+}
+
+export namespace GetExtension {
+  export type Fn = (path: string) => string;
+}
+
+export namespace DownloadFile {
+  export type Options = { force: boolean };
+
+  export const defaultOptions: Options = {
+    force: false,
+  };
+
+  export type ErrorCode = FSErrorCode.Internal | FSErrorCode.FileAlreadyExists;
+
+  export type Fn = (
     filePath: string,
     url: string,
-    options?: Partial<DownloadFileOptions>,
-  ) => Promise<ResultVoid>;
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
 
-  zipDirectory: (
+export namespace ZipDirectory {
+  export type Options = { force: boolean };
+
+  export const defaultOptions: Options = {
+    force: false,
+  };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.DirectoryNotFound
+    | FSErrorCode.DirectoryNotValid
+    | FSErrorCode.FileAlreadyExists;
+
+  export type Fn = (
     directoryPath: string,
     targetZipFilePath: string,
-    options?: Partial<ZipDirectoryOptions>,
-  ) => Promise<ResultVoid>;
-  unzipFile: (
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
+
+export namespace UnzipFile {
+  export type Options = {
+    force: boolean;
+    collapseSingleDirectoryArchive: boolean;
+  };
+
+  export const defaultOptions: Options = {
+    force: false,
+    collapseSingleDirectoryArchive: false,
+  };
+
+  export type ErrorCode =
+    | FSErrorCode.Internal
+    | FSErrorCode.DirectoryAlreadyExists
+    | FSErrorCode.FileNotFound
+    | FSErrorCode.FileNotValid;
+
+  export type Fn = (
     zipFilePath: string,
     targetDirectoryPath: string,
-    options?: Partial<UnzipFileOptions>,
-  ) => Promise<ResultVoid>;
+    options?: Partial<Options>,
+  ) => Promise<ResultVoid<ErrorCode>>;
+}
 
-  exec: (command: string) => Promise<Result<ShellOutput>>;
+export namespace Exec {
+  export type ErrorCode = FSErrorCode.Internal;
+
+  export type Fn = (command: string) => Promise<Result<ShellOutput, ErrorCode>>;
+}
+
+export type FS = {
+  ErrorCode: typeof FSErrorCode;
+
+  createDirectory: CreateDirectory.Fn;
+
+  copyDirectory: CopyDirectory.Fn;
+  copyFile: CopyFile.Fn;
+
+  renameDirectory: RenameDirectory.Fn;
+  renameFile: RenameFile.Fn;
+
+  removeDirectory: RemoveDirectory.Fn;
+  removeFile: RemoveFile.Fn;
+
+  exists: Exists.Fn;
+  isDirectory: IsDirectory.Fn;
+  isFile: IsFile.Fn;
+
+  readFile: ReadFile.Fn;
+  writeFile: WriteFile.Fn;
+
+  getDirectoryInfo: GetDirectoryInfo.Fn;
+  getFileInfo: GetFileInfo.Fn;
+
+  join: Join.Fn;
+  resolve: Resolve.Fn;
+
+  getDirectoryPath: GetDirectoryPath.Fn;
+  getName: GetName.Fn;
+  getExtension: GetExtension.Fn;
+
+  downloadFile: DownloadFile.Fn;
+
+  zipDirectory: ZipDirectory.Fn;
+  unzipFile: UnzipFile.Fn;
+
+  exec: Exec.Fn;
 };

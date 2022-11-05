@@ -6,34 +6,35 @@ import * as NodePath from "node:path";
 import * as AdmZip from "adm-zip";
 import * as FSExtra from "fs-extra";
 import {
-  CopyDirectoryOptions,
-  CopyFileOptions,
-  defaultCopyDirectoryOptions,
-  defaultCopyFileOptions,
-  defaultDownloadFileOptions,
-  defaultRemoveDirectoryOptions,
-  defaultRemoveFileOptions,
-  defaultRenameDirectoryOptions,
-  defaultRenameFileOptions,
-  defaultUnzipFileOptions,
-  defaultZipDirectoryOptions,
+  CopyDirectory,
+  CopyFile,
+  CreateDirectory,
   DirectoryInfo,
-  DownloadFileOptions,
+  DownloadFile,
+  FSErrorCode,
+  Exec,
   FileInfo,
   FS,
-  FSErrorCode,
-  RemoveDirectoryOptions,
-  RemoveFileOptions,
-  RenameDirectoryOptions,
-  RenameFileOptions,
+  GetDirectoryInfo,
+  GetFileInfo,
+  ReadFile,
+  RemoveDirectory,
+  RemoveFile,
+  RenameDirectory,
+  RenameFile,
   ShellOutput,
-  UnzipFileOptions,
-  ZipDirectoryOptions,
+  UnzipFile,
+  WriteFile,
+  ZipDirectory,
 } from "../api/utils/fs";
 import { R, Result, ResultVoid } from "../api/utils/result";
 
 const FSNode: FS = {
-  createDirectory: async (directoryPath: string): Promise<ResultVoid> => {
+  ErrorCode: FSErrorCode,
+
+  createDirectory: async (
+    directoryPath: string,
+  ): Promise<ResultVoid<CreateDirectory.ErrorCode>> => {
     const scope = "FS.createDirectory";
 
     try {
@@ -46,17 +47,17 @@ const FSNode: FS = {
       await NodeFS.mkdir(directoryPath, { recursive: true });
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   copyDirectory: async (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    partialOptions?: Partial<CopyDirectoryOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<CopyDirectory.Options>,
+  ): Promise<ResultVoid<CopyDirectory.ErrorCode>> => {
     const scope = "FS.copyDirectory";
-    const options = { ...defaultCopyDirectoryOptions, ...partialOptions };
+    const options = { ...CopyDirectory.defaultOptions, ...partialOptions };
 
     try {
       const sourceDirectoryPathExists = await FSNode.exists(
@@ -72,7 +73,7 @@ const FSNode: FS = {
       );
       if (!sourceDirectoryPathIsDirectory) {
         const message = `"${sourceDirectoryPath}" is not a directory`;
-        return R.Error(scope, message, FSErrorCode.NotDirectory);
+        return R.Error(scope, message, FSErrorCode.DirectoryNotValid);
       }
 
       const targetDirectoryPathExists = await FSNode.exists(
@@ -87,17 +88,17 @@ const FSNode: FS = {
 
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   copyFile: async (
     sourceFilePath: string,
     targetFilePath: string,
-    partialOptions?: Partial<CopyFileOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<CopyFile.Options>,
+  ): Promise<ResultVoid<CopyFile.ErrorCode>> => {
     const scope = "FS.copyFile";
-    const options = { ...defaultCopyFileOptions, ...partialOptions };
+    const options = { ...CopyFile.defaultOptions, ...partialOptions };
 
     try {
       const sourceFilePathExists = await FSNode.exists(sourceFilePath);
@@ -109,7 +110,7 @@ const FSNode: FS = {
       const sourceFilePathIsFile = await FSNode.isFile(sourceFilePath);
       if (!sourceFilePathIsFile) {
         const message = `"${sourceFilePath}" is not a file`;
-        return R.Error(scope, message, FSErrorCode.NotFile);
+        return R.Error(scope, message, FSErrorCode.FileNotValid);
       }
 
       const targetFilePathExists = await FSNode.exists(targetFilePath);
@@ -126,24 +127,24 @@ const FSNode: FS = {
         const result = await FSNode.createDirectory(targetDirectoryPath);
         if (R.isError(result)) {
           const message = `Failed to create directory "${targetDirectoryPath}" while copying file`;
-          return R.Stack(result, scope, message, FSErrorCode.Generic);
+          return R.Stack(result, scope, message, FSErrorCode.Internal);
         }
       }
 
       await NodeFS.copyFile(sourceFilePath, targetFilePath);
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   renameDirectory: async (
     sourceDirectoryPath: string,
     targetDirectoryPath: string,
-    partialOptions?: Partial<RenameDirectoryOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<RenameDirectory.Options>,
+  ): Promise<ResultVoid<RenameDirectory.ErrorCode>> => {
     const scope = "FS.renameDirectory";
-    const options = { ...defaultRenameDirectoryOptions, ...partialOptions };
+    const options = { ...RenameDirectory.defaultOptions, ...partialOptions };
 
     try {
       const sourceDirectoryPathExists = await FSNode.exists(
@@ -159,7 +160,7 @@ const FSNode: FS = {
       );
       if (!sourceDirectoryPathIsDirectory) {
         const message = `"${sourceDirectoryPath}" is not a directory`;
-        return R.Error(scope, message, FSErrorCode.NotDirectory);
+        return R.Error(scope, message, FSErrorCode.DirectoryNotValid);
       }
 
       const targetDirectoryPathExists = await FSNode.exists(
@@ -175,17 +176,17 @@ const FSNode: FS = {
       });
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   renameFile: async (
     sourceFilePath: string,
     targetFilePath: string,
-    partialOptions?: Partial<RenameFileOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<RenameFile.Options>,
+  ): Promise<ResultVoid<RenameFile.ErrorCode>> => {
     const scope = "FS.renameFile";
-    const options = { ...defaultRenameFileOptions, ...partialOptions };
+    const options = { ...RenameFile.defaultOptions, ...partialOptions };
 
     try {
       const sourceFilePathExists = await FSNode.exists(sourceFilePath);
@@ -197,7 +198,7 @@ const FSNode: FS = {
       const sourceFilePathIsFile = await FSNode.isFile(sourceFilePath);
       if (sourceFilePathExists && !sourceFilePathIsFile) {
         const message = `"${sourceFilePath}" is not a file`;
-        return R.Error(scope, message, FSErrorCode.NotFile);
+        return R.Error(scope, message, FSErrorCode.FileNotValid);
       }
 
       const targetFilePathExists = await FSNode.exists(targetFilePath);
@@ -212,17 +213,17 @@ const FSNode: FS = {
       return R.Error(
         scope,
         "FS.renameFile: Unknown error",
-        FSErrorCode.Generic,
+        FSErrorCode.Internal,
       );
     }
   },
 
   removeDirectory: async (
     directoryPath: string,
-    partialOptions?: Partial<RemoveDirectoryOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<RemoveDirectory.Options>,
+  ): Promise<ResultVoid<RemoveDirectory.ErrorCode>> => {
     const scope = "FS.removeDirectory";
-    const options = { ...defaultRemoveDirectoryOptions, ...partialOptions };
+    const options = { ...RemoveDirectory.defaultOptions, ...partialOptions };
 
     try {
       const directoryPathExists = await FSNode.exists(directoryPath);
@@ -238,22 +239,22 @@ const FSNode: FS = {
       const directoryPathIsDirectory = await FSNode.isDirectory(directoryPath);
       if (directoryPathExists && !directoryPathIsDirectory) {
         const message = `"${directoryPath}" is not a directory`;
-        return R.Error(scope, message, FSErrorCode.NotDirectory);
+        return R.Error(scope, message, FSErrorCode.DirectoryNotValid);
       }
 
       await NodeFS.rm(directoryPath, { force: true, recursive: true });
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   removeFile: async (
     filePath: string,
-    partialOptions?: Partial<RemoveFileOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<RemoveFile.Options>,
+  ): Promise<ResultVoid<RemoveFile.ErrorCode>> => {
     const scope = "FS.removeFile";
-    const options = { ...defaultRemoveFileOptions, ...partialOptions };
+    const options = { ...RemoveFile.defaultOptions, ...partialOptions };
 
     try {
       const filePathExists = await FSNode.exists(filePath);
@@ -269,13 +270,13 @@ const FSNode: FS = {
       const filePathIsFile = await FSNode.isFile(filePath);
       if (filePathExists && !filePathIsFile) {
         const message = `"${filePath}" is not a file`;
-        return R.Error(scope, message, FSErrorCode.NotFile);
+        return R.Error(scope, message, FSErrorCode.FileNotValid);
       }
 
       await NodeFS.unlink(filePath);
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
@@ -306,7 +307,9 @@ const FSNode: FS = {
     }
   },
 
-  readFile: async (filePath: string): Promise<Result<string>> => {
+  readFile: async (
+    filePath: string,
+  ): Promise<Result<string, ReadFile.ErrorCode>> => {
     const scope = "FS.readFile";
 
     try {
@@ -319,7 +322,7 @@ const FSNode: FS = {
       const filePathIsFile = await FSNode.isFile(filePath);
       if (!filePathIsFile) {
         const message = `"${filePath}" is not a file`;
-        return R.Error(scope, message, FSErrorCode.NotFile);
+        return R.Error(scope, message, FSErrorCode.FileNotValid);
       }
 
       try {
@@ -327,14 +330,17 @@ const FSNode: FS = {
         return R.Ok(content);
       } catch {
         const message = `Failed to read "${filePath}"`;
-        return R.Error(scope, message, FSErrorCode.FailedToReadFile);
+        return R.Error(scope, message, FSErrorCode.Internal);
       }
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
-  writeFile: async (filePath: string, content: string): Promise<ResultVoid> => {
+  writeFile: async (
+    filePath: string,
+    content: string,
+  ): Promise<ResultVoid<WriteFile.ErrorCode>> => {
     const scope = "FS.writeFile";
 
     try {
@@ -342,7 +348,7 @@ const FSNode: FS = {
       const filePathIsFile = await FSNode.isFile(filePath);
       if (filePathExists && !filePathIsFile) {
         const message = `"${filePath}" is not a file`;
-        return R.Error(scope, message, FSErrorCode.NotFile);
+        return R.Error(scope, message, FSErrorCode.FileNotValid);
       }
 
       const directoryPath = FSNode.getDirectoryPath(filePath);
@@ -351,7 +357,7 @@ const FSNode: FS = {
         const result = await FSNode.createDirectory(directoryPath);
         if (R.isError(result)) {
           const message = `Failed to create directory "${directoryPath}" while writing file`;
-          return R.Stack(result, scope, message, FSErrorCode.Generic);
+          return R.Stack(result, scope, message, FSErrorCode.Internal);
         }
       }
 
@@ -359,18 +365,18 @@ const FSNode: FS = {
         await NodeFS.writeFile(filePath, content);
       } catch {
         const message = `Failed to write "${filePath}"`;
-        return R.Error(scope, message, FSErrorCode.FailedToWriteFile);
+        return R.Error(scope, message, FSErrorCode.Internal);
       }
 
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   getDirectoryInfo: async (
     directoryPath: string,
-  ): Promise<Result<DirectoryInfo>> => {
+  ): Promise<Result<DirectoryInfo, GetDirectoryInfo.ErrorCode>> => {
     const scope = "FS.getDirectoryInfo";
 
     try {
@@ -383,7 +389,7 @@ const FSNode: FS = {
       const directoryPathIsDirectory = await FSNode.isDirectory(directoryPath);
       if (!directoryPathIsDirectory) {
         const message = `"${directoryPath}" is not a directory`;
-        return R.Error(scope, message, FSErrorCode.NotDirectory);
+        return R.Error(scope, message, FSErrorCode.DirectoryNotValid);
       }
 
       const filesAndDirectories = await NodeFS.readdir(directoryPath, {
@@ -405,11 +411,13 @@ const FSNode: FS = {
         fileNames,
       });
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
-  getFileInfo: async (filePath: string): Promise<Result<FileInfo>> => {
+  getFileInfo: async (
+    filePath: string,
+  ): Promise<Result<FileInfo, GetFileInfo.ErrorCode>> => {
     const scope = "FS.getFileInfo";
 
     try {
@@ -422,7 +430,7 @@ const FSNode: FS = {
       const filePathIsFile = await FSNode.isFile(filePath);
       if (!filePathIsFile) {
         const message = `"${filePath}" is not a file`;
-        return R.Error(scope, message, FSErrorCode.NotFile);
+        return R.Error(scope, message, FSErrorCode.FileNotValid);
       }
 
       return R.Ok({
@@ -431,7 +439,7 @@ const FSNode: FS = {
         extension: NodePath.extname(filePath),
       });
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
@@ -458,10 +466,10 @@ const FSNode: FS = {
   downloadFile: async (
     filePath: string,
     url: string,
-    partialOptions?: Partial<DownloadFileOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<DownloadFile.Options>,
+  ): Promise<ResultVoid<DownloadFile.ErrorCode>> => {
     const scope = "FS.downloadFile";
-    const options = { ...defaultDownloadFileOptions, ...partialOptions };
+    const options = { ...DownloadFile.defaultOptions, ...partialOptions };
 
     try {
       const filePathExists = await FSNode.exists(filePath);
@@ -486,18 +494,17 @@ const FSNode: FS = {
       });
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   zipDirectory: async (
     directoryPath: string,
     targetZipFilePath: string,
-    partialOptions?: Partial<ZipDirectoryOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<ZipDirectory.Options>,
+  ): Promise<ResultVoid<ZipDirectory.ErrorCode>> => {
     const scope = "FS.zipDirectory";
-    const options = { ...defaultZipDirectoryOptions, ...partialOptions };
-    let result: ResultVoid;
+    const options = { ...ZipDirectory.defaultOptions, ...partialOptions };
 
     try {
       const directoryPathExists = await FSNode.exists(directoryPath);
@@ -509,7 +516,7 @@ const FSNode: FS = {
       const directoryPathIsDirectory = await FSNode.isDirectory(directoryPath);
       if (!directoryPathIsDirectory) {
         const message = `Directory "${directoryPath}" is not a directory`;
-        return R.Error(scope, message, FSErrorCode.NotDirectory);
+        return R.Error(scope, message, FSErrorCode.DirectoryNotValid);
       }
 
       const targetZipFilePathExists = await FSNode.exists(targetZipFilePath);
@@ -518,10 +525,12 @@ const FSNode: FS = {
         return R.Error(scope, message, FSErrorCode.FileAlreadyExists);
       }
 
-      result = await FSNode.removeFile(targetZipFilePath, { silent: true });
+      const result = await FSNode.removeFile(targetZipFilePath, {
+        silent: true,
+      });
       if (R.isError(result)) {
         const message = `Failed to remove "${targetZipFilePath}"`;
-        return R.Stack(result, scope, message, FSErrorCode.Generic);
+        return R.Stack(result, scope, message, FSErrorCode.Internal);
       }
 
       const zipFile = new AdmZip();
@@ -530,18 +539,17 @@ const FSNode: FS = {
 
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
   unzipFile: async (
     zipFilePath: string,
     targetDirectoryPath: string,
-    partialOptions?: Partial<UnzipFileOptions>,
-  ): Promise<ResultVoid> => {
+    partialOptions?: Partial<UnzipFile.Options>,
+  ): Promise<ResultVoid<UnzipFile.ErrorCode>> => {
     const scope = "FS.unzipFile";
-    const options = { ...defaultUnzipFileOptions, ...partialOptions };
-    let result: ResultVoid;
+    const options = { ...UnzipFile.defaultOptions, ...partialOptions };
 
     try {
       const zipFilePathExists = await FSNode.exists(zipFilePath);
@@ -553,7 +561,7 @@ const FSNode: FS = {
       const zipFilePathIsFile = await FSNode.isFile(zipFilePath);
       if (!zipFilePathIsFile) {
         const message = `File "${zipFilePath}" is not a file`;
-        return R.Error(scope, message, FSErrorCode.NotFile);
+        return R.Error(scope, message, FSErrorCode.FileNotValid);
       }
 
       const targetDirectoryPathExists = await FSNode.exists(
@@ -575,7 +583,7 @@ const FSNode: FS = {
       });
       if (archiveError) {
         const message = `Failed to unzip "${targetDirectoryPath}"`;
-        return R.Error(scope, message, FSErrorCode.FailedToUnzip);
+        return R.Error(scope, message, FSErrorCode.Internal);
       }
 
       if (!options.collapseSingleDirectoryArchive) {
@@ -591,13 +599,15 @@ const FSNode: FS = {
           directoryInfoResult,
           scope,
           message,
-          FSErrorCode.Generic,
+          FSErrorCode.Internal,
         );
       }
       const { directoryNames, fileNames } = directoryInfoResult.data;
       if (directoryNames.length !== 1 || fileNames.length > 0) {
         return R.Void;
       }
+
+      let result: ResultVoid<RenameDirectory.ErrorCode>;
 
       const tempDirectoryPath = `${targetDirectoryPath}-temp`;
       result = await FSNode.renameDirectory(
@@ -607,7 +617,7 @@ const FSNode: FS = {
       );
       if (R.isError(result)) {
         const message = "Failed to move inner single directory outside";
-        return R.Stack(result, scope, message, FSErrorCode.Generic);
+        return R.Stack(result, scope, message, FSErrorCode.Internal);
       }
 
       result = await FSNode.renameDirectory(
@@ -618,26 +628,26 @@ const FSNode: FS = {
       if (R.isError(result)) {
         const message =
           "Failed to rename inner single directory as target directory";
-        return R.Stack(result, scope, message, FSErrorCode.Generic);
+        return R.Stack(result, scope, message, FSErrorCode.Internal);
       }
 
       return R.Void;
     } catch {
-      return R.Error(scope, "Unknown error", FSErrorCode.Generic);
+      return R.Error(scope, "Unknown error", FSErrorCode.Internal);
     }
   },
 
-  exec: (command: string): Promise<Result<ShellOutput>> => {
+  exec: (command: string): Promise<Result<ShellOutput, Exec.ErrorCode>> => {
     const scope = "FS.exec";
 
     return new Promise((resolve) => {
       NodeChildProcess.exec(command, (error, stdout, stderr) => {
         const result = error
           ? R.Stack(
-              R.Error(scope, error.message, FSErrorCode.Generic),
+              R.Error(scope, error.message, FSErrorCode.Internal),
               scope,
               "Failed to run shell command",
-              FSErrorCode.Generic,
+              FSErrorCode.Internal,
             )
           : R.Ok({ stdout, stderr });
         resolve(result);

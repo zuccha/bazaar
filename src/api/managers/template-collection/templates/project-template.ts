@@ -1,9 +1,32 @@
 import { R, Result, ResultVoid } from "../../../utils/result";
-import Project, { ProjectConfig } from "../../project";
-import { ResourceBag } from "../../resource";
-import Template from "../template";
+import Project, {
+  ProjectConfig,
+  ProjectErrorCodes,
+  ProjectExtraErrorCodes,
+} from "../../project";
+import { ResourceBag, ResourceErrorCodes } from "../../resource";
+import Template, { TemplateErrorCodes } from "../template";
 
-export default class ProjectTemplate extends Template<ProjectConfig, Project> {
+export type ProjectTemplateErrorCodes = {
+  CreateFromBaserom: ProjectErrorCodes["CreateFromBaserom"];
+  CreateFromProject:
+    | TemplateErrorCodes["CreateFromResource"]
+    | ProjectExtraErrorCodes["Snapshot"]
+    | ProjectExtraErrorCodes["Validate"];
+  GetMetadata: ProjectErrorCodes["GetMetadata"];
+  UpdateMetadata: ProjectErrorCodes["UpdateMetadata"];
+  InitProject:
+    | TemplateErrorCodes["InitResource"]
+    | ProjectExtraErrorCodes["Snapshot"]
+    | ProjectExtraErrorCodes["Validate"];
+  Remove: ResourceErrorCodes["Remove"] | ProjectExtraErrorCodes["Validate"];
+};
+
+export default class ProjectTemplate extends Template<
+  ProjectConfig,
+  ProjectExtraErrorCodes,
+  Project
+> {
   protected id = "ProjectTemplate";
 
   protected resource: Project;
@@ -18,7 +41,7 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
   async createFromBaserom(
     baseromPath: string,
     config?: Partial<ProjectConfig>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ProjectTemplateErrorCodes["CreateFromBaserom"]>> {
     this.logger.start("Creating project from baserom");
     const result = await this.resource.createFromBaserom(baseromPath, config);
     if (R.isError(result)) {
@@ -33,7 +56,7 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
   async createFromProject(
     projectDirectoryPath: string,
     partialOptions?: Partial<{ force: boolean }>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ProjectTemplateErrorCodes["CreateFromProject"]>> {
     const project = new Project(projectDirectoryPath, this._bag);
 
     this.logger.start("Creating template from project");
@@ -52,7 +75,7 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     name: string,
     config?: Partial<ProjectConfig>,
     partialOptions?: Partial<{ force: boolean }>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ProjectTemplateErrorCodes["InitProject"]>> {
     const project = new Project(this.fs.join(directoryPath, name), this._bag);
 
     this.logger.start("Initializing project");
@@ -66,7 +89,7 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     return R.Void;
   }
 
-  async remove(): Promise<ResultVoid> {
+  async remove(): Promise<ResultVoid<ProjectTemplateErrorCodes["Remove"]>> {
     this.logger.start("Removing project");
     const result = await this.resource.remove();
     if (R.isError(result)) {
@@ -78,7 +101,9 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     return R.Void;
   }
 
-  async getMetadata(): Promise<Result<ProjectConfig>> {
+  async getMetadata(): Promise<
+    Result<ProjectConfig, ProjectTemplateErrorCodes["GetMetadata"]>
+  > {
     this.logger.start("Gathering project metadata");
     const metadataResult = await this.resource.getMetadata();
     if (R.isError(metadataResult)) {
@@ -90,7 +115,9 @@ export default class ProjectTemplate extends Template<ProjectConfig, Project> {
     return metadataResult;
   }
 
-  async updateMetadata(metadata: Partial<ProjectConfig>): Promise<ResultVoid> {
+  async updateMetadata(
+    metadata: Partial<ProjectConfig>,
+  ): Promise<ResultVoid<ProjectTemplateErrorCodes["UpdateMetadata"]>> {
     this.logger.start("Updating project metadata");
     const result = await this.resource.updateMetadata(metadata);
     if (R.isError(result)) {

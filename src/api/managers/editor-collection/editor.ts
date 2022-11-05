@@ -1,5 +1,5 @@
 import { z } from "zod";
-import Configurable from "../configurable";
+import Configurable, { ConfigurableErrorCodes } from "../configurable";
 import { ShellOutput } from "../../utils/fs";
 import { R, Result, ResultVoid } from "../../utils/result";
 
@@ -16,25 +16,38 @@ export type EditorInfo = {
   exeArgs: string;
 };
 
-const ErrorCode = {
-  ...Configurable.ErrorCode,
-  ExeNotFound: "Editor.ExeNotFound",
-  ExeNotSet: "Editor.ExeNotSet",
-  ExeNotValid: "Editor.ExeNotValid",
-  ExecutionFailed: "Editor.ExecutionFailed",
-  MissingParameters: "Editor.MissingParameters",
-  Generic: "Editor.Generic",
+export enum EditorErrorCode {
+  Internal,
+  ExeNotFound,
+  ExeNotSet,
+  ExeNotValid,
+  MissingParameters,
+}
+
+export type EditorErrorCodes = {
+  Exec:
+    | EditorErrorCodes["List"]
+    | EditorErrorCode.Internal
+    | EditorErrorCode.ExeNotFound
+    | EditorErrorCode.ExeNotSet
+    | EditorErrorCode.ExeNotValid;
+  List: ConfigurableErrorCodes["LoadConfig"];
+  Set:
+    | ConfigurableErrorCodes["LoadConfig"]
+    | EditorErrorCode.MissingParameters
+    | EditorErrorCode.ExeNotFound
+    | EditorErrorCode.ExeNotValid;
 };
 
 export default abstract class Editor extends Configurable<EditorConfig> {
-  static ErrorCode = ErrorCode;
-
   protected ConfigSchema = EditorConfigSchema;
   protected defaultConfig = { exePath: "", exeArgs: "%1" };
 
   abstract displayName: string;
 
-  protected async exec(...args: string[]): Promise<Result<ShellOutput>> {
+  protected async exec(
+    ...args: string[]
+  ): Promise<Result<ShellOutput, EditorErrorCodes["Exec"]>> {
     const scope = this.scope("exec");
 
     const infoResult = await this.list();
@@ -47,7 +60,7 @@ export default abstract class Editor extends Configurable<EditorConfig> {
     if (!info.exePath) {
       this.logger.failure();
       const message = "No executable set";
-      return R.Error(scope, message, ErrorCode.ExeNotSet);
+      return R.Error(scope, message, EditorErrorCode.ExeNotSet);
     }
     this.logger.success();
 
@@ -56,7 +69,7 @@ export default abstract class Editor extends Configurable<EditorConfig> {
     if (!exePathExists) {
       this.logger.failure();
       const message = `The editor executable "${info.exePath}" was not found`;
-      return R.Error(scope, message, ErrorCode.ExeNotFound);
+      return R.Error(scope, message, EditorErrorCode.ExeNotFound);
     }
     this.logger.success();
 
@@ -65,7 +78,7 @@ export default abstract class Editor extends Configurable<EditorConfig> {
     if (!exePathIsValid) {
       this.logger.failure();
       const message = `Editor executable "${info.exePath}" is not valid`;
-      return R.Error(scope, message, ErrorCode.ExeNotValid);
+      return R.Error(scope, message, EditorErrorCode.ExeNotValid);
     }
     this.logger.success();
 
@@ -80,14 +93,14 @@ export default abstract class Editor extends Configurable<EditorConfig> {
     if (R.isError(execResult)) {
       this.logger.failure();
       const message = `Failed to execute editor command \`${command}\``;
-      return R.Stack(execResult, scope, message, ErrorCode.ExecutionFailed);
+      return R.Stack(execResult, scope, message, EditorErrorCode.Internal);
     }
     this.logger.success();
 
     return R.Ok(execResult.data);
   }
 
-  async list(): Promise<Result<EditorInfo>> {
+  async list(): Promise<Result<EditorInfo, EditorErrorCodes["List"]>> {
     this.logger.start("Loading editor config");
     const configResult = await this.loadConfig();
     if (R.isError(configResult)) {
@@ -106,7 +119,9 @@ export default abstract class Editor extends Configurable<EditorConfig> {
     return R.Ok(editor);
   }
 
-  async set(partialEditorConfig: Partial<EditorConfig>): Promise<ResultVoid> {
+  async set(
+    partialEditorConfig: Partial<EditorConfig>,
+  ): Promise<ResultVoid<EditorErrorCodes["Set"]>> {
     const scope = this.scope("set");
 
     if (
@@ -114,7 +129,7 @@ export default abstract class Editor extends Configurable<EditorConfig> {
       partialEditorConfig.exeArgs === undefined
     ) {
       const message = "There are no parameters to change";
-      return R.Error(scope, message, ErrorCode.MissingParameters);
+      return R.Error(scope, message, EditorErrorCode.MissingParameters);
     }
 
     this.logger.start("Loading editor config");
@@ -128,16 +143,27 @@ export default abstract class Editor extends Configurable<EditorConfig> {
     const config = configResult.data;
 
     if (partialEditorConfig.exePath !== undefined) {
-      this.logger.start("Setting exe path");
-      const exePathExists = await this.fs.exists(partialEditorConfig.exePath);
-      if (!exePathExists && partialEditorConfig.exePath !== "") {
-        this.logger.failure();
-        const message = `The given executable "${partialEditorConfig.exePath}" does not exist`;
-        return R.Error(scope, message, ErrorCode.ExeNotFound);
+      if (partialEditorConfig.exePath !== "") {
+        this.logger.start("Checking if given executable exists");
+        const exePathExists = await this.fs.exists(partialEditorConfig.exePath);
+        if (!exePathExists) {
+          this.logger.failure();
+          const message = `The given executable "${partialEditorConfig.exePath}" does not exist`;
+          return R.Error(scope, message, EditorErrorCode.ExeNotFound);
+        }
+        this.logger.success();
+
+        this.logger.start("Checking if given executable is valid");
+        const exePathIsFile = await this.fs.isFile(partialEditorConfig.exePath);
+        if (!exePathIsFile) {
+          this.logger.failure();
+          const message = `The given executable "${partialEditorConfig.exePath}" is not valid`;
+          return R.Error(scope, message, EditorErrorCode.ExeNotValid);
+        }
+        this.logger.success();
       }
 
       config.exePath = partialEditorConfig.exePath;
-      this.logger.success();
     }
 
     if (partialEditorConfig.exeArgs !== undefined) {

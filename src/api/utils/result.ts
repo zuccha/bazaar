@@ -1,17 +1,21 @@
+type ErrorType = string | number;
+
 export type ResultOk<T> = {
   data: T;
 };
 
-export type ResultVoid = Result<undefined>;
-
-export type ResultError = {
+export type ResultError<E extends ErrorType = string> = {
   scope: string;
   message: string;
-  code: number | string;
-  trace: ResultError | undefined;
+  code: E;
+  trace: ResultError<any> | undefined;
 };
 
-export type Result<T> = ResultOk<T> | ResultError;
+export type Result<T, E extends ErrorType = string> =
+  | ResultOk<T>
+  | ResultError<E>;
+
+export type ResultVoid<E extends ErrorType = string> = Result<undefined, E>;
 
 export const R = {
   /**
@@ -33,11 +37,11 @@ export const R = {
    * @param code Error code.
    * @returns The error, with no trace.
    */
-  Error: (
+  Error: <E extends ErrorType = string>(
     scope: string,
     message: string,
-    code: number | string,
-  ): ResultError => ({
+    code: E,
+  ): ResultError<E> => ({
     scope,
     code,
     message,
@@ -52,12 +56,12 @@ export const R = {
    * @param code The new error code.
    * @returns The new error, with the old error in the trace.
    */
-  Stack: (
-    error: ResultError,
+  Stack: <E extends ErrorType = string>(
+    error: ResultError<any>,
     scope: string,
     message: string,
-    code: number | string,
-  ): ResultError => ({
+    code: E,
+  ): ResultError<E> => ({
     message,
     scope,
     code,
@@ -73,7 +77,7 @@ export const R = {
    * @returns A string with all messages on new lines, the most recent on top.
    */
   messages: (
-    error: ResultError,
+    error: ResultError<any>,
     partialOptions?: { verbose: boolean },
   ): string => {
     const options = { verbose: false, ...partialOptions };
@@ -90,7 +94,9 @@ export const R = {
    * @param result The result to be evaluated.
    * @returns True if the result is ok, false otherwise.
    */
-  isOk: <T>(result: Result<T>): result is ResultOk<T> => {
+  isOk: <T, E extends ErrorType = string>(
+    result: Result<T, E>,
+  ): result is ResultOk<T> => {
     return "data" in result;
   },
 
@@ -99,7 +105,9 @@ export const R = {
    * @param result The result to be evaluated.
    * @returns True if the result is an error, false otherwise.
    */
-  isError: <T>(result: Result<T>): result is ResultError => {
+  isError: <T, E extends ErrorType = string>(
+    result: Result<T, E>,
+  ): result is ResultError<E> => {
     return "message" in result;
   },
 };

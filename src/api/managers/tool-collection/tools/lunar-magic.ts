@@ -1,15 +1,21 @@
 import { R, ResultVoid } from "../../../utils/result";
-import Tool from "../tool";
+import Tool, { ToolErrorCodes } from "../tool";
 
-const ErrorCode = {
-  ...Tool.ErrorCode,
-  FailedToOpenRom: "LunarMagic.FailedToOpenRom",
-  RomNotFound: "LunarMagic.RomNotFound",
+export enum LunarMagicErrorCode {
+  Internal,
+  RomNotFound,
+  RomNotValid,
+}
+
+export type LunarMagicErrorCodes = {
+  Open:
+    | ToolErrorCodes["Exec"]
+    | LunarMagicErrorCode.Internal
+    | LunarMagicErrorCode.RomNotFound
+    | LunarMagicErrorCode.RomNotValid;
 };
 
 export default class LunarMagic extends Tool {
-  static ErrorCode = ErrorCode;
-
   protected readonly id = "LunarMagic";
 
   readonly displayName = "Lunar Magic";
@@ -17,17 +23,28 @@ export default class LunarMagic extends Tool {
   protected readonly downloadUrl = "https://dl.smwcentral.net/32211/lm333.zip";
   protected readonly supportedVersion = "3.33";
 
-  async open(romPath: string): Promise<ResultVoid> {
+  async open(
+    romPath: string,
+  ): Promise<ResultVoid<LunarMagicErrorCodes["Open"]>> {
     const scope = this.scope("open");
 
     romPath = this.fs.resolve(romPath);
 
     this.logger.start(`Checking if ROM "${romPath}" exists`);
-    const pathExists = await this.fs.exists(romPath);
-    if (!pathExists) {
+    const romExists = await this.fs.exists(romPath);
+    if (!romExists) {
       this.logger.failure();
       const message = `ROM "${romPath}" does not exist`;
-      return R.Error(scope, message, ErrorCode.RomNotFound);
+      return R.Error(scope, message, LunarMagicErrorCode.RomNotFound);
+    }
+    this.logger.success();
+
+    this.logger.start(`Checking if ROM "${romPath}" is valid`);
+    const romIsFile = await this.fs.isFile(romPath);
+    if (!romIsFile) {
+      this.logger.failure();
+      const message = `ROM "${romPath}" does not exist`;
+      return R.Error(scope, message, LunarMagicErrorCode.RomNotValid);
     }
     this.logger.success();
 
@@ -39,10 +56,10 @@ export default class LunarMagic extends Tool {
     if (execResult.data.stderr) {
       const message = `Failed to run "${romPath}" in emulator`;
       return R.Stack(
-        R.Error(scope, execResult.data.stderr, ErrorCode.Generic),
+        R.Error(scope, execResult.data.stderr, LunarMagicErrorCode.Internal),
         scope,
         message,
-        ErrorCode.FailedToOpenRom,
+        LunarMagicErrorCode.Internal,
       );
     }
 

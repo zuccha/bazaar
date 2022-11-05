@@ -18,14 +18,14 @@ Updating a tool will not cause any other version of the tool installed manually\
 
   async run(): Promise<void> {
     this.Info.start("Updating tools");
-    const response = await this.api.tools.updateAll();
-    if (R.isOk(response)) {
+    const result = await this.api.tools.updateAll();
+    if (R.isOk(result)) {
       this.Info.success();
       return;
     }
 
     this.Info.failure();
-    const messages = R.messages(response, { verbose: true });
+    const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to update tools\n${messages}`, 1);
   }
 }

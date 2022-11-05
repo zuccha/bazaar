@@ -4,13 +4,15 @@ import Editor, { EditorInfo } from "./editor";
 import CodeEditor from "./editors/code-editor";
 import Emulator from "./editors/emulator";
 
-const ErrorCode = {
-  Generic: "EditorCollection.Generic",
+export enum EditorCollectionErrorCode {
+  Internal,
+}
+
+export type EditorCollectionErrorCodes = {
+  ListAll: EditorCollectionErrorCode.Internal;
 };
 
 export default class EditorCollection extends Directory {
-  static ErrorCode = ErrorCode;
-
   protected id = "EditorCollection";
 
   CodeEditor: CodeEditor;
@@ -27,7 +29,9 @@ export default class EditorCollection extends Directory {
     this._editors = [this.CodeEditor, this.Emulator];
   }
 
-  async listAll(): Promise<Result<EditorInfo[]>> {
+  async listAll(): Promise<
+    Result<EditorInfo[], EditorCollectionErrorCodes["ListAll"]>
+  > {
     const scope = this.scope("listAll");
 
     const editorInfos: EditorInfo[] = [];
@@ -38,7 +42,12 @@ export default class EditorCollection extends Directory {
       if (R.isError(editorResult)) {
         this.logger.failure();
         const message = "Failed to gather data for editor";
-        return R.Stack(editorResult, scope, message, ErrorCode.Generic);
+        return R.Stack(
+          editorResult,
+          scope,
+          message,
+          EditorCollectionErrorCode.Internal,
+        );
       }
       this.logger.success();
 

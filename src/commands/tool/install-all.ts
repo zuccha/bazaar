@@ -38,16 +38,16 @@ Installing a tool will not interfere with any other manual installation of the\
     const { flags } = await this.parse(ToolInstallAllCommand);
 
     this.Info.start("Installing tools");
-    const response = await this.api.tools.installAll({
+    const result = await this.api.tools.installAll({
       force: flags.force,
     });
-    if (R.isOk(response)) {
+    if (R.isOk(result)) {
       this.Info.success();
       return;
     }
 
     this.Info.failure();
-    const messages = R.messages(response, { verbose: true });
+    const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to install tools\n${messages}`, 1);
   }
 }

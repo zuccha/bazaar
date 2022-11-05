@@ -1,4 +1,4 @@
-import Tool from "../../api/managers/tool-collection/tool";
+import { ToolErrorCode } from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
 import { getTool, ToolName } from "../../commands-utils/tool";
 import BaseCommand from "../../utils/base-command";
@@ -39,13 +39,13 @@ Updating a tool will not cause any other version of the tool installed manually\
       return;
     }
 
-    if (response.code === Tool.ErrorCode.ToolIsUpToDate) {
+    if (response.code === ToolErrorCode.ToolUpToDate) {
       this.Info.failure();
       this.Warning.log(`${toolName} is up to date!`);
       return;
     }
 
-    if (response.code === Tool.ErrorCode.ToolNotInstalled) {
+    if (response.code === ToolErrorCode.ToolNotInstalled) {
       this.Info.failure();
       this.Warning.log(`${toolName} is not installed!`);
       return;

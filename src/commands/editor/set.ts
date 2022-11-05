@@ -1,5 +1,5 @@
 import { Flags } from "@oclif/core";
-import Editor from "../../api/managers/editor-collection/editor";
+import { EditorErrorCode } from "../../api/managers/editor-collection/editor";
 import { R } from "../../api/utils/result";
 import { EditorName, getEditor } from "../../commands-utils/editor";
 import BaseCommand from "../../utils/base-command";
@@ -66,7 +66,7 @@ Supported editors are:
       return;
     }
 
-    if (result.code === Editor.ErrorCode.MissingParameters) {
+    if (result.code === EditorErrorCode.MissingParameters) {
       this.Info.failure();
       const message =
         "No parameter was given, pass at least one of `--exe-path` or `--exe-args`";
@@ -74,7 +74,7 @@ Supported editors are:
       return;
     }
 
-    if (result.code === Editor.ErrorCode.ExeNotFound) {
+    if (result.code === EditorErrorCode.ExeNotFound) {
       this.Info.failure();
       const message =
         "The given exe file does not exist, please provide a valid exe file";

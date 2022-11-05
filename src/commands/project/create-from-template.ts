@@ -1,5 +1,7 @@
 import { Flags } from "@oclif/core";
-import Project from "../../api/managers/project";
+import { ConfigurableErrorCode } from "../../api/managers/configurable";
+import { ProjectErrorCode } from "../../api/managers/project";
+import { ResourceErrorCode } from "../../api/managers/resource";
 import { R } from "../../api/utils/result";
 import {
   ProjectConfigFlags,
@@ -68,22 +70,43 @@ The new project will be created in a new directory.`;
       return;
     }
 
-    if (result.code === Project.ErrorCode.SnapshotTargetExists) {
+    if (result.code === ResourceErrorCode.DirectoryNotFound) {
+      this.Info.failure();
+      this.Warning.log(`The template "${flags.path}" doesn't exist`);
+      return;
+    }
+
+    if (result.code === ConfigurableErrorCode.ConfigNotFound) {
+      this.Info.failure();
+      const message = `The template "${flags.path}" is not valid, no config was found`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ConfigurableErrorCode.ConfigNotValid) {
+      this.Info.failure();
+      const message = `The template "${flags.path}" is not valid, the config is not valid`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ProjectErrorCode.BaseromNotFound) {
+      this.Info.failure();
+      const message = `The template "${flags.path}" is not valid, no baserom was found`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ProjectErrorCode.BaseromNotValid) {
+      this.Info.failure();
+      const message = `The template "${flags.path}" is not valid, the baserom is not valid`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ResourceErrorCode.SnapshotTargetExists) {
       this.Info.failure();
       this.Warning.log(`The project "${flags.name}" already exists`);
-      return;
-    }
-
-    if (result.code === Project.ErrorCode.ProjectNotFound) {
-      this.Info.failure();
-      this.Warning.log(`The template "${flags.template}" does not exist`);
-      return;
-    }
-
-    if (result.code === Project.ErrorCode.ProjectNotValid) {
-      this.Info.failure();
-      const message = `The template "${flags.template}" is not valid (missing baserom, invalid config, etc.)`;
-      this.Warning.log(message);
       return;
     }
 

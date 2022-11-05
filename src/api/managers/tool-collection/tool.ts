@@ -9,31 +9,34 @@ export type ToolInfo = {
   installationStatus: "not-installed" | "installed" | "deprecated";
 };
 
-const ErrorCode = {
-  ExecutionFailed: "Tool.ExecutionFailed",
-  FailedToCreateMainDirectory: "Tool.FailedToCreateMainDirectory",
-  FailedToCreateVersionDirectory: "Tool.FailedToCreateVersionDirectory",
-  FailedToExtractArchive: "Tool.FailedToExtractArchive",
-  FailedToReadToolDirectoryContent: "Tool.FailedToReadToolDirectoryContent",
-  FailedToRemoveArchive: "Tool.FailedToRemoveArchive",
-  FailedToRemoveMainDirectory: "Tool.FailedToRemoveMainDirectory",
-  FailedToRemoveVersionDirectory: "Tool.FailedToRemoveVersionDirectory",
-  ToolAlreadyInstalled: "Tool.ToolAlreadyInstalled",
-  ToolIsUpToDate: "Tool.ToolIsUpToDate",
-  ToolIsNotUpToDate: "Tool.ToolIsNotUpToDate",
-  ToolNotInstalled: "Tool.ToolNotInstalled",
-  Generic: "Tool.Generic",
+export enum ToolErrorCode {
+  Internal,
+  ToolAlreadyInstalled,
+  ToolNotInstalled,
+  ToolNotUpToDate,
+  ToolUpToDate,
+}
+
+export type ToolErrorCodes = {
+  Exec: ToolErrorCodes["List"] | ToolErrorCode.ToolNotUpToDate;
+  List: ToolErrorCode.Internal;
+  Install: ToolErrorCode.Internal | ToolErrorCode.ToolAlreadyInstalled;
+  Uninstall: ToolErrorCode.Internal | ToolErrorCode.ToolNotInstalled;
+  Update:
+    | ToolErrorCode.Internal
+    | ToolErrorCode.ToolNotInstalled
+    | ToolErrorCode.ToolUpToDate;
 };
 
 export default abstract class Tool extends Directory {
-  static ErrorCode = ErrorCode;
-
   abstract readonly displayName: string;
   protected abstract readonly exeName: string;
   protected abstract readonly downloadUrl: string;
   protected abstract readonly supportedVersion: string;
 
-  protected async exec(...args: string[]): Promise<Result<ShellOutput>> {
+  protected async exec(
+    ...args: string[]
+  ): Promise<Result<ShellOutput, ToolErrorCodes["Exec"]>> {
     const scope = this.scope("exec");
 
     this.logger.start("Gathering information about tool");
@@ -47,7 +50,7 @@ export default abstract class Tool extends Directory {
     const info = infoResult.data;
     if (info.installationStatus !== "installed" || !info.installedVersion) {
       const message = `${info.name} is not up to date`;
-      return R.Error(scope, message, ErrorCode.ToolIsNotUpToDate);
+      return R.Error(scope, message, ToolErrorCode.ToolNotUpToDate);
     }
 
     const exePath = this.path(info.installedVersion, this.exeName);
@@ -59,14 +62,14 @@ export default abstract class Tool extends Directory {
     if (R.isError(execResult)) {
       this.logger.failure();
       const message = `Failed to execute command \`${command}\``;
-      return R.Stack(execResult, scope, message, ErrorCode.ExecutionFailed);
+      return R.Stack(execResult, scope, message, ToolErrorCode.Internal);
     }
     this.logger.success();
 
     return R.Ok(execResult.data);
   }
 
-  async list(): Promise<Result<ToolInfo>> {
+  async list(): Promise<Result<ToolInfo, ToolErrorCodes["List"]>> {
     const scope = this.scope("list");
 
     const baseInfo = {
@@ -95,7 +98,7 @@ export default abstract class Tool extends Directory {
         toolDirectoryInfoResult,
         scope,
         message,
-        ErrorCode.FailedToReadToolDirectoryContent,
+        ToolErrorCode.Internal,
       );
     }
     this.logger.success();
@@ -129,9 +132,8 @@ export default abstract class Tool extends Directory {
       force: boolean;
       ignoreIfAlreadyInstalled: boolean;
     }>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ToolErrorCodes["Install"]>> {
     const scope = this.scope("install");
-    let result: ResultVoid;
 
     const options = {
       force: false,
@@ -152,80 +154,83 @@ export default abstract class Tool extends Directory {
         return R.Error(
           scope,
           `${this.displayName} is already installed`,
-          ErrorCode.ToolAlreadyInstalled,
+          ToolErrorCode.ToolAlreadyInstalled,
         );
       }
 
       this.logger.success();
 
       this.logger.start("Removing old versions");
-      result = await this.removeDirectory();
-      if (R.isError(result)) {
+      const removeDirectoryResult = await this.removeDirectory();
+      if (R.isError(removeDirectoryResult)) {
         this.logger.failure();
         return R.Stack(
-          result,
+          removeDirectoryResult,
           scope,
           `Failed to remove "${this.displayName}" directory`,
-          ErrorCode.FailedToRemoveMainDirectory,
+          ToolErrorCode.Internal,
         );
       }
       this.logger.success();
     }
 
     this.logger.start(`Creating tool directory`);
-    result = await this.createDirectory();
-    if (R.isError(result)) {
+    const createDirectoryResult = await this.createDirectory();
+    if (R.isError(createDirectoryResult)) {
       this.logger.failure();
       return R.Stack(
-        result,
+        createDirectoryResult,
         scope,
         `Failed to create "${this.displayName}" directory`,
-        ErrorCode.FailedToCreateMainDirectory,
+        ToolErrorCode.Internal,
       );
     }
     this.logger.success();
 
     this.logger.start(`Downloading tool`);
     const toolZipFilePath = this.path(`${this.supportedVersion}.zip`);
-    result = await this.fs.downloadFile(toolZipFilePath, this.downloadUrl);
-    if (R.isError(result)) {
+    const downloadResult = await this.fs.downloadFile(
+      toolZipFilePath,
+      this.downloadUrl,
+    );
+    if (R.isError(downloadResult)) {
       this.logger.failure();
       return R.Stack(
-        result,
+        downloadResult,
         scope,
         `Failed to download ${this.displayName} from SMWCentral`,
-        ErrorCode.FailedToRemoveMainDirectory,
+        ToolErrorCode.Internal,
       );
     }
     this.logger.success();
 
     this.logger.start(`Extracting tool archive`);
     const toolVersionDirectoryPath = this.path(this.supportedVersion);
-    result = await this.fs.unzipFile(
+    const unzipResult = await this.fs.unzipFile(
       toolZipFilePath,
       toolVersionDirectoryPath,
       { collapseSingleDirectoryArchive: true },
     );
-    if (R.isError(result)) {
+    if (R.isError(unzipResult)) {
       this.logger.failure();
       return R.Stack(
-        result,
+        unzipResult,
         scope,
         `Failed to extract ${this.displayName} archive`,
-        ErrorCode.FailedToRemoveMainDirectory,
+        ToolErrorCode.Internal,
       );
     }
     this.logger.success();
 
     this.logger.start(`Removing tool archive`);
-    result = await this.fs.removeFile(toolZipFilePath);
-    if (R.isError(result)) {
+    const removeArchiveResult = await this.fs.removeFile(toolZipFilePath);
+    if (R.isError(removeArchiveResult)) {
       this.logger.failure();
       return R.Stack(
-        result,
+        removeArchiveResult,
         scope,
         `Failed to remove "${this.displayName}" archive`,
-        ErrorCode.FailedToRemoveArchive,
+        ToolErrorCode.Internal,
       );
     }
     this.logger.success();
@@ -237,7 +242,7 @@ export default abstract class Tool extends Directory {
     partialOptions?: Partial<{
       ignoreIfNotInstalled: boolean;
     }>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ToolErrorCodes["Uninstall"]>> {
     const scope = this.scope("uninstall");
 
     const options = { ignoreIfNotInstalled: false, ...partialOptions };
@@ -254,7 +259,7 @@ export default abstract class Tool extends Directory {
       return R.Error(
         scope,
         `${this.displayName} is not installed`,
-        ErrorCode.ToolNotInstalled,
+        ToolErrorCode.ToolNotInstalled,
       );
     }
     this.logger.success();
@@ -265,7 +270,7 @@ export default abstract class Tool extends Directory {
       return R.Error(
         scope,
         `Failed to remove ${this.displayName} directory`,
-        ErrorCode.Generic,
+        ToolErrorCode.Internal,
       );
     }
     this.logger.success();
@@ -278,7 +283,7 @@ export default abstract class Tool extends Directory {
       ignoreIfNotInstalled: boolean;
       ignoreIfUpToDate: boolean;
     }>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ToolErrorCodes["Update"]>> {
     const scope = this.scope("update");
 
     const options = {
@@ -302,7 +307,7 @@ export default abstract class Tool extends Directory {
       return R.Error(
         scope,
         `${this.displayName} is already up to date`,
-        ErrorCode.ToolIsUpToDate,
+        ToolErrorCode.ToolUpToDate,
       );
     }
     this.logger.failure();
@@ -318,7 +323,7 @@ export default abstract class Tool extends Directory {
       return R.Error(
         scope,
         `${this.displayName} is not installed`,
-        ErrorCode.ToolNotInstalled,
+        ToolErrorCode.ToolNotInstalled,
       );
     }
     this.logger.success();
@@ -330,7 +335,7 @@ export default abstract class Tool extends Directory {
         result,
         scope,
         `Failed to update ${this.displayName}`,
-        ErrorCode.Generic,
+        ToolErrorCode.Internal,
       );
     }
 

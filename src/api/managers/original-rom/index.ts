@@ -5,18 +5,26 @@ export type OriginalRomInfo = {
   filePath: string | undefined;
 };
 
-export default class OriginalRom extends Directory {
-  static ErrorCode = {
-    OriginalRomNotFound: "OriginalRomManager.OriginalRomNotFound",
-    OriginalRomNotValid: "OriginalRomManager.OriginalRomNotValid",
-    Generic: "OriginalRomManager.Generic",
-  };
+export enum OriginalRomErrorCode {
+  Internal,
+  OriginalRomNotFound,
+  OriginalRomNotValid,
+}
 
+export default class OriginalRom extends Directory {
   static OriginalRomFileName = "original-rom.sfc";
 
   protected id = "OriginalRom";
 
-  async add(sourceOriginalRomPath: string): Promise<ResultVoid> {
+  async add(
+    sourceOriginalRomPath: string,
+  ): Promise<
+    ResultVoid<
+      | OriginalRomErrorCode.Internal
+      | OriginalRomErrorCode.OriginalRomNotFound
+      | OriginalRomErrorCode.OriginalRomNotValid
+    >
+  > {
     const scope = this.scope("add");
 
     this.logger.start("Checking if the original ROM exists");
@@ -26,7 +34,7 @@ export default class OriginalRom extends Directory {
     if (!sourceOriginalRomPathExists) {
       this.logger.failure();
       const message = `The original ROM "${sourceOriginalRomPath}" does not exists`;
-      return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotFound);
+      return R.Error(scope, message, OriginalRomErrorCode.OriginalRomNotFound);
     }
     this.logger.success();
 
@@ -37,7 +45,7 @@ export default class OriginalRom extends Directory {
     if (!sourceOriginalRomPathIsFile) {
       this.logger.failure();
       const message = `The original ROM "${sourceOriginalRomPath}" is not a file`;
-      return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotValid);
+      return R.Error(scope, message, OriginalRomErrorCode.OriginalRomNotValid);
     }
     this.logger.success();
 
@@ -50,14 +58,14 @@ export default class OriginalRom extends Directory {
     if (R.isError(result)) {
       this.logger.failure();
       const message = `Failed to copy original ROM "${sourceOriginalRomPath}"`;
-      return R.Stack(result, scope, message, OriginalRom.ErrorCode.Generic);
+      return R.Stack(result, scope, message, OriginalRomErrorCode.Internal);
     }
     this.logger.success();
 
     return R.Void;
   }
 
-  async list(): Promise<Result<OriginalRomInfo>> {
+  async list(): Promise<Result<OriginalRomInfo, never>> {
     const originalRomPath = this.path(OriginalRom.OriginalRomFileName);
 
     this.logger.start("Checking if original ROM exists");
@@ -71,7 +79,11 @@ export default class OriginalRom extends Directory {
     return R.Ok({ filePath: originalRomPath });
   }
 
-  async remove(): Promise<ResultVoid> {
+  async remove(): Promise<
+    ResultVoid<
+      OriginalRomErrorCode.Internal | OriginalRomErrorCode.OriginalRomNotFound
+    >
+  > {
     const scope = this.scope("remove");
 
     const originalRomPath = this.path(OriginalRom.OriginalRomFileName);
@@ -81,7 +93,7 @@ export default class OriginalRom extends Directory {
     if (!originalRomPathExists) {
       this.logger.failure();
       const message = `The original ROM "${originalRomPath}" does not exists`;
-      return R.Error(scope, message, OriginalRom.ErrorCode.OriginalRomNotFound);
+      return R.Error(scope, message, OriginalRomErrorCode.OriginalRomNotFound);
     }
     this.logger.success();
 
@@ -90,7 +102,7 @@ export default class OriginalRom extends Directory {
     if (R.isError(result)) {
       this.logger.failure();
       const message = `Failed to remove original ROM "${originalRomPath}"`;
-      return R.Stack(result, scope, message, OriginalRom.ErrorCode.Generic);
+      return R.Stack(result, scope, message, OriginalRomErrorCode.Internal);
     }
     this.logger.success();
 

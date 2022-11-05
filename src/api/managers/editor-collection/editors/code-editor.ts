@@ -1,21 +1,25 @@
 import { R, ResultVoid } from "../../../utils/result";
-import Editor from "../editor";
+import Editor, { EditorErrorCodes } from "../editor";
 
-const ErrorCode = {
-  ...Editor.ErrorCode,
-  FailedToOpenPath: "CodeEditor.FailedToOpenPath",
-  PathNotFound: "CodeEditor.PathNotFound",
+export enum CodeEditorErrorCode {
+  Internal,
+  PathNotFound,
+}
+
+export type CodeEditorErrorCodes = {
+  Open:
+    | EditorErrorCodes["Exec"]
+    | CodeEditorErrorCode.Internal
+    | CodeEditorErrorCode.PathNotFound;
 };
 
 export default class CodeEditor extends Editor {
-  static ErrorCode = ErrorCode;
-
   protected id = "CodeEditor";
 
   protected configName = "_code-editor.json";
   displayName = "Code Editor";
 
-  async open(path: string): Promise<ResultVoid> {
+  async open(path: string): Promise<ResultVoid<CodeEditorErrorCodes["Open"]>> {
     const scope = this.scope("open");
 
     path = this.fs.resolve(path);
@@ -25,7 +29,7 @@ export default class CodeEditor extends Editor {
     if (!pathExists) {
       this.logger.failure();
       const message = `Path "${path}" does not exist`;
-      return R.Error(scope, message, ErrorCode.PathNotFound);
+      return R.Error(scope, message, CodeEditorErrorCode.PathNotFound);
     }
     this.logger.success();
 
@@ -40,10 +44,10 @@ export default class CodeEditor extends Editor {
     if (execResult.data.stderr) {
       const message = `Failed to open "${path}"`;
       return R.Stack(
-        R.Error(scope, execResult.data.stderr, ErrorCode.Generic),
+        R.Error(scope, execResult.data.stderr, CodeEditorErrorCode.Internal),
         scope,
         message,
-        ErrorCode.FailedToOpenPath,
+        CodeEditorErrorCode.Internal,
       );
     }
 

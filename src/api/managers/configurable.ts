@@ -4,22 +4,30 @@ import { R, Result, ResultVoid } from "../utils/result";
 
 export type ConfigurableBag = DirectoryBag;
 
-const ErrorCode = {
-  ConfigIsEmpty: "ConfigManager.ConfigIsEmpty",
-  ConfigNotFound: "ConfigManager.ConfigNotFound",
-  FailedToLoadConfiguration: "ConfigManager.FailedToLoadConfiguration",
-  FailedToParseConfiguration: "ConfigManager.FailedToParseConfiguration",
-  FailedToSaveConfiguration: "ConfigManager.FailedToSaveConfiguration",
-  FailedToParseJson: "ConfigManager.FailedToParseJson",
-  FailedToStringifyJson: "ConfigManager.FailedToStringifyJson",
-  Generic: "ConfigManager.Generic",
+export enum ConfigurableErrorCode {
+  Internal,
+  ConfigIsEmpty,
+  ConfigNotFound,
+  ConfigNotValid,
+}
+
+export type ConfigurableErrorCodes = {
+  LoadConfig:
+    | ConfigurableErrorCode.Internal
+    | ConfigurableErrorCode.ConfigNotFound
+    | ConfigurableErrorCode.ConfigNotValid;
+  SaveConfig: ConfigurableErrorCode.Internal;
+  UpdateConfig:
+    | ConfigurableErrorCodes["LoadConfig"]
+    | ConfigurableErrorCode.ConfigIsEmpty;
+  ValidateConfig:
+    | ConfigurableErrorCode.ConfigNotFound
+    | ConfigurableErrorCode.ConfigNotValid;
 };
 
 export default abstract class Configurable<
   Config extends Record<string | number | symbol, unknown>,
 > extends Directory {
-  static ErrorCode = ErrorCode;
-
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
 
@@ -29,7 +37,46 @@ export default abstract class Configurable<
     return this.path(this.configName);
   }
 
-  protected async loadConfig(): Promise<Result<Config>> {
+  protected async validateConfig(): Promise<
+    ResultVoid<ConfigurableErrorCodes["ValidateConfig"]>
+  > {
+    const scope = this.scope("validateConfig");
+
+    this.logger.start("Checking if config exists");
+    const exists = await this.exists();
+    if (!exists) {
+      this.logger.failure();
+
+      this.logger.start("Checking if a default config is present");
+      if (this.defaultConfig) {
+        this.logger.success();
+        return R.Void;
+      }
+
+      this.logger.failure();
+      return R.Error(
+        scope,
+        `Config "${this.configPath}" does not exist`,
+        ConfigurableErrorCode.ConfigNotFound,
+      );
+    }
+    this.logger.success();
+
+    this.logger.start(`Checking if config is valid`);
+    const configIsFile = await this.fs.isFile(this.configPath);
+    if (!configIsFile) {
+      this.logger.failure();
+      const message = `Config "${this.configPath}" is not valid`;
+      return R.Error(scope, message, ConfigurableErrorCode.ConfigNotValid);
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
+  protected async loadConfig(): Promise<
+    Result<Config, ConfigurableErrorCodes["LoadConfig"]>
+  > {
     const scope = this.scope("loadConfig");
     const configPath = this.configPath;
 
@@ -47,11 +94,20 @@ export default abstract class Configurable<
       this.logger.failure();
       return R.Error(
         scope,
-        `${this.configName} does not exist`,
-        ErrorCode.ConfigNotFound,
+        `Config "${this.configPath}" does not exist`,
+        ConfigurableErrorCode.ConfigNotFound,
       );
     }
 
+    this.logger.success();
+
+    this.logger.start(`Checking if config is valid`);
+    const configIsFile = await this.fs.isFile(this.configPath);
+    if (!configIsFile) {
+      this.logger.failure();
+      const message = `Config "${this.configPath}" is not valid`;
+      return R.Error(scope, message, ConfigurableErrorCode.ConfigNotValid);
+    }
     this.logger.success();
 
     this.logger.start(`Reading config`);
@@ -62,7 +118,7 @@ export default abstract class Configurable<
         contentResult,
         scope,
         `Failed to load ${this.configName}`,
-        ErrorCode.FailedToLoadConfiguration,
+        ConfigurableErrorCode.Internal,
       );
     }
     this.logger.success();
@@ -77,7 +133,7 @@ export default abstract class Configurable<
       return R.Error(
         scope,
         `${this.configName} is not a valid JSON`,
-        ErrorCode.FailedToParseJson,
+        ConfigurableErrorCode.Internal,
       );
     }
 
@@ -86,10 +142,14 @@ export default abstract class Configurable<
     if (!configResult.success) {
       this.logger.failure();
       return R.Stack(
-        R.Error(scope, configResult.error.message, ErrorCode.Generic),
+        R.Error(
+          scope,
+          configResult.error.message,
+          ConfigurableErrorCode.Internal,
+        ),
         scope,
         `Failed to parse ${this.configName}`,
-        ErrorCode.FailedToParseConfiguration,
+        ConfigurableErrorCode.Internal,
       );
     }
     this.logger.success();
@@ -97,7 +157,9 @@ export default abstract class Configurable<
     return R.Ok(configResult.data);
   }
 
-  protected async saveConfig(config: Config): Promise<ResultVoid> {
+  protected async saveConfig(
+    config: Config,
+  ): Promise<ResultVoid<ConfigurableErrorCodes["SaveConfig"]>> {
     const scope = this.scope("saveConfig");
     const configPath = this.configPath;
 
@@ -111,7 +173,7 @@ export default abstract class Configurable<
       return R.Error(
         scope,
         `Failed to stringify config`,
-        ErrorCode.FailedToStringifyJson,
+        ConfigurableErrorCode.Internal,
       );
     }
 
@@ -123,7 +185,7 @@ export default abstract class Configurable<
         result,
         scope,
         `Failed to write config "${this.configPath}"`,
-        ErrorCode.FailedToSaveConfiguration,
+        ConfigurableErrorCode.Internal,
       );
     }
     this.logger.success();
@@ -133,12 +195,12 @@ export default abstract class Configurable<
 
   protected async updateConfig(
     partialConfig: Partial<Config>,
-  ): Promise<ResultVoid> {
+  ): Promise<ResultVoid<ConfigurableErrorCodes["UpdateConfig"]>> {
     const scope = this.scope("updateConfig");
 
     if (Object.keys(partialConfig).length === 0) {
       const message = "The given config is empty, there is nothing to update";
-      return R.Error(scope, message, ErrorCode.ConfigIsEmpty);
+      return R.Error(scope, message, ConfigurableErrorCode.ConfigIsEmpty);
     }
 
     this.logger.start("Loading config");

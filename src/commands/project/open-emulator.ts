@@ -1,4 +1,7 @@
-import Emulator from "../../api/managers/editor-collection/editors/emulator";
+import { ConfigurableErrorCode } from "../../api/managers/configurable";
+import { EditorErrorCode } from "../../api/managers/editor-collection/editor";
+import { ProjectErrorCode } from "../../api/managers/project";
+import { ResourceErrorCode } from "../../api/managers/resource";
 import { R } from "../../api/utils/result";
 import { ProjectFlags } from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
@@ -35,7 +38,41 @@ To configure and emulator, check \`bazaar editor emulator set --help\`.`;
       return;
     }
 
-    if (result.code === Emulator.ErrorCode.ExeNotSet) {
+    if (result.code === ResourceErrorCode.DirectoryNotFound) {
+      this.Info.failure();
+      this.Warning.log(`The project "${flags.path}" does not exist`);
+      return;
+    }
+
+    if (result.code === ConfigurableErrorCode.ConfigNotFound) {
+      this.Info.failure();
+      const message = `The project "${flags.path}" is not valid, no config was found`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ConfigurableErrorCode.ConfigNotValid) {
+      this.Info.failure();
+      const message = `The project "${flags.path}" is not valid, the config is not valid`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ProjectErrorCode.BaseromNotFound) {
+      this.Info.failure();
+      const message = `The project "${flags.path}" is not valid, no baserom was found`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === ProjectErrorCode.BaseromNotValid) {
+      this.Info.failure();
+      const message = `The project "${flags.path}" is not valid, the baserom is not valid`;
+      this.Warning.log(message);
+      return;
+    }
+
+    if (result.code === EditorErrorCode.ExeNotSet) {
       this.Info.failure();
       const message = `The emulator is not configured
 Check \`bazaar editor set emulator --help\` for more`;
@@ -43,7 +80,7 @@ Check \`bazaar editor set emulator --help\` for more`;
       return;
     }
 
-    if (result.code === Emulator.ErrorCode.ExeNotFound) {
+    if (result.code === EditorErrorCode.ExeNotFound) {
       this.Info.failure();
       const message = `The configured emulator does not exist
 Configure a new one \`bazaar editor set emulator --help\` for more`;
@@ -51,7 +88,7 @@ Configure a new one \`bazaar editor set emulator --help\` for more`;
       return;
     }
 
-    if (result.code === Emulator.ErrorCode.ExeNotValid) {
+    if (result.code === EditorErrorCode.ExeNotValid) {
       this.Info.failure();
       const message = `The configured emulator is not a valid executable
 Configure a new one \`bazaar editor set emulator --help\` for more`;

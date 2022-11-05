@@ -16,14 +16,14 @@ Uninstalling tools with Bazaar will not cause any other installation made by the
 
   async run(): Promise<void> {
     this.Info.start("Uninstalling tools");
-    const response = await this.api.tools.uninstallAll();
-    if (R.isOk(response)) {
+    const result = await this.api.tools.uninstallAll();
+    if (R.isOk(result)) {
       this.Info.success();
       return;
     }
 
     this.Info.failure();
-    const messages = R.messages(response, { verbose: true });
+    const messages = R.messages(result, { verbose: true });
     this.Error(`Failed to uninstall tools\n${messages}`, 1);
   }
 }

@@ -1,5 +1,5 @@
 import { Flags } from "@oclif/core";
-import Tool from "../../api/managers/tool-collection/tool";
+import { ToolErrorCode } from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
 import { getTool, ToolName } from "../../commands-utils/tool";
 import BaseCommand from "../../utils/base-command";
@@ -60,7 +60,7 @@ Installing a tool will not interfere with any other manual installation of the\
       return;
     }
 
-    if (response.code === Tool.ErrorCode.ToolAlreadyInstalled) {
+    if (response.code === ToolErrorCode.ToolAlreadyInstalled) {
       this.Info.failure();
       this.Warning.log(`${toolName} is already installed!
 Run with \`--force\` if you want to force the installation:
