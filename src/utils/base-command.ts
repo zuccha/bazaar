@@ -99,11 +99,11 @@ export default abstract class BaseCommand<
   };
 
   private _logStop = (message: string): void => {
-    const log = this._logs.pop();
+    this._logs.pop();
     const prefix = this._logPrefix(this._logs.length);
 
     if (this._lastLogOperation === "start") CliUx.ux.action.stop(message);
-    else this.log(`${prefix}${log}... ${message}`);
+    else this.log(`${prefix}${message}`);
 
     this._lastLogOperation = "stop";
   };
