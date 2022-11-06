@@ -1,6 +1,6 @@
-import { CliUx } from "@oclif/core";
 import { R } from "../../../api/utils/result";
 import BaseCommand from "../../../utils/base-command";
+import { logCollection } from "../../../utils/collection";
 
 export default class TemplateProjectListCommand extends BaseCommand<
   typeof TemplateProjectListCommand
@@ -18,12 +18,10 @@ Project templates are projects that have been saved and can be to create new\
       const messages = R.messages(projectTemplateInfosResult, {
         verbose: true,
       });
-      this.Error(`Failed to create project\n${messages}`, 1);
+      this.Error(`Failed to list project templates\n${messages}`, 1);
       return;
     }
 
-    CliUx.ux.table(projectTemplateInfosResult.data, {
-      name: {},
-    });
+    logCollection(projectTemplateInfosResult.data);
   }
 }
