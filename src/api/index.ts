@@ -1,7 +1,7 @@
 import EditorCollection from "./managers/editor-collection";
 import OriginalRom from "./managers/original-rom";
 import Project from "./managers/project";
-import { ResourceBag } from "./managers/resource";
+import { ResourceContext } from "./managers/resource";
 import TemplateCollection from "./managers/template-collection";
 import ToolCollection from "./managers/tool-collection";
 import { FS } from "./utils/fs";
@@ -10,7 +10,7 @@ import { Logger } from "./utils/logger";
 export default class Api {
   protected id = "Api";
 
-  private readonly _bag: ResourceBag;
+  private readonly _context: ResourceContext;
 
   readonly originalRom: OriginalRom;
 
@@ -28,25 +28,25 @@ export default class Api {
     fs: FS;
     logger: Logger;
   }) {
-    const managerBag = { fs, logger };
+    const managerContext = { fs, logger };
 
     this.originalRom = new OriginalRom(
       fs.join(cacheDirectoryPath, "OriginalROM"),
-      managerBag,
+      managerContext,
     );
 
     this.editors = new EditorCollection(
       fs.join(cacheDirectoryPath, "Editors"),
-      managerBag,
+      managerContext,
     );
 
     this.tools = new ToolCollection(
       fs.join(cacheDirectoryPath, "Tools"),
-      managerBag,
+      managerContext,
     );
 
-    this._bag = {
-      ...managerBag,
+    this._context = {
+      ...managerContext,
       originalRom: this.originalRom,
       editors: this.editors,
       tools: this.tools,
@@ -54,12 +54,12 @@ export default class Api {
 
     this.templates = new TemplateCollection(
       fs.join(cacheDirectoryPath, "Templates"),
-      this._bag,
+      this._context,
     );
   }
 
   project(path: string, name?: string): Project {
-    const directoryPath = name ? this._bag.fs.join(path, name) : path;
-    return new Project(directoryPath, this._bag);
+    const directoryPath = name ? this._context.fs.join(path, name) : path;
+    return new Project(directoryPath, this._context);
   }
 }

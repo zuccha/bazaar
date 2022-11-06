@@ -1,5 +1,5 @@
 import { R, Result } from "../utils/result";
-import Directory, { DirectoryBag } from "./directory";
+import Directory, { DirectoryContext } from "./directory";
 
 export type CollectionInfo = {
   name: string;
@@ -16,12 +16,12 @@ export type CollectionErrorCodes = {
 
 export default abstract class Collection<
   Item,
-  Bag extends DirectoryBag,
-> extends Directory<Bag> {
-  protected abstract init(directoryPath: string, bag: Bag): Item;
+  Context extends DirectoryContext,
+> extends Directory<Context> {
+  protected abstract init(directoryPath: string, context: Context): Item;
 
   get(name: string): Item {
-    return this.init(this.path(name), this.bag);
+    return this.init(this.path(name), this.context);
   }
 
   async list(): Promise<

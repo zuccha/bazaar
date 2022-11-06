@@ -1,17 +1,20 @@
 import { Result } from "../../utils/result";
 import Collection, { CollectionErrorCodes } from "../collection";
 import Directory from "../directory";
-import { ResourceBag } from "../resource";
+import { ResourceContext } from "../resource";
 import ProjectTemplate from "./templates/project-template";
 
 class ProjectTemplateCollection extends Collection<
   ProjectTemplate,
-  ResourceBag
+  ResourceContext
 > {
   protected id = "ProjectTemplateCollection";
 
-  protected init(directoryPath: string, bag: ResourceBag): ProjectTemplate {
-    return new ProjectTemplate(directoryPath, bag);
+  protected init(
+    directoryPath: string,
+    context: ResourceContext,
+  ): ProjectTemplate {
+    return new ProjectTemplate(directoryPath, context);
   }
 }
 
@@ -23,16 +26,19 @@ export type TemplateCollectionErrorCodes = {
   ListProjects: CollectionErrorCodes["List"];
 };
 
-export default class TemplateCollection extends Directory<ResourceBag> {
+export default class TemplateCollection extends Directory<ResourceContext> {
   protected id = "TemplateCollection";
 
   private _projects: ProjectTemplateCollection;
 
-  constructor(directoryPath: string, bag: ResourceBag) {
-    super(directoryPath, bag);
+  constructor(directoryPath: string, context: ResourceContext) {
+    super(directoryPath, context);
 
     const projectsDirectoryPath = this.path("Projects");
-    this._projects = new ProjectTemplateCollection(projectsDirectoryPath, bag);
+    this._projects = new ProjectTemplateCollection(
+      projectsDirectoryPath,
+      context,
+    );
   }
 
   async listProjects(): Promise<

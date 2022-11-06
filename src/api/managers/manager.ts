@@ -1,18 +1,20 @@
 import { FS } from "../utils/fs";
 import { Logger } from "../utils/logger";
 
-export type ManagerBag = {
+export type ManagerContext = {
   fs: FS;
   logger: Logger;
 };
 
-export default abstract class Manager<Bag extends ManagerBag = ManagerBag> {
+export default abstract class Manager<
+  Context extends ManagerContext = ManagerContext,
+> {
   protected abstract id: string;
 
-  protected bag: Bag;
+  protected context: Context;
 
-  constructor(bag: Bag) {
-    this.bag = bag;
+  constructor(context: Context) {
+    this.context = context;
   }
 
   protected scope(functionName: string): string {
@@ -20,10 +22,10 @@ export default abstract class Manager<Bag extends ManagerBag = ManagerBag> {
   }
 
   protected get fs(): FS {
-    return this.bag.fs;
+    return this.context.fs;
   }
 
   protected get logger(): Logger {
-    return this.bag.logger;
+    return this.context.logger;
   }
 }

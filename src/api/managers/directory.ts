@@ -5,9 +5,9 @@ import {
   RemoveDirectory,
 } from "../utils/fs";
 import { Result, ResultVoid } from "../utils/result";
-import Manager, { ManagerBag } from "./manager";
+import Manager, { ManagerContext } from "./manager";
 
-export type DirectoryBag = ManagerBag;
+export type DirectoryContext = ManagerContext;
 
 export type DirectoryErrorCodes = {
   GetDirectoryInfo: GetDirectoryInfo.ErrorCode;
@@ -16,14 +16,14 @@ export type DirectoryErrorCodes = {
 };
 
 export default abstract class Directory<
-  Bag extends DirectoryBag = DirectoryBag,
-> extends Manager<Bag> {
+  Context extends DirectoryContext = DirectoryContext,
+> extends Manager<Context> {
   protected abstract id: string;
 
   protected directoryPath: string;
 
-  constructor(directoryPath: string, bag: Bag) {
-    super(bag);
+  constructor(directoryPath: string, context: Context) {
+    super(context);
     this.directoryPath = directoryPath;
   }
 

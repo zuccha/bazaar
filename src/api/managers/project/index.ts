@@ -1,5 +1,5 @@
 import { z } from "zod";
-import Resource, { ResourceBag, ResourceErrorCodes } from "../resource";
+import Resource, { ResourceContext, ResourceErrorCodes } from "../resource";
 import { R, Result, ResultVoid } from "../../utils/result";
 import SemVer from "../../utils/sem-ver";
 import { ConfigurableErrorCodes } from "../configurable";
@@ -87,12 +87,12 @@ export default class Project extends Resource<
     return this.path(Project.ResourcesDirectoryName, "Patches", ...paths);
   }
 
-  constructor(directoryPath: string, bag: ResourceBag) {
-    super(directoryPath, bag);
+  constructor(directoryPath: string, context: ResourceContext) {
+    super(directoryPath, context);
 
     this._patchCollection = new PatchCollection(
       this._patchesDirectoryPath(),
-      bag,
+      context,
     );
   }
 

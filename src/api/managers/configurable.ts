@@ -1,8 +1,8 @@
 import { z } from "zod";
-import Directory, { DirectoryBag } from "./directory";
+import Directory, { DirectoryContext } from "./directory";
 import { R, Result, ResultVoid } from "../utils/result";
 
-export type ConfigurableBag = DirectoryBag;
+export type ConfigurableContext = DirectoryContext;
 
 export enum ConfigurableErrorCode {
   Internal,
@@ -40,8 +40,8 @@ export type ConfigurableExtraErrorCodeDefault = {
 export default abstract class Configurable<
   Config extends ConfigurableConfig,
   ExtraErrorCode extends ConfigurableExtraErrorCode = ConfigurableExtraErrorCodeDefault,
-  Bag extends ConfigurableBag = ConfigurableBag,
-> extends Directory<Bag> {
+  Context extends ConfigurableContext = ConfigurableContext,
+> extends Directory<Context> {
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
 

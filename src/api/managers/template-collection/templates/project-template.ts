@@ -4,7 +4,7 @@ import Project, {
   ProjectErrorCodes,
   ProjectExtraErrorCodes,
 } from "../../project";
-import { ResourceBag, ResourceErrorCodes } from "../../resource";
+import { ResourceContext, ResourceErrorCodes } from "../../resource";
 import Template, { TemplateErrorCodes } from "../template";
 
 export type ProjectTemplateErrorCodes = {
@@ -30,12 +30,12 @@ export default class ProjectTemplate extends Template<
   protected id = "ProjectTemplate";
 
   protected resource: Project;
-  private _bag: ResourceBag;
+  private _context: ResourceContext;
 
-  constructor(directoryPath: string, bag: ResourceBag) {
-    super(bag);
-    this._bag = bag;
-    this.resource = new Project(directoryPath, bag);
+  constructor(directoryPath: string, context: ResourceContext) {
+    super(context);
+    this._context = context;
+    this.resource = new Project(directoryPath, context);
   }
 
   async createFromBaserom(
@@ -57,7 +57,7 @@ export default class ProjectTemplate extends Template<
     projectDirectoryPath: string,
     partialOptions?: Partial<{ force: boolean }>,
   ): Promise<ResultVoid<ProjectTemplateErrorCodes["CreateFromProject"]>> {
-    const project = new Project(projectDirectoryPath, this._bag);
+    const project = new Project(projectDirectoryPath, this._context);
 
     this.logger.start("Creating template from project");
     const result = await this.createFromResource(project, partialOptions);
@@ -76,7 +76,10 @@ export default class ProjectTemplate extends Template<
     config?: Partial<ProjectConfig>,
     partialOptions?: Partial<{ force: boolean }>,
   ): Promise<ResultVoid<ProjectTemplateErrorCodes["InitProject"]>> {
-    const project = new Project(this.fs.join(directoryPath, name), this._bag);
+    const project = new Project(
+      this.fs.join(directoryPath, name),
+      this._context,
+    );
 
     this.logger.start("Initializing project");
     const result = await this.initResource(project, config, partialOptions);

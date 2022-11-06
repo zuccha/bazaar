@@ -1,6 +1,6 @@
 import { R, Result, ResultVoid } from "../../utils/result";
 import Directory from "../directory";
-import { ManagerBag } from "../manager";
+import { ManagerContext } from "../manager";
 import Tool, { ToolInfo } from "./tool";
 import AddmusicK from "./tools/addmusick";
 import Asar from "./tools/asar";
@@ -34,24 +34,24 @@ export default class ToolCollection extends Directory {
 
   private readonly _tools: Tool[];
 
-  constructor(directoryPath: string, bag: ManagerBag) {
-    super(directoryPath, bag);
+  constructor(directoryPath: string, context: ManagerContext) {
+    super(directoryPath, context);
 
     this.AddmusicK = new AddmusicK(
       this.fs.join(directoryPath, "AddmusicK"),
-      bag,
+      context,
     );
-    this.Asar = new Asar(this.fs.join(directoryPath, "Asar"), bag);
-    this.Flips = new Flips(this.fs.join(directoryPath, "Flips"), bag);
-    this.GPS = new GPS(this.fs.join(directoryPath, "GPS"), bag);
+    this.Asar = new Asar(this.fs.join(directoryPath, "Asar"), context);
+    this.Flips = new Flips(this.fs.join(directoryPath, "Flips"), context);
+    this.GPS = new GPS(this.fs.join(directoryPath, "GPS"), context);
     this.LunarMagic = new LunarMagic(
       this.fs.join(directoryPath, "LunarMagic"),
-      bag,
+      context,
     );
-    this.PIXI = new PIXI(this.fs.join(directoryPath, "PIXI"), bag);
+    this.PIXI = new PIXI(this.fs.join(directoryPath, "PIXI"), context);
     this.UberASMTool = new UberASMTool(
       this.fs.join(directoryPath, "UberASMTool"),
-      bag,
+      context,
     );
 
     this._tools = [

@@ -1,5 +1,5 @@
 import { R, Result } from "../../utils/result";
-import Directory, { DirectoryBag } from "../directory";
+import Directory, { DirectoryContext } from "../directory";
 import Editor, { EditorInfo } from "./editor";
 import CodeEditor from "./editors/code-editor";
 import Emulator from "./editors/emulator";
@@ -20,11 +20,11 @@ export default class EditorCollection extends Directory {
 
   private _editors: Editor[];
 
-  constructor(directoryPath: string, bag: DirectoryBag) {
-    super(directoryPath, bag);
+  constructor(directoryPath: string, context: DirectoryContext) {
+    super(directoryPath, context);
 
-    this.CodeEditor = new CodeEditor(directoryPath, bag);
-    this.Emulator = new Emulator(directoryPath, bag);
+    this.CodeEditor = new CodeEditor(directoryPath, context);
+    this.Emulator = new Emulator(directoryPath, context);
 
     this._editors = [this.CodeEditor, this.Emulator];
   }

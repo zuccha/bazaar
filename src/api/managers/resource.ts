@@ -1,6 +1,6 @@
 import { R, ResultVoid } from "../utils/result";
 import Configurable, {
-  ConfigurableBag,
+  ConfigurableContext,
   ConfigurableConfig,
   ConfigurableConfigDefault,
   ConfigurableErrorCodes,
@@ -32,7 +32,7 @@ export type ResourceErrorCodes = {
   ValidateInputConfig: never;
 };
 
-export type ResourceBag = ConfigurableBag & {
+export type ResourceContext = ConfigurableContext & {
   originalRom: OriginalRom;
   editors: EditorCollection;
   tools: ToolCollection;
@@ -58,22 +58,22 @@ export type ResourceExtraErrorCodeDefault =
 export default abstract class Resource<
   Config extends ResourceConfig,
   ExtraErrorCode extends ResourceExtraErrorCode = ResourceExtraErrorCodeDefault,
-> extends Configurable<Config, ExtraErrorCode, ResourceBag> {
-  constructor(directoryPath: string, bag: ResourceBag) {
-    super(directoryPath, bag);
-    this.bag = bag;
+> extends Configurable<Config, ExtraErrorCode, ResourceContext> {
+  constructor(directoryPath: string, context: ResourceContext) {
+    super(directoryPath, context);
+    this.context = context;
   }
 
   protected get originalRom(): OriginalRom {
-    return this.bag.originalRom;
+    return this.context.originalRom;
   }
 
   protected get editors(): EditorCollection {
-    return this.bag.editors;
+    return this.context.editors;
   }
 
   protected get tools(): ToolCollection {
-    return this.bag.tools;
+    return this.context.tools;
   }
 
   protected validateInputConfig(
