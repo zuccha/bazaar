@@ -1,7 +1,11 @@
 import { R, ResultVoid } from "../utils/result";
 import Configurable, {
   ConfigurableBag,
+  ConfigurableConfig,
+  ConfigurableConfigDefault,
   ConfigurableErrorCodes,
+  ConfigurableExtraErrorCode,
+  ConfigurableExtraErrorCodeDefault,
 } from "./configurable";
 import { DirectoryErrorCodes } from "./directory";
 import EditorCollection from "./editor-collection";
@@ -25,24 +29,36 @@ export type ResourceErrorCodes = {
   Validate:
     | ConfigurableErrorCodes["ValidateConfig"]
     | ResourceErrorCode.DirectoryNotFound;
+  ValidateInputConfig: never;
 };
 
-export type ResourceBag = {
+export type ResourceBag = ConfigurableBag & {
   originalRom: OriginalRom;
   editors: EditorCollection;
   tools: ToolCollection;
-} & ConfigurableBag;
+};
 
-export default abstract class Resource<
-  Config extends Record<string | number | symbol, unknown>,
-  ExtraErrorCode extends {
-    Snapshot: string | number;
-    Validate: string | number;
-  } = {
+export type ResourceConfig = ConfigurableConfig;
+
+export type ResourceConfigDefault = ConfigurableConfigDefault;
+
+export type ResourceExtraErrorCode = ConfigurableExtraErrorCode & {
+  Snapshot: string | number;
+  Validate: string | number;
+  ValidateInputConfig: string | number;
+};
+
+export type ResourceExtraErrorCodeDefault =
+  ConfigurableExtraErrorCodeDefault & {
     Snapshot: never;
     Validate: never;
-  },
-> extends Configurable<Config> {
+    ValidateInputConfig: never;
+  };
+
+export default abstract class Resource<
+  Config extends ResourceConfig,
+  ExtraErrorCode extends ResourceExtraErrorCode = ResourceExtraErrorCodeDefault,
+> extends Configurable<Config, ExtraErrorCode> {
   protected bag: ResourceBag;
 
   constructor(directoryPath: string, bag: ResourceBag) {
@@ -62,6 +78,19 @@ export default abstract class Resource<
     return this.bag.tools;
   }
 
+  protected validateInputConfig(
+    // Argument needed for method overload.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    inputConfig?: Partial<Config>,
+  ): Promise<
+    ResultVoid<
+      | ResourceErrorCodes["ValidateInputConfig"]
+      | ExtraErrorCode["ValidateInputConfig"]
+    >
+  > {
+    return Promise.resolve(R.Void);
+  }
+
   async validate(): Promise<
     ResultVoid<ResourceErrorCodes["Validate"] | ExtraErrorCode["Validate"]>
   > {
@@ -76,7 +105,7 @@ export default abstract class Resource<
     }
     this.logger.success();
 
-    this.logger.start(`Checking if config exists`);
+    this.logger.start(`Checking if config is valid`);
     const validateConfigResult = await this.validateConfig();
     if (R.isError(validateConfigResult)) {
       this.logger.failure();
@@ -96,6 +125,7 @@ export default abstract class Resource<
       | ResourceErrorCodes["Snapshot"]
       | ExtraErrorCode["Snapshot"]
       | ExtraErrorCode["Validate"]
+      | ExtraErrorCode["ValidateInputConfig"]
     >
   > {
     const scope = this.scope("snapshot");
@@ -107,6 +137,14 @@ export default abstract class Resource<
     if (R.isError(validateResult)) {
       this.logger.failure();
       return validateResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Verifying input config");
+    const validateInputConfigResult = await this.validateInputConfig(config);
+    if (R.isError(validateInputConfigResult)) {
+      this.logger.failure();
+      return validateInputConfigResult;
     }
     this.logger.success();
 
