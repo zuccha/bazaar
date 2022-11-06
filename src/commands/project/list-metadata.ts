@@ -26,12 +26,13 @@ export default class ProjectListMetadataCommand extends BaseCommand<
     const metadataResult = await project.getMetadata();
 
     if (R.isOk(metadataResult)) {
-      this.Info.success();
+      const { authors, version } = metadataResult.data;
+      this.log(`Authors: ${authors.length > 0 ? authors.join(", ") : "-"}`);
+      this.log(`Version: ${version || "-"}`);
       return;
     }
 
     if (isValidateProjectErrorCode(metadataResult.code)) {
-      this.Info.failure();
       this.Warning.log(
         getValidateProjectErrorMessage(metadataResult.code, flags.path),
       );
