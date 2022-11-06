@@ -1,6 +1,10 @@
 import { R, ResultVoid } from "../../utils/result";
 import Manager from "../manager";
-import Resource, { ResourceErrorCodes } from "../resource";
+import Resource, {
+  ResourceConfig,
+  ResourceErrorCodes,
+  ResourceExtraErrorCode,
+} from "../resource";
 
 export type TemplateErrorCodes = {
   CreateFromResource: ResourceErrorCodes["Snapshot"];
@@ -8,11 +12,8 @@ export type TemplateErrorCodes = {
 };
 
 export default abstract class Template<
-  C extends Record<string | number | symbol, unknown>,
-  E extends {
-    Snapshot: string | number;
-    Validate: string | number;
-  },
+  C extends ResourceConfig,
+  E extends ResourceExtraErrorCode,
   R extends Resource<C, E>,
 > extends Manager {
   protected abstract resource: R;

@@ -1,11 +1,14 @@
 import { z } from "zod";
-import Resource, { ResourceErrorCodes } from "../resource";
+import Resource, { ResourceBag, ResourceErrorCodes } from "../resource";
 import { R, Result, ResultVoid } from "../../utils/result";
 import SemVer from "../../utils/sem-ver";
 import { ConfigurableErrorCodes } from "../configurable";
 import { CodeEditorErrorCodes } from "../editor-collection/editors/code-editor";
 import { EmulatorErrorCodes } from "../editor-collection/editors/emulator";
 import { LunarMagicErrorCodes } from "../tool-collection/tools/lunar-magic";
+import PatchCollection from "./patch-collection";
+import { CollectionErrorCodes, CollectionInfo } from "../collection";
+import Patch from "./patch-collection/patch";
 
 export const ProjectConfigSchema = z.object({
   authors: z.array(z.string()),
@@ -22,21 +25,37 @@ export enum ProjectErrorCode {
   VersionNotValid,
 }
 
+export type ProjectExtraErrorCodes = {
+  Snapshot: ProjectErrorCode.Internal;
+  Validate: ProjectErrorCode.BaseromNotFound | ProjectErrorCode.BaseromNotValid;
+  ValidateConfig: never;
+  ValidateInputConfig: never;
+};
+
 export type ProjectErrorCodes = {
   CreateFromBaserom:
     | ProjectErrorCode.Internal
     | ProjectErrorCode.BaseromNotFound
     | ProjectErrorCode.BaseromNotValid
     | ProjectErrorCode.ProjectExists;
+
+  Validate: ResourceErrorCodes["Validate"] | ProjectExtraErrorCodes["Validate"];
+  Snapshot:
+    | ResourceErrorCodes["Snapshot"]
+    | ProjectExtraErrorCodes["Snapshot"]
+    | ProjectErrorCodes["Validate"];
+
   OpenCodeEditor: CodeEditorErrorCodes["Open"] | ProjectErrorCodes["Validate"];
   OpenEmulator: EmulatorErrorCodes["Open"] | ProjectErrorCodes["Validate"];
   OpenLunarMagic: LunarMagicErrorCodes["Open"] | ProjectErrorCodes["Validate"];
+
   GetMetadata:
     | ConfigurableErrorCodes["LoadConfig"]
     | ProjectErrorCodes["Validate"];
   UpdateMetadata:
     | ConfigurableErrorCodes["UpdateConfig"]
     | ProjectErrorCodes["Validate"];
+
   IncreaseMajorVersion: ProjectErrorCodes["IncreaseVersion"];
   IncreaseMinorVersion: ProjectErrorCodes["IncreaseVersion"];
   IncreasePatchVersion: ProjectErrorCodes["IncreaseVersion"];
@@ -45,19 +64,9 @@ export type ProjectErrorCodes = {
     | ConfigurableErrorCodes["UpdateConfig"]
     | ProjectErrorCodes["Validate"]
     | ProjectErrorCode.VersionNotValid;
-  Snapshot:
-    | ResourceErrorCodes["Snapshot"]
-    | ProjectErrorCodes["Validate"]
-    | ProjectErrorCode.Internal;
-  Validate:
-    | ResourceErrorCodes["Validate"]
-    | ProjectErrorCode.BaseromNotFound
-    | ProjectErrorCode.BaseromNotValid;
-};
 
-export type ProjectExtraErrorCodes = {
-  Snapshot: ProjectErrorCode.Internal;
-  Validate: ProjectErrorCode.BaseromNotFound | ProjectErrorCode.BaseromNotValid;
+  ListPatches: ProjectErrorCodes["Validate"] | CollectionErrorCodes["List"];
+  Patch: ProjectErrorCodes["Validate"];
 };
 
 export default class Project extends Resource<
@@ -70,6 +79,22 @@ export default class Project extends Resource<
   protected defaultConfig?: ProjectConfig;
 
   private _baseromName = "baserom.smc";
+
+  private static ResourcesDirectoryName = "Resources";
+
+  private _patchCollection: PatchCollection;
+  private _patchesDirectoryPath(...paths: string[]): string {
+    return this.path(Project.ResourcesDirectoryName, "Patches", ...paths);
+  }
+
+  constructor(directoryPath: string, bag: ResourceBag) {
+    super(directoryPath, bag);
+
+    this._patchCollection = new PatchCollection(
+      this._patchesDirectoryPath(),
+      bag,
+    );
+  }
 
   private get _baseromPath(): string {
     return this.path(this._baseromName);
@@ -399,5 +424,40 @@ export default class Project extends Resource<
   > {
     const scope = this.scope("increasePatchVersion");
     return this._increaseVersion(scope, SemVer.increasePatch);
+  }
+
+  async listPatches(): Promise<
+    Result<CollectionInfo[], ProjectErrorCodes["ListPatches"]>
+  > {
+    this.logger.start("Verifying that project is valid");
+    const validateResult = await this.validate();
+    if (R.isError(validateResult)) {
+      this.logger.failure();
+      return validateResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Gathering patches directory info");
+    const result = await this._patchCollection.list();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.failure();
+    return result;
+  }
+
+  async patch(
+    name: string,
+  ): Promise<Result<Patch, ProjectErrorCodes["Patch"]>> {
+    this.logger.start("Verifying that project is valid");
+    const validateResult = await this.validate();
+    if (R.isError(validateResult)) {
+      this.logger.failure();
+      return validateResult;
+    }
+    this.logger.success();
+
+    return R.Ok(this._patchCollection.get(name));
   }
 }
