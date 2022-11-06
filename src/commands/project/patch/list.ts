@@ -1,5 +1,11 @@
-import { ProjectFlags } from "../../../commands-utils/project";
+import { R } from "../../../api/utils/result";
+import {
+  getValidateProjectErrorMessage,
+  isValidateProjectErrorCode,
+  ProjectFlags,
+} from "../../../commands-utils/project";
 import BaseCommand from "../../../utils/base-command";
+import { logCollection } from "../../../utils/collection";
 
 export default class ProjectPatchListCommand extends BaseCommand<
   typeof ProjectPatchListCommand
@@ -24,6 +30,22 @@ If a patch has been added to the project, it doesn't mean it was added to the\
   async run(): Promise<void> {
     const { flags } = await this.parse(ProjectPatchListCommand);
 
-    const patchInfosResult = this.api.project(flags.path).listPatches();
+    const patchInfosResult = await this.api.project(flags.path).listPatches();
+
+    if (R.isOk(patchInfosResult)) {
+      logCollection(patchInfosResult.data);
+      return;
+    }
+
+    if (isValidateProjectErrorCode(patchInfosResult.code)) {
+      this.Info.failure();
+      this.Warning.log(
+        getValidateProjectErrorMessage(patchInfosResult.code, flags.path),
+      );
+      return;
+    }
+
+    const messages = R.messages(patchInfosResult, { verbose: true });
+    this.Error(`Failed to list project patches\n${messages}`, 1);
   }
 }
