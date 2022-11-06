@@ -455,6 +455,10 @@ const FSNode: FS = {
     return NodePath.dirname(path);
   },
 
+  getRelativePath: (fromPath: string, toPath: string): string => {
+    return NodePath.relative(fromPath, toPath);
+  },
+
   getName: (path: string): string => {
     return NodePath.basename(path);
   },

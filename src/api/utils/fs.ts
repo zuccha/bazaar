@@ -208,6 +208,10 @@ export namespace GetDirectoryPath {
   export type Fn = (path: string) => string;
 }
 
+export namespace GetRelativePath {
+  export type Fn = (fromPath: string, toPath: string) => string;
+}
+
 export namespace GetName {
   export type Fn = (path: string) => string;
 }
@@ -282,6 +286,44 @@ export namespace Exec {
   export type Fn = (command: string) => Promise<Result<ShellOutput, ErrorCode>>;
 }
 
+export type FSErrorCodes = {
+  CreateDirectory: CreateDirectory.ErrorCode;
+
+  CopyDirectory: CopyDirectory.ErrorCode;
+  CopyFile: CopyFile.ErrorCode;
+
+  RenameDirectory: RenameDirectory.ErrorCode;
+  RenameFile: RenameFile.ErrorCode;
+
+  RemoveDirectory: RemoveDirectory.ErrorCode;
+  RemoveFile: RemoveFile.ErrorCode;
+
+  Exists: never;
+  IsDirectory: never;
+  IsFile: never;
+
+  ReadFile: ReadFile.ErrorCode;
+  WriteFile: WriteFile.ErrorCode;
+
+  GetDirectoryInfo: GetDirectoryInfo.ErrorCode;
+  GetFileInfo: GetFileInfo.ErrorCode;
+
+  Join: never;
+  Resolve: never;
+
+  GetDirectoryPath: never;
+  GetRelativePath: never;
+  GetName: never;
+  GetExtension: never;
+
+  DownloadFile: DownloadFile.ErrorCode;
+
+  ZipDirectory: ZipDirectory.ErrorCode;
+  UnzipFile: UnzipFile.ErrorCode;
+
+  exec: Exec.Fn;
+};
+
 export type FS = {
   ErrorCode: typeof FSErrorCode;
 
@@ -310,6 +352,7 @@ export type FS = {
   resolve: Resolve.Fn;
 
   getDirectoryPath: GetDirectoryPath.Fn;
+  getRelativePath: GetRelativePath.Fn;
   getName: GetName.Fn;
   getExtension: GetExtension.Fn;
 
