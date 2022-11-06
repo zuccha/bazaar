@@ -6,12 +6,12 @@ export type ManagerBag = {
   logger: Logger;
 };
 
-export default abstract class Manager {
+export default abstract class Manager<Bag extends ManagerBag = ManagerBag> {
   protected abstract id: string;
 
-  protected bag: ManagerBag;
+  protected bag: Bag;
 
-  constructor(bag: ManagerBag) {
+  constructor(bag: Bag) {
     this.bag = bag;
   }
 

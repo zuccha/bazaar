@@ -58,9 +58,7 @@ export type ResourceExtraErrorCodeDefault =
 export default abstract class Resource<
   Config extends ResourceConfig,
   ExtraErrorCode extends ResourceExtraErrorCode = ResourceExtraErrorCodeDefault,
-> extends Configurable<Config, ExtraErrorCode> {
-  protected bag: ResourceBag;
-
+> extends Configurable<Config, ExtraErrorCode, ResourceBag> {
   constructor(directoryPath: string, bag: ResourceBag) {
     super(directoryPath, bag);
     this.bag = bag;

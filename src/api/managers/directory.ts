@@ -15,16 +15,16 @@ export type DirectoryErrorCodes = {
   RemoveDirectory: RemoveDirectory.ErrorCode;
 };
 
-export default abstract class Directory extends Manager {
+export default abstract class Directory<
+  Bag extends DirectoryBag = DirectoryBag,
+> extends Manager<Bag> {
   protected abstract id: string;
 
   protected directoryPath: string;
-  protected bag: DirectoryBag;
 
-  constructor(directoryPath: string, bag: DirectoryBag) {
+  constructor(directoryPath: string, bag: Bag) {
     super(bag);
     this.directoryPath = directoryPath;
-    this.bag = bag;
   }
 
   protected get name(): string {

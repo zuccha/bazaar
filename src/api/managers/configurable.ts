@@ -40,7 +40,8 @@ export type ConfigurableExtraErrorCodeDefault = {
 export default abstract class Configurable<
   Config extends ConfigurableConfig,
   ExtraErrorCode extends ConfigurableExtraErrorCode = ConfigurableExtraErrorCodeDefault,
-> extends Directory {
+  Bag extends ConfigurableBag = ConfigurableBag,
+> extends Directory<Bag> {
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
 
