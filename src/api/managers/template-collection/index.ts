@@ -1,62 +1,47 @@
-import { R, Result } from "../../utils/result";
+import { Result } from "../../utils/result";
+import Collection, { CollectionErrorCodes } from "../collection";
 import Directory from "../directory";
 import { ResourceBag } from "../resource";
 import ProjectTemplate from "./templates/project-template";
+
+class ProjectTemplateCollection extends Collection<
+  ProjectTemplate,
+  ResourceBag
+> {
+  protected id = "ProjectTemplateCollection";
+
+  protected init(directoryPath: string, bag: ResourceBag): ProjectTemplate {
+    return new ProjectTemplate(directoryPath, bag);
+  }
+}
 
 export type TemplateInfo = {
   name: string;
 };
 
-export enum TemplateCollectionErrorCode {
-  Internal,
-}
-
 export type TemplateCollectionErrorCodes = {
-  ListProjects: TemplateCollectionErrorCode.Internal;
+  ListProjects: CollectionErrorCodes["List"];
 };
 
-export default class TemplateCollection extends Directory {
+export default class TemplateCollection extends Directory<ResourceBag> {
   protected id = "TemplateCollection";
 
-  private _bag: ResourceBag;
+  private _projects: ProjectTemplateCollection;
 
   constructor(directoryPath: string, bag: ResourceBag) {
     super(directoryPath, bag);
-    this._bag = bag;
-  }
 
-  projectsDirectoryPath(...paths: string[]): string {
-    return this.path("Projects", ...paths);
+    const projectsDirectoryPath = this.path("Projects");
+    this._projects = new ProjectTemplateCollection(projectsDirectoryPath, bag);
   }
 
   async listProjects(): Promise<
     Result<TemplateInfo[], TemplateCollectionErrorCodes["ListProjects"]>
   > {
-    const scope = this.scope("listProjects");
-
-    this.logger.start(`Gathering info about project templates' directory`);
-    const directoryInfoResult = await this.fs.getDirectoryInfo(
-      this.projectsDirectoryPath(),
-    );
-    if (R.isError(directoryInfoResult)) {
-      this.logger.failure();
-      const message = `Failed to get "${this.projectsDirectoryPath()}" directory info`;
-      return R.Stack(
-        directoryInfoResult,
-        scope,
-        message,
-        TemplateCollectionErrorCode.Internal,
-      );
-    }
-    this.logger.success();
-
-    const projectTemplateInfos = directoryInfoResult.data.directoryNames.map(
-      (directoryName) => ({ name: directoryName }),
-    );
-    return R.Ok(projectTemplateInfos);
+    return this._projects.list();
   }
 
   project(name: string): ProjectTemplate {
-    return new ProjectTemplate(this.projectsDirectoryPath(name), this._bag);
+    return this._projects.get(name);
   }
 }
