@@ -1,8 +1,11 @@
 import { ConfigurableErrorCode } from "../../api/managers/configurable";
-import { ProjectErrorCode } from "../../api/managers/project";
-import { ResourceErrorCode } from "../../api/managers/resource";
 import { R } from "../../api/utils/result";
-import { ProjectConfigFlags, ProjectFlags } from "../../commands-utils/project";
+import {
+  getValidateProjectErrorMessage,
+  isValidateProjectErrorCode,
+  ProjectConfigFlags,
+  ProjectFlags,
+} from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
 
 export default class ProjectUpdateMetadataCommand extends BaseCommand<
@@ -38,43 +41,15 @@ export default class ProjectUpdateMetadataCommand extends BaseCommand<
       return;
     }
 
-    if (result.code === ResourceErrorCode.DirectoryNotFound) {
+    if (isValidateProjectErrorCode(result.code)) {
       this.Info.failure();
-      this.Warning.log(`The project "${flags.path}" does not exist`);
-      return;
-    }
-
-    if (result.code === ConfigurableErrorCode.ConfigNotFound) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, no config was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ConfigurableErrorCode.ConfigNotValid) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, the config is not valid`;
-      this.Warning.log(message);
+      this.Warning.log(getValidateProjectErrorMessage(result.code, flags.path));
       return;
     }
 
     if (result.code === ConfigurableErrorCode.ConfigIsEmpty) {
       this.Info.failure();
       const message = `You must provide at least one property to modify`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ProjectErrorCode.BaseromNotFound) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, no baserom was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ProjectErrorCode.BaseromNotValid) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, the baserom is not valid`;
       this.Warning.log(message);
       return;
     }

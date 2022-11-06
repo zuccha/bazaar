@@ -1,8 +1,8 @@
 import { ConfigurableErrorCode } from "../../../api/managers/configurable";
-import { ProjectErrorCode } from "../../../api/managers/project";
-import { ResourceErrorCode } from "../../../api/managers/resource";
 import { R } from "../../../api/utils/result";
 import {
+  getValidateProjectErrorMessage,
+  isValidateProjectErrorCode,
   ProjectConfigFlags,
   ProjectTemplateFlags,
 } from "../../../commands-utils/project";
@@ -41,37 +41,15 @@ export default class TemplateProjectUpdateMetadataCommand extends BaseCommand<
       return;
     }
 
-    if (result.code === ResourceErrorCode.DirectoryNotFound) {
+    if (isValidateProjectErrorCode(result.code)) {
       this.Info.failure();
-      this.Warning.log(`The template "${flags.name}" doesn't exist`);
-      return;
-    }
-
-    if (result.code === ConfigurableErrorCode.ConfigNotFound) {
-      this.Info.failure();
-      const message = `The template "${flags.name}" is not valid, no config was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ConfigurableErrorCode.ConfigNotValid) {
-      this.Info.failure();
-      const message = `The template "${flags.name}" is not valid, the config is not valid`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ProjectErrorCode.BaseromNotFound) {
-      this.Info.failure();
-      const message = `The template "${flags.name}" is not valid, no baserom was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ProjectErrorCode.BaseromNotValid) {
-      this.Info.failure();
-      const message = `The template "${flags.name}" is not valid, the baserom is not valid`;
-      this.Warning.log(message);
+      this.Warning.log(
+        getValidateProjectErrorMessage(
+          result.code,
+          flags.name,
+          "project template",
+        ),
+      );
       return;
     }
 

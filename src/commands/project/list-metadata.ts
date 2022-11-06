@@ -1,8 +1,9 @@
-import { ConfigurableErrorCode } from "../../api/managers/configurable";
-import { ProjectErrorCode } from "../../api/managers/project";
-import { ResourceErrorCode } from "../../api/managers/resource";
 import { R } from "../../api/utils/result";
-import { ProjectFlags } from "../../commands-utils/project";
+import {
+  getValidateProjectErrorMessage,
+  isValidateProjectErrorCode,
+  ProjectFlags,
+} from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
 
 export default class ProjectListMetadataCommand extends BaseCommand<
@@ -29,37 +30,11 @@ export default class ProjectListMetadataCommand extends BaseCommand<
       return;
     }
 
-    if (metadataResult.code === ResourceErrorCode.DirectoryNotFound) {
+    if (isValidateProjectErrorCode(metadataResult.code)) {
       this.Info.failure();
-      this.Warning.log(`The project "${flags.path}" does not exist`);
-      return;
-    }
-
-    if (metadataResult.code === ConfigurableErrorCode.ConfigNotFound) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, no config was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (metadataResult.code === ConfigurableErrorCode.ConfigNotValid) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, the config is not valid`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (metadataResult.code === ProjectErrorCode.BaseromNotFound) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, no baserom was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (metadataResult.code === ProjectErrorCode.BaseromNotValid) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, the baserom is not valid`;
-      this.Warning.log(message);
+      this.Warning.log(
+        getValidateProjectErrorMessage(metadataResult.code, flags.path),
+      );
       return;
     }
 

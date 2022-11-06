@@ -1,4 +1,7 @@
 import { Flags } from "@oclif/core";
+import { ConfigurableErrorCode } from "../api/managers/configurable";
+import { ProjectErrorCode, ProjectErrorCodes } from "../api/managers/project";
+import { ResourceErrorCode } from "../api/managers/resource";
 import FSNode from "../utils/fs-node";
 
 export const ProjectFlags = {
@@ -48,4 +51,35 @@ export const ProjectTemplateFlags = {
     description: "The name is unique for each project template.",
     required: true,
   }),
+};
+
+export const isValidateProjectErrorCode = (
+  errorCode: unknown,
+): errorCode is ProjectErrorCodes["Validate"] => {
+  return (
+    errorCode === ResourceErrorCode.DirectoryNotFound ||
+    errorCode === ConfigurableErrorCode.ConfigNotFound ||
+    errorCode === ConfigurableErrorCode.ConfigNotValid ||
+    errorCode === ProjectErrorCode.BaseromNotFound ||
+    errorCode === ProjectErrorCode.BaseromNotValid
+  );
+};
+
+export const getValidateProjectErrorMessage = (
+  errorCode: ProjectErrorCodes["Validate"],
+  path: string,
+  type = "project",
+): string => {
+  switch (errorCode) {
+    case ResourceErrorCode.DirectoryNotFound:
+      return `The ${type} "${path}" does not exist`;
+    case ConfigurableErrorCode.ConfigNotFound:
+      return `The ${type} "${path}" is not valid, no config was found`;
+    case ConfigurableErrorCode.ConfigNotValid:
+      return `The ${type} "${path}" is not valid, the config is not valid`;
+    case ProjectErrorCode.BaseromNotFound:
+      return `The ${type} "${path}" is not valid, no baserom was found`;
+    case ProjectErrorCode.BaseromNotValid:
+      return `The ${type} "${path}" is not valid, the baserom is not valid`;
+  }
 };

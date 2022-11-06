@@ -1,9 +1,10 @@
-import { ConfigurableErrorCode } from "../../api/managers/configurable";
-import { ProjectErrorCode } from "../../api/managers/project";
-import { ResourceErrorCode } from "../../api/managers/resource";
 import { ToolErrorCode } from "../../api/managers/tool-collection/tool";
 import { R } from "../../api/utils/result";
-import { ProjectFlags } from "../../commands-utils/project";
+import {
+  getValidateProjectErrorMessage,
+  isValidateProjectErrorCode,
+  ProjectFlags,
+} from "../../commands-utils/project";
 import BaseCommand from "../../utils/base-command";
 
 export default class ProjectOpenLunarMagicCommand extends BaseCommand<
@@ -36,37 +37,9 @@ To install Lunar Magic, run \`bazaar tool install lunar-magic\`.`;
       return;
     }
 
-    if (result.code === ResourceErrorCode.DirectoryNotFound) {
+    if (isValidateProjectErrorCode(result.code)) {
       this.Info.failure();
-      this.Warning.log(`The project "${flags.path}" does not exist`);
-      return;
-    }
-
-    if (result.code === ConfigurableErrorCode.ConfigNotFound) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, no config was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ConfigurableErrorCode.ConfigNotValid) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, the config is not valid`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ProjectErrorCode.BaseromNotFound) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, no baserom was found`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === ProjectErrorCode.BaseromNotValid) {
-      this.Info.failure();
-      const message = `The project "${flags.path}" is not valid, the baserom is not valid`;
-      this.Warning.log(message);
+      this.Warning.log(getValidateProjectErrorMessage(result.code, flags.path));
       return;
     }
 
