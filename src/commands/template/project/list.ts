@@ -13,15 +13,17 @@ Project templates are projects that have been saved and can be to create new\
   static examples = ["bazaar template project list"];
 
   async run(): Promise<void> {
+    this.Verbose.start("Listing project templates");
     const projectTemplateInfosResult = await this.api.templates.listProjects();
     if (R.isError(projectTemplateInfosResult)) {
+      this.Verbose.failure();
       const messages = R.messages(projectTemplateInfosResult, {
         verbose: true,
       });
       this.Error(`Failed to list project templates\n${messages}`, 1);
       return;
     }
-
+    this.Verbose.success();
     logCollection(projectTemplateInfosResult.data);
   }
 }

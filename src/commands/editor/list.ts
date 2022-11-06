@@ -49,25 +49,29 @@ The difference between and editors and tools: editors are user-chosen programs,\
     const editorName: EditorName | undefined = args["editor-name"];
 
     if (editorName) {
+      this.Verbose.start(`Gathering editor info`);
       const editorInfoResult = await getEditor(
         this.api.editors,
         editorName,
       ).list();
       if (R.isError(editorInfoResult)) {
+        this.Verbose.failure();
         const messages = R.messages(editorInfoResult, { verbose: true });
         this.Error(`Failed to list ${editorName}\n${messages}`, 1);
         return;
       }
-
+      this.Verbose.success();
       this.logEditorInfos([editorInfoResult.data]);
     } else {
+      this.Verbose.start(`Gathering editors info`);
       const editorInfosResult = await this.api.editors.listAll();
       if (R.isError(editorInfosResult)) {
+        this.Verbose.failure();
         const messages = R.messages(editorInfosResult, { verbose: true });
         this.Error(`Failed to list editors\n${messages}`, 1);
         return;
       }
-
+      this.Verbose.success();
       this.logEditorInfos(editorInfosResult.data);
     }
   }

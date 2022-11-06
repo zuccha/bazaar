@@ -22,15 +22,19 @@ export default class ProjectListMetadataCommand extends BaseCommand<
   async run(): Promise<void> {
     const { flags } = await this.parse(ProjectListMetadataCommand);
 
+    this.Verbose.start("Gathering project metadata");
     const project = this.api.project(flags.path);
     const metadataResult = await project.getMetadata();
 
     if (R.isOk(metadataResult)) {
+      this.Verbose.success();
       const { authors, version } = metadataResult.data;
       this.log(`Authors: ${authors.length > 0 ? authors.join(", ") : "-"}`);
       this.log(`Version: ${version || "-"}`);
       return;
     }
+
+    this.Verbose.failure();
 
     if (isValidateProjectErrorCode(metadataResult.code)) {
       this.Warning.log(

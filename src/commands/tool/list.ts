@@ -66,22 +66,26 @@ The difference between tools and editors: tools need to be of specific versions\
     const toolName: ToolName | undefined = args["tool-name"];
 
     if (toolName) {
+      this.Verbose.start("Gathering tool info");
       const toolInfoResult = await getTool(this.api.tools, toolName).list();
       if (R.isError(toolInfoResult)) {
+        this.Verbose.failure();
         const messages = R.messages(toolInfoResult, { verbose: true });
         this.Error(`Failed to list ${toolName}\n${messages}`, 1);
         return;
       }
-
+      this.Verbose.success();
       this.logToolInfos([toolInfoResult.data]);
     } else {
+      this.Verbose.start("Gathering tools info");
       const toolInfosResult = await this.api.tools.listAll();
       if (R.isError(toolInfosResult)) {
+        this.Verbose.failure();
         const messages = R.messages(toolInfosResult, { verbose: true });
         this.Error(`Failed to list tools\n${messages}`, 1);
         return;
       }
-
+      this.Verbose.success();
       this.logToolInfos(toolInfosResult.data);
     }
   }

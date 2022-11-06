@@ -30,12 +30,16 @@ If a patch has been added to the project, it doesn't mean it was added to the\
   async run(): Promise<void> {
     const { flags } = await this.parse(ProjectPatchListCommand);
 
+    this.Verbose.start("Listing patches");
     const patchInfosResult = await this.api.project(flags.path).listPatches();
 
     if (R.isOk(patchInfosResult)) {
+      this.Verbose.success();
       logCollection(patchInfosResult.data);
       return;
     }
+
+    this.Verbose.failure();
 
     if (isValidateProjectErrorCode(patchInfosResult.code)) {
       this.Info.failure();
