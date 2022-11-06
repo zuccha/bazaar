@@ -25,8 +25,21 @@ export type ConfigurableErrorCodes = {
     | ConfigurableErrorCode.ConfigNotValid;
 };
 
+export type ConfigurableConfig = Record<string | number | symbol, unknown>;
+
+export type ConfigurableConfigDefault = Record<string, never>;
+
+export type ConfigurableExtraErrorCode = {
+  ValidateConfig: string | number;
+};
+
+export type ConfigurableExtraErrorCodeDefault = {
+  ValidateConfig: never;
+};
+
 export default abstract class Configurable<
-  Config extends Record<string | number | symbol, unknown>,
+  Config extends ConfigurableConfig,
+  ExtraErrorCode extends ConfigurableExtraErrorCode = ConfigurableExtraErrorCodeDefault,
 > extends Directory {
   protected abstract ConfigSchema: z.ZodType<Config>;
   protected abstract defaultConfig?: Config;
@@ -38,7 +51,10 @@ export default abstract class Configurable<
   }
 
   protected async validateConfig(): Promise<
-    ResultVoid<ConfigurableErrorCodes["ValidateConfig"]>
+    ResultVoid<
+      | ConfigurableErrorCodes["ValidateConfig"]
+      | ExtraErrorCode["ValidateConfig"]
+    >
   > {
     const scope = this.scope("validateConfig");
 
