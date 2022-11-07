@@ -298,6 +298,19 @@ const FSNode: FS = {
     }
   },
 
+  isInside: (parentPath: string, childPath: string): boolean => {
+    try {
+      const relativePath = NodePath.relative(parentPath, childPath);
+      return (
+        relativePath !== "" &&
+        !relativePath.startsWith(`..${NodePath.sep}`) &&
+        !NodePath.isAbsolute(relativePath)
+      );
+    } catch {
+      return false;
+    }
+  },
+
   isFile: async (filePath: string): Promise<boolean> => {
     try {
       const stat = await NodeFS.stat(filePath);

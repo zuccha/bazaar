@@ -158,6 +158,10 @@ export namespace IsFile {
   export type Fn = (filePath: string) => Promise<boolean>;
 }
 
+export namespace IsInside {
+  export type Fn = (parentPath: string, childPath: string) => boolean;
+}
+
 export namespace ReadFile {
   export type ErrorCode =
     | FSErrorCode.Internal
@@ -341,6 +345,7 @@ export type FS = {
   exists: Exists.Fn;
   isDirectory: IsDirectory.Fn;
   isFile: IsFile.Fn;
+  isInside: IsInside.Fn;
 
   readFile: ReadFile.Fn;
   writeFile: WriteFile.Fn;
