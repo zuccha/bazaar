@@ -12,6 +12,6 @@ export default class PatchCollection extends Collection<
     directoryPath: string,
     resourceContext: ResourceContext,
   ): Patch {
-    throw new Patch(directoryPath, resourceContext);
+    return new Patch(directoryPath, resourceContext);
   }
 }
