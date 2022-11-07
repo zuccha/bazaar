@@ -16,9 +16,12 @@ export enum PatchErrorCode {
   Internal,
   CodeDirectoryNotFound,
   CodeDirectoryNotValid,
+  InputCodeDirectoryNotFound,
+  InputCodeDirectoryNotValid,
   InputMainFileNotFound,
   InputMainFileNotValid,
   InputMainFileNotAsm,
+  InputMainFileNotInsideCodeDirectory,
   MainFileNotFound,
   MainFileNotValid,
   MainFileNotAsm,
@@ -45,6 +48,13 @@ export type PatchErrorCodes = {
   CreateFromSingleFile:
     | PatchErrorCodes["ValidateInputConfig"]
     | PatchErrorCode.Internal
+    | PatchErrorCode.PatchAlreadyExists;
+  CreateFromDirectory:
+    | PatchErrorCodes["ValidateInputConfig"]
+    | PatchErrorCode.Internal
+    | PatchErrorCode.InputCodeDirectoryNotFound
+    | PatchErrorCode.InputCodeDirectoryNotValid
+    | PatchErrorCode.InputMainFileNotInsideCodeDirectory
     | PatchErrorCode.PatchAlreadyExists;
   Snapshot:
     | ResourceErrorCodes["Snapshot"]
@@ -226,6 +236,15 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
       version: partialConfig.version ?? "",
     };
 
+    this.logger.start("Checking if the project doesn't already exist");
+    const exists = await this.exists();
+    if (exists) {
+      this.logger.failure();
+      const message = `Project "${this.path()}" already exists`;
+      return R.Error(scope, message, PatchErrorCode.PatchAlreadyExists);
+    }
+    this.logger.success();
+
     this.logger.start("Validating input config");
     const validateInputConfigResult = await this.validateInputConfig(
       inputConfig,
@@ -233,15 +252,6 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
     if (R.isError(validateInputConfigResult)) {
       this.logger.failure();
       return validateInputConfigResult;
-    }
-    this.logger.success();
-
-    this.logger.start("Checking if the project doesn't already exist");
-    const exists = await this.exists();
-    if (exists) {
-      this.logger.failure();
-      const message = `Project "${this.path()}" already exists`;
-      return R.Error(scope, message, PatchErrorCode.PatchAlreadyExists);
     }
     this.logger.success();
 
@@ -269,6 +279,7 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
     const saveConfigResult = await this.saveConfig(config);
     if (R.isError(saveConfigResult)) {
       this.logger.failure();
+      await this.removeDirectory();
       const message = `Failed to save metadata`;
       return R.Stack(saveConfigResult, scope, message, PatchErrorCode.Internal);
     }
@@ -284,9 +295,135 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
     );
     if (R.isError(copyCodeFileResult)) {
       this.logger.failure();
+      await this.removeDirectory();
       const message = `Failed to copy code file from "${sourceCodeFilePath}" to "${targetCodeFilePath}"`;
       return R.Stack(
         copyCodeFileResult,
+        scope,
+        message,
+        PatchErrorCode.Internal,
+      );
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
+  async createFromDirectory(
+    sourceCodeDirectoryPath: string,
+    sourceMainCodeFilePath: string,
+    partialConfig: Partial<Omit<PatchConfig, "mainFileRelativePath">>,
+  ): Promise<ResultVoid<PatchErrorCodes["CreateFromDirectory"]>> {
+    const scope = this.scope("createFromDirectory");
+
+    const inputConfig: PatchConfig = {
+      mainFileRelativePath: sourceMainCodeFilePath,
+      authors: partialConfig.authors ?? [],
+      version: partialConfig.version ?? "",
+    };
+
+    this.logger.start("Checking if the project doesn't already exist");
+    const exists = await this.exists();
+    if (exists) {
+      this.logger.failure();
+      const message = `Project "${this.path()}" already exists`;
+      return R.Error(scope, message, PatchErrorCode.PatchAlreadyExists);
+    }
+    this.logger.success();
+
+    this.logger.start("Checking if the code directory exist");
+    const sourceCodeDirectoryPathExists = await this.fs.exists(
+      sourceCodeDirectoryPath,
+    );
+    if (!sourceCodeDirectoryPathExists) {
+      this.logger.failure();
+      const message = `Source code directory "${sourceCodeDirectoryPath}" doesn't exist`;
+      return R.Error(scope, message, PatchErrorCode.InputCodeDirectoryNotFound);
+    }
+    this.logger.success();
+
+    this.logger.start("Checking if the code directory is valid");
+    const sourceCodeDirectoryPathIsValid = await this.fs.exists(
+      sourceCodeDirectoryPath,
+    );
+    if (!sourceCodeDirectoryPathIsValid) {
+      this.logger.failure();
+      const message = `Source code directory "${sourceCodeDirectoryPath}" is not valid`;
+      return R.Error(scope, message, PatchErrorCode.InputCodeDirectoryNotValid);
+    }
+    this.logger.success();
+
+    this.logger.start("Checking main code file is inside code directory");
+    const mainCodeFileIsInsideCodeDirectory = this.fs.isInside(
+      sourceCodeDirectoryPath,
+      sourceMainCodeFilePath,
+    );
+    if (!mainCodeFileIsInsideCodeDirectory) {
+      this.logger.failure();
+      const message = `Main code file "${sourceMainCodeFilePath}" is not inside "${sourceCodeDirectoryPath}"`;
+      return R.Error(
+        scope,
+        message,
+        PatchErrorCode.InputMainFileNotInsideCodeDirectory,
+      );
+    }
+    this.logger.success();
+
+    this.logger.start("Validating input config");
+    const validateInputConfigResult = await this.validateInputConfig(
+      inputConfig,
+    );
+    if (R.isError(validateInputConfigResult)) {
+      this.logger.failure();
+      return validateInputConfigResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Creating patch directory");
+    const createDirectoryResult = await this.createDirectory();
+    if (R.isError(createDirectoryResult)) {
+      this.logger.failure();
+      const message = `Failed to create patch directory "${this.path()}"`;
+      return R.Stack(
+        createDirectoryResult,
+        scope,
+        message,
+        PatchErrorCode.Internal,
+      );
+    }
+    this.logger.success();
+
+    const config: PatchConfig = {
+      mainFileRelativePath: this.fs.getRelativePath(
+        sourceCodeDirectoryPath,
+        sourceMainCodeFilePath,
+      ),
+      authors: inputConfig.authors,
+      version: inputConfig.version,
+    };
+
+    this.logger.start("Saving metadata");
+    const saveConfigResult = await this.saveConfig(config);
+    if (R.isError(saveConfigResult)) {
+      this.logger.failure();
+      await this.removeDirectory();
+      const message = `Failed to save metadata`;
+      return R.Stack(saveConfigResult, scope, message, PatchErrorCode.Internal);
+    }
+    this.logger.success();
+
+    this.logger.start("Copying code directory");
+    const targetCodeDirectoryPath = this._codeDirectoryPath();
+    const copyCodeDirectoryResult = await this.fs.copyDirectory(
+      sourceCodeDirectoryPath,
+      targetCodeDirectoryPath,
+    );
+    if (R.isError(copyCodeDirectoryResult)) {
+      this.logger.failure();
+      await this.removeDirectory();
+      const message = `Failed to copy code directory from "${sourceCodeDirectoryPath}" to "${targetCodeDirectoryPath}"`;
+      return R.Stack(
+        copyCodeDirectoryResult,
         scope,
         message,
         PatchErrorCode.Internal,
