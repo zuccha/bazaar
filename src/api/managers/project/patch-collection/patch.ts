@@ -18,8 +18,10 @@ export enum PatchErrorCode {
   CodeDirectoryNotValid,
   InputMainFileNotFound,
   InputMainFileNotValid,
+  InputMainFileNotAsm,
   MainFileNotFound,
   MainFileNotValid,
+  MainFileNotAsm,
   PatchAlreadyExists,
 }
 
@@ -30,11 +32,13 @@ export type PatchExtraErrorCodes = {
     | PatchErrorCode.CodeDirectoryNotFound
     | PatchErrorCode.CodeDirectoryNotValid
     | PatchErrorCode.MainFileNotFound
-    | PatchErrorCode.MainFileNotValid;
+    | PatchErrorCode.MainFileNotValid
+    | PatchErrorCode.MainFileNotAsm;
   ValidateConfig: never;
   ValidateInputConfig:
     | PatchErrorCode.InputMainFileNotFound
-    | PatchErrorCode.InputMainFileNotValid;
+    | PatchErrorCode.InputMainFileNotValid
+    | PatchErrorCode.InputMainFileNotAsm;
 };
 
 export type PatchErrorCodes = {
@@ -78,8 +82,8 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
       const mainFilePath = partialConfig.mainFileRelativePath;
 
       this.logger.start("Checking if input main file exists");
-      const exists = await this.fs.exists(mainFilePath);
-      if (!exists) {
+      const mainFileExists = await this.fs.exists(mainFilePath);
+      if (!mainFileExists) {
         this.logger.failure();
         const message = `Input main file "${mainFilePath}" doesn't exist`;
         return R.Error(scope, message, PatchErrorCode.InputMainFileNotFound);
@@ -87,12 +91,20 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
       this.logger.success();
 
       this.logger.start("Checking if input main file is valid");
-      const isFile = await this.fs.isFile(mainFilePath);
-      const extension = this.fs.getExtension(mainFilePath);
-      if (!isFile || extension !== "asm") {
+      const mainFileIsFile = await this.fs.isFile(mainFilePath);
+      if (!mainFileIsFile) {
         this.logger.failure();
         const message = `Input main file "${mainFilePath}" is not valid`;
         return R.Error(scope, message, PatchErrorCode.InputMainFileNotValid);
+      }
+      this.logger.success();
+
+      this.logger.start("Checking if input main file is an ASM file");
+      const mainFileExtension = this.fs.getExtension(mainFilePath);
+      if (mainFileExtension !== ".asm") {
+        this.logger.failure();
+        const message = `Input main file "${mainFilePath}" doesn't have ".asm" extension`;
+        return R.Error(scope, message, PatchErrorCode.InputMainFileNotAsm);
       }
       this.logger.success();
     }
@@ -150,6 +162,15 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
       this.logger.failure();
       const message = `Main code file "${mainFilePath}" is not valid`;
       return R.Error(scope, message, PatchErrorCode.MainFileNotFound);
+    }
+    this.logger.success();
+
+    this.logger.start(`Checking if code main file is an ASM file`);
+    const mainFileExtension = this.fs.getExtension(mainFilePath);
+    if (mainFileExtension !== ".asm") {
+      this.logger.failure();
+      const message = `Main code file "${mainFilePath}" doesn't have ".asm" extension`;
+      return R.Error(scope, message, PatchErrorCode.MainFileNotAsm);
     }
     this.logger.success();
 
