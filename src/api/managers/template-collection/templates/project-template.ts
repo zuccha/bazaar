@@ -13,8 +13,12 @@ export type ProjectTemplateErrorCodes = {
     | TemplateErrorCodes["CreateFromResource"]
     | ProjectExtraErrorCodes["Snapshot"]
     | ProjectExtraErrorCodes["Validate"];
-  GetMetadata: ProjectErrorCodes["GetMetadata"];
-  UpdateMetadata: ProjectErrorCodes["UpdateMetadata"];
+  GetMetadata:
+    | ResourceErrorCodes["GetMetadata"]
+    | ProjectExtraErrorCodes["Validate"];
+  UpdateMetadata:
+    | ResourceErrorCodes["UpdateMetadata"]
+    | ProjectExtraErrorCodes["Validate"];
   InitProject:
     | TemplateErrorCodes["InitResource"]
     | ProjectExtraErrorCodes["Snapshot"]

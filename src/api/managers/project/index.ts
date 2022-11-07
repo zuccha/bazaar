@@ -5,8 +5,6 @@ import Resource, {
   ResourceErrorCodes,
 } from "../resource";
 import { R, Result, ResultVoid } from "../../utils/result";
-import SemVer from "../../utils/sem-ver";
-import { ConfigurableErrorCodes } from "../configurable";
 import { CodeEditorErrorCodes } from "../editor-collection/editors/code-editor";
 import { EmulatorErrorCodes } from "../editor-collection/editors/emulator";
 import { LunarMagicErrorCodes } from "../tool-collection/tools/lunar-magic";
@@ -23,7 +21,6 @@ export enum ProjectErrorCode {
   BaseromNotFound,
   BaseromNotValid,
   ProjectExists,
-  VersionNotValid,
 }
 
 export type ProjectExtraErrorCodes = {
@@ -49,22 +46,6 @@ export type ProjectErrorCodes = {
   OpenCodeEditor: CodeEditorErrorCodes["Open"] | ProjectErrorCodes["Validate"];
   OpenEmulator: EmulatorErrorCodes["Open"] | ProjectErrorCodes["Validate"];
   OpenLunarMagic: LunarMagicErrorCodes["Open"] | ProjectErrorCodes["Validate"];
-
-  GetMetadata:
-    | ConfigurableErrorCodes["LoadConfig"]
-    | ProjectErrorCodes["Validate"];
-  UpdateMetadata:
-    | ConfigurableErrorCodes["UpdateConfig"]
-    | ProjectErrorCodes["Validate"];
-
-  IncreaseMajorVersion: ProjectErrorCodes["IncreaseVersion"];
-  IncreaseMinorVersion: ProjectErrorCodes["IncreaseVersion"];
-  IncreasePatchVersion: ProjectErrorCodes["IncreaseVersion"];
-  IncreaseVersion:
-    | ConfigurableErrorCodes["LoadConfig"]
-    | ConfigurableErrorCodes["UpdateConfig"]
-    | ProjectErrorCodes["Validate"]
-    | ProjectErrorCode.VersionNotValid;
 
   ListPatches: ProjectErrorCodes["Validate"] | CollectionErrorCodes["List"];
   Patch: ProjectErrorCodes["Validate"];
@@ -334,97 +315,6 @@ export default class Project extends Resource<
     this.logger.success();
 
     return R.Void;
-  }
-
-  async getMetadata(): Promise<
-    Result<ProjectConfig, ProjectErrorCodes["GetMetadata"]>
-  > {
-    this.logger.start("Verifying that project is valid");
-    const result = await this.validate();
-    if (R.isError(result)) {
-      this.logger.failure();
-      return result;
-    }
-    this.logger.success();
-
-    return this.loadConfig();
-  }
-
-  async updateMetadata(
-    metadata: Partial<ProjectConfig>,
-  ): Promise<ResultVoid<ProjectErrorCodes["UpdateMetadata"]>> {
-    this.logger.start("Verifying that project is valid");
-    const result = await this.validate();
-    if (R.isError(result)) {
-      this.logger.failure();
-      return result;
-    }
-    this.logger.success();
-
-    return this.updateConfig(metadata);
-  }
-
-  private async _increaseVersion(
-    scope: string,
-    increase: (version: string) => Result<string>,
-  ): Promise<ResultVoid<ProjectErrorCodes["IncreaseVersion"]>> {
-    this.logger.start("Verifying that project is valid");
-    const validateResult = await this.validate();
-    if (R.isError(validateResult)) {
-      this.logger.failure();
-      return validateResult;
-    }
-    this.logger.success();
-
-    this.logger.start("Reading metadata");
-    const configResult = await this.loadConfig();
-    if (R.isError(configResult)) {
-      this.logger.failure();
-      return configResult;
-    }
-    this.logger.success();
-
-    this.logger.start("Incrementing version automatically");
-    const versionResult = increase(configResult.data.version);
-    if (R.isError(versionResult)) {
-      this.logger.failure();
-      const message = `The version "${configResult.data.version}" of the project cannot be incremented automatically`;
-      return R.Error(scope, message, ProjectErrorCode.VersionNotValid);
-    }
-    this.logger.success();
-
-    this.logger.start("Writing metadata");
-    const updateConfigResult = await this.updateConfig({
-      version: versionResult.data,
-    });
-    if (R.isError(updateConfigResult)) {
-      this.logger.failure();
-      return updateConfigResult;
-    }
-    this.logger.success();
-
-    return R.Void;
-  }
-
-  async increaseMajorVersion(): Promise<
-    ResultVoid<ProjectErrorCodes["IncreaseMajorVersion"]>
-  > {
-    const scope = this.scope("increaseMajorVersion");
-    return this._increaseVersion(scope, SemVer.increaseMajor);
-  }
-
-  async increaseMinorVersion(): Promise<
-    ResultVoid<ProjectErrorCodes["IncreaseMinorVersion"]>
-  > {
-    const scope = this.scope("increaseMinorVersion");
-    return this._increaseVersion(scope, SemVer.increaseMinor);
-  }
-
-  async increasePatchVersion(): Promise<
-    ResultVoid<ProjectErrorCodes["IncreasePatchVersion"]>
-  > {
-    const scope = this.scope("increasePatchVersion");
-    return this._increaseVersion(scope, SemVer.increasePatch);
   }
 
   async listPatches(): Promise<

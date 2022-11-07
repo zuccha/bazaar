@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { R, ResultVoid } from "../utils/result";
+import { R, Result, ResultVoid } from "../utils/result";
+import SemVer from "../utils/sem-ver";
 import Configurable, {
   ConfigurableContext,
   ConfigurableConfigDefault,
@@ -23,6 +24,7 @@ export enum ResourceErrorCode {
   Internal,
   DirectoryNotFound,
   SnapshotTargetExists,
+  VersionNotValid,
 }
 
 export type ResourceErrorCodes = {
@@ -37,6 +39,23 @@ export type ResourceErrorCodes = {
     | ConfigurableErrorCodes["ValidateConfig"]
     | ResourceErrorCode.DirectoryNotFound;
   ValidateInputConfig: never;
+
+  GetMetadata:
+    | ConfigurableErrorCodes["LoadConfig"]
+    | ResourceErrorCodes["Validate"];
+  UpdateMetadata:
+    | ConfigurableErrorCodes["UpdateConfig"]
+    | ResourceErrorCodes["Validate"]
+    | ResourceErrorCodes["ValidateInputConfig"];
+
+  IncreaseMajorVersion: ResourceErrorCodes["IncreaseVersion"];
+  IncreaseMinorVersion: ResourceErrorCodes["IncreaseVersion"];
+  IncreasePatchVersion: ResourceErrorCodes["IncreaseVersion"];
+  IncreaseVersion:
+    | ConfigurableErrorCodes["LoadConfig"]
+    | ConfigurableErrorCodes["UpdateConfig"]
+    | ResourceErrorCodes["Validate"]
+    | ResourceErrorCode.VersionNotValid;
 };
 
 export type ResourceContext = ConfigurableContext & {
@@ -64,6 +83,8 @@ export default abstract class Resource<
   Config extends ResourceConfig,
   ExtraErrorCode extends ResourceExtraErrorCode = ResourceExtraErrorCodeDefault,
 > extends Configurable<Config, ExtraErrorCode, ResourceContext> {
+  protected label = "resource";
+
   constructor(directoryPath: string, context: ResourceContext) {
     super(directoryPath, context);
     this.context = context;
@@ -135,7 +156,7 @@ export default abstract class Resource<
 
     const options = { force: false, ...partialOptions };
 
-    this.logger.start("Verifying that source is valid");
+    this.logger.start(`Verifying that ${this.label} is valid`);
     const validateResult = await this.validate();
     if (R.isError(validateResult)) {
       this.logger.failure();
@@ -160,7 +181,7 @@ export default abstract class Resource<
         return R.Error(scope, message, ResourceErrorCode.SnapshotTargetExists);
       }
 
-      this.logger.start(`Removing target project`);
+      this.logger.start(`Removing target ${this.label}`);
       const removeTargetDirectoryResult =
         await targetResource.removeDirectory();
       if (R.isError(removeTargetDirectoryResult)) {
@@ -218,7 +239,7 @@ export default abstract class Resource<
   async remove(): Promise<
     ResultVoid<ResourceErrorCodes["Remove"] | ExtraErrorCode["Validate"]>
   > {
-    this.logger.start("Verifying that project is valid");
+    this.logger.start(`Verifying that ${this.label} is valid`);
     const validateResult = await this.validate();
     if (R.isError(validateResult)) {
       this.logger.failure();
@@ -226,7 +247,7 @@ export default abstract class Resource<
     }
     this.logger.success();
 
-    this.logger.start("Removing project directory");
+    this.logger.start(`Removing ${this.label} directory`);
     const removeDirectoryResult = await this.removeDirectory();
     if (R.isError(removeDirectoryResult)) {
       this.logger.failure();
@@ -235,5 +256,124 @@ export default abstract class Resource<
     this.logger.success();
 
     return R.Void;
+  }
+
+  async getMetadata(): Promise<
+    Result<
+      Config,
+      ResourceErrorCodes["GetMetadata"] | ExtraErrorCode["Validate"]
+    >
+  > {
+    this.logger.start("Verifying that project is valid");
+    const result = await this.validate();
+    if (R.isError(result)) {
+      this.logger.failure();
+      return result;
+    }
+    this.logger.success();
+
+    return this.loadConfig();
+  }
+
+  async updateMetadata(
+    metadata: Partial<Config>,
+  ): Promise<
+    ResultVoid<
+      ResourceErrorCodes["UpdateMetadata"] | ExtraErrorCode["Validate"]
+    >
+  > {
+    this.logger.start("Verifying that project is valid");
+    const validateResult = await this.validate();
+    if (R.isError(validateResult)) {
+      this.logger.failure();
+      return validateResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Validating input config");
+    const validateMetadataResult = await this.validateInputConfig(metadata);
+    if (R.isError(validateMetadataResult)) {
+      this.logger.failure();
+      return validateMetadataResult;
+    }
+    this.logger.success();
+
+    return this.updateConfig(metadata);
+  }
+
+  private async _increaseVersion(
+    scope: string,
+    increase: (version: string) => Result<string>,
+  ): Promise<
+    ResultVoid<
+      ResourceErrorCodes["IncreaseVersion"] | ExtraErrorCode["Validate"]
+    >
+  > {
+    this.logger.start(`Verifying that ${this.label} is valid`);
+    const validateResult = await this.validate();
+    if (R.isError(validateResult)) {
+      this.logger.failure();
+      return validateResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Reading metadata");
+    const configResult = await this.loadConfig();
+    if (R.isError(configResult)) {
+      this.logger.failure();
+      return configResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Incrementing version automatically");
+    const versionResult = increase(configResult.data.version);
+    if (R.isError(versionResult)) {
+      this.logger.failure();
+      const message = `The version "${configResult.data.version}" of the ${this.label} cannot be incremented automatically`;
+      return R.Error(scope, message, ResourceErrorCode.VersionNotValid);
+    }
+    this.logger.success();
+
+    this.logger.start("Writing metadata");
+    // ? `{ version: string }` cannot be assigned to `Partial<Config>` because
+    // ? theoretically one could extend `Config` to have a more strict type for
+    // ? `version` (e.g., `{ version: "1" | "2" }`). However, we are going to
+    // ? ignore this scenario and assume `version` is always a generic string.
+    const config = { version: versionResult.data } as Partial<Config>;
+    const updateConfigResult = await this.updateConfig(config);
+    if (R.isError(updateConfigResult)) {
+      this.logger.failure();
+      return updateConfigResult;
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
+  async increaseMajorVersion(): Promise<
+    ResultVoid<
+      ResourceErrorCodes["IncreaseMajorVersion"] | ExtraErrorCode["Validate"]
+    >
+  > {
+    const scope = this.scope("increaseMajorVersion");
+    return this._increaseVersion(scope, SemVer.increaseMajor);
+  }
+
+  async increaseMinorVersion(): Promise<
+    ResultVoid<
+      ResourceErrorCodes["IncreaseMinorVersion"] | ExtraErrorCode["Validate"]
+    >
+  > {
+    const scope = this.scope("increaseMinorVersion");
+    return this._increaseVersion(scope, SemVer.increaseMinor);
+  }
+
+  async increasePatchVersion(): Promise<
+    ResultVoid<
+      ResourceErrorCodes["IncreasePatchVersion"] | ExtraErrorCode["Validate"]
+    >
+  > {
+    const scope = this.scope("increasePatchVersion");
+    return this._increaseVersion(scope, SemVer.increasePatch);
   }
 }

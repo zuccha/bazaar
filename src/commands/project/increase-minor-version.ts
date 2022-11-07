@@ -1,4 +1,4 @@
-import { ProjectErrorCode } from "../../api/managers/project";
+import { ResourceErrorCode } from "../../api/managers/resource";
 import { R } from "../../api/utils/result";
 import {
   getValidateProjectErrorMessage,
@@ -53,7 +53,7 @@ while these are not:
       return;
     }
 
-    if (result.code === ProjectErrorCode.VersionNotValid) {
+    if (result.code === ResourceErrorCode.VersionNotValid) {
       this.Info.failure();
       this.Warning.log(`Project version doesn't follow the SemVer format`);
       this.Warning.log(
