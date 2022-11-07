@@ -144,6 +144,6 @@ export default abstract class BaseCommand<
   Warning = this._createLogger(TE.warning, () => this._isWarning);
 
   protected Error = (error: ResultError<any>, message: string): void => {
-    this.error(`${message}\n${R.messages(error)}`);
+    this.error(`${message}\n${R.messages(error, { verbose: true })}`);
   };
 }
