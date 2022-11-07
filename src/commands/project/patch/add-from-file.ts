@@ -94,6 +94,6 @@ $ bazaar project patch add-from-directory --help`;
     }
 
     this.Info.failure();
-    this.Error(result, `Failed to list project patches`);
+    this.Error(result, `Failed to add patch from single file`);
   }
 }
