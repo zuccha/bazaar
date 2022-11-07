@@ -1,6 +1,8 @@
-import { EditorErrorCode } from "../../api/managers/editor-collection/editor";
-import { CodeEditorErrorCode } from "../../api/managers/editor-collection/editors/code-editor";
 import { R } from "../../api/utils/result";
+import {
+  getExecuteCodeEditorErrorMessage,
+  isExecuteCodeEditorErrorCode,
+} from "../../commands-utils/editor";
 import {
   getValidateProjectErrorMessage,
   isValidateProjectErrorCode,
@@ -46,34 +48,11 @@ To configure and code-editor, check \`bazaar editor code-editor set --help\`.`;
       return;
     }
 
-    if (result.code === CodeEditorErrorCode.PathNotFound) {
+    if (isExecuteCodeEditorErrorCode(result.code)) {
       this.Info.failure();
-      const message = `The path "${flags.path}" does not exist, choose a valid project path`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === EditorErrorCode.ExeNotSet) {
-      this.Info.failure();
-      const message = `The code editor is not configured
-Check \`bazaar editor set code-editor --help\` for more`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === EditorErrorCode.ExeNotFound) {
-      this.Info.failure();
-      const message = `The configured code editor does not exist
-Configure a new one \`bazaar editor set code-editor --help\` for more`;
-      this.Warning.log(message);
-      return;
-    }
-
-    if (result.code === EditorErrorCode.ExeNotValid) {
-      this.Info.failure();
-      const message = `The configured code editor is not a valid executable
-Configure a new one \`bazaar editor set code-editor --help\` for more`;
-      this.Warning.log(message);
+      this.Warning.log(
+        getExecuteCodeEditorErrorMessage(result.code, flags.path),
+      );
       return;
     }
 

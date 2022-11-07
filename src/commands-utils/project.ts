@@ -1,9 +1,12 @@
 import { Flags } from "@oclif/core";
-import { ConfigurableErrorCode } from "../api/managers/configurable";
 import { ProjectErrorCode, ProjectErrorCodes } from "../api/managers/project";
-import { ResourceErrorCode } from "../api/managers/resource";
 import FSNode from "../utils/fs-node";
-import { ResourceConfigFlags, ResourceFlags } from "./resource";
+import {
+  getValidateResourceErrorMessage,
+  isValidateResourceErrorCode,
+  ResourceConfigFlags,
+  ResourceFlags,
+} from "./resource";
 
 export const ProjectFlags = {
   path: Flags.string({
@@ -45,9 +48,7 @@ export const isValidateProjectErrorCode = (
   errorCode: unknown,
 ): errorCode is ProjectErrorCodes["Validate"] => {
   return (
-    errorCode === ResourceErrorCode.DirectoryNotFound ||
-    errorCode === ConfigurableErrorCode.ConfigNotFound ||
-    errorCode === ConfigurableErrorCode.ConfigNotValid ||
+    isValidateResourceErrorCode(errorCode) ||
     errorCode === ProjectErrorCode.BaseromNotFound ||
     errorCode === ProjectErrorCode.BaseromNotValid
   );
@@ -58,13 +59,11 @@ export const getValidateProjectErrorMessage = (
   path: string,
   type = "project",
 ): string => {
+  if (isValidateResourceErrorCode(errorCode)) {
+    return getValidateResourceErrorMessage(errorCode, path, type);
+  }
+
   switch (errorCode) {
-    case ResourceErrorCode.DirectoryNotFound:
-      return `The ${type} "${path}" does not exist`;
-    case ConfigurableErrorCode.ConfigNotFound:
-      return `The ${type} "${path}" is not valid, no config was found`;
-    case ConfigurableErrorCode.ConfigNotValid:
-      return `The ${type} "${path}" is not valid, the config is not valid`;
     case ProjectErrorCode.BaseromNotFound:
       return `The ${type} "${path}" is not valid, no baserom was found`;
     case ProjectErrorCode.BaseromNotValid:
