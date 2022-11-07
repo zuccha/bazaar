@@ -23,7 +23,6 @@ Uninstalling tools with Bazaar will not cause any other installation made by the
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to uninstall tools\n${messages}`, 1);
+    this.Error(result, `Failed to uninstall tools`);
   }
 }

@@ -41,7 +41,6 @@ export default class TemplateProjectListMetadataCommand extends BaseCommand<
       return;
     }
 
-    const messages = R.messages(metadataResult, { verbose: true });
-    this.Error(`Failed to list project template metadata\n${messages}`, 1);
+    this.Error(metadataResult, `Failed to list project template metadata`);
   }
 }

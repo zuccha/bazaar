@@ -52,15 +52,15 @@ Installing a tool will not interfere with any other manual installation of the\
     const toolName = args["tool-name"];
 
     this.Info.start(`Installing ${toolName}`);
-    const response = await getTool(this.api.tools, toolName).install({
+    const result = await getTool(this.api.tools, toolName).install({
       force: flags.force,
     });
-    if (R.isOk(response)) {
+    if (R.isOk(result)) {
       this.Info.success();
       return;
     }
 
-    if (response.code === ToolErrorCode.ToolAlreadyInstalled) {
+    if (result.code === ToolErrorCode.ToolAlreadyInstalled) {
       this.Info.failure();
       this.Warning.log(`${toolName} is already installed!
 Run with \`--force\` if you want to force the installation:
@@ -69,7 +69,6 @@ $ bazaar tool install ${toolName} --force`);
     }
 
     this.Info.failure();
-    const messages = R.messages(response, { verbose: true });
-    this.Error(`Failed to install ${toolName}\n${messages}`, 1);
+    this.Error(result, `Failed to install ${toolName}`);
   }
 }

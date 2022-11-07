@@ -70,7 +70,6 @@ Saving a project as a template includes:
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to save project as template\n${messages}`, 1);
+    this.Error(result, `Failed to save project as template`);
   }
 }

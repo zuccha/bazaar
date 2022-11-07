@@ -17,10 +17,10 @@ Project templates are projects that have been saved and can be to create new\
     const projectTemplateInfosResult = await this.api.templates.listProjects();
     if (R.isError(projectTemplateInfosResult)) {
       this.Verbose.failure();
-      const messages = R.messages(projectTemplateInfosResult, {
-        verbose: true,
-      });
-      this.Error(`Failed to list project templates\n${messages}`, 1);
+      this.Error(
+        projectTemplateInfosResult,
+        `Failed to list project templates`,
+      );
       return;
     }
     this.Verbose.success();

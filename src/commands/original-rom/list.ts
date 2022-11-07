@@ -19,8 +19,7 @@ The original ROM is used to generate BPS files.`;
     const originalRomInfoResult = await this.api.originalRom.list();
     if (R.isError(originalRomInfoResult)) {
       this.Verbose.failure();
-      const messages = R.messages(originalRomInfoResult, { verbose: true });
-      this.Error(`Failed to get original ROM\n${messages}`, 1);
+      this.Error(originalRomInfoResult, `Failed to get original ROM`);
       return;
     }
     this.Verbose.success();

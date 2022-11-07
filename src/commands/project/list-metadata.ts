@@ -43,7 +43,6 @@ export default class ProjectListMetadataCommand extends BaseCommand<
       return;
     }
 
-    const messages = R.messages(metadataResult, { verbose: true });
-    this.Error(`Failed to list project metadata\n${messages}`, 1);
+    this.Error(metadataResult, `Failed to list project metadata`);
   }
 }

@@ -70,8 +70,7 @@ The difference between tools and editors: tools need to be of specific versions\
       const toolInfoResult = await getTool(this.api.tools, toolName).list();
       if (R.isError(toolInfoResult)) {
         this.Verbose.failure();
-        const messages = R.messages(toolInfoResult, { verbose: true });
-        this.Error(`Failed to list ${toolName}\n${messages}`, 1);
+        this.Error(toolInfoResult, `Failed to list ${toolName}`);
         return;
       }
       this.Verbose.success();
@@ -81,8 +80,7 @@ The difference between tools and editors: tools need to be of specific versions\
       const toolInfosResult = await this.api.tools.listAll();
       if (R.isError(toolInfosResult)) {
         this.Verbose.failure();
-        const messages = R.messages(toolInfosResult, { verbose: true });
-        this.Error(`Failed to list tools\n${messages}`, 1);
+        this.Error(toolInfosResult, `Failed to list tools`);
         return;
       }
       this.Verbose.success();

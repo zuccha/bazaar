@@ -44,7 +44,6 @@ Removing a project from the list of available templates will not impact any proj
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to remove project template\n${messages}`, 1);
+    this.Error(result, `Failed to remove project template`);
   }
 }

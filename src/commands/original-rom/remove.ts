@@ -29,7 +29,6 @@ Attempting to remove the original ROM if none was added will result in an\
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to remove original ROM\n${messages}`, 1);
+    this.Error(result, `Failed to remove original ROM`);
   }
 }

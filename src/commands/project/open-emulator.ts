@@ -70,7 +70,6 @@ Configure a new one \`bazaar editor set emulator --help\` for more`;
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to run ROM hack in emulator\n${messages}`, 1);
+    this.Error(result, `Failed to run ROM hack in emulator`);
   }
 }

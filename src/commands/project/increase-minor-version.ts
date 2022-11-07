@@ -63,7 +63,6 @@ while these are not:
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to increase minor version\n${messages}`, 1);
+    this.Error(result, `Failed to increase minor version`);
   }
 }

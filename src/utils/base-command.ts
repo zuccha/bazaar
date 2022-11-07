@@ -1,6 +1,7 @@
 import { CliUx, Command, Config, Flags, Interfaces } from "@oclif/core";
 import Api from "../api";
 import { Logger } from "../api/utils/logger";
+import { R, ResultError } from "../api/utils/result";
 import FSNode from "./fs-node";
 import TE from "./text-effect";
 
@@ -142,11 +143,7 @@ export default abstract class BaseCommand<
   Info = this._createLogger(TE.info, () => this._isInfo);
   Warning = this._createLogger(TE.warning, () => this._isWarning);
 
-  protected Error = (
-    message: string,
-    exit: number,
-    options?: Partial<{ suggestions: string[]; ref: string }>,
-  ): void => {
-    this.error(message, { ...options, exit });
+  protected Error = (error: ResultError<any>, message: string): void => {
+    this.error(`${message}\n${R.messages(error)}`);
   };
 }

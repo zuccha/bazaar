@@ -83,7 +83,6 @@ Supported editors are:
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to set ${editorName} properties\n${messages}`, 1);
+    this.Error(result, `Failed to set ${editorName} properties`);
   }
 }

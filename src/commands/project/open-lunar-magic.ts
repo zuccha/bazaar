@@ -52,7 +52,6 @@ Check \`bazaar tool install lunar-magic --help\` for more`;
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to open ROM hack in Lunar Magic\n${messages}`, 1);
+    this.Error(result, `Failed to open ROM hack in Lunar Magic`);
   }
 }

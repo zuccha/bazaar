@@ -61,7 +61,6 @@ export default class TemplateProjectUpdateMetadataCommand extends BaseCommand<
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to update project template metadata\n${messages}`, 1);
+    this.Error(result, `Failed to update project template metadata`);
   }
 }

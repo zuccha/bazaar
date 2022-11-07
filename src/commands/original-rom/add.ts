@@ -56,7 +56,6 @@ The command will fail if an invalid file is provided.`;
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to add original ROM\n${messages}`, 1);
+    this.Error(result, `Failed to add original ROM`);
   }
 }

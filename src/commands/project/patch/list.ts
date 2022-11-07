@@ -49,7 +49,6 @@ If a patch has been added to the project, it doesn't mean it was added to the\
       return;
     }
 
-    const messages = R.messages(patchInfosResult, { verbose: true });
-    this.Error(`Failed to list project patches\n${messages}`, 1);
+    this.Error(patchInfosResult, `Failed to list project patches`);
   }
 }

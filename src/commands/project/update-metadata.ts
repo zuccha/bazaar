@@ -55,7 +55,6 @@ export default class ProjectUpdateMetadataCommand extends BaseCommand<
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to update project metadata\n${messages}`, 1);
+    this.Error(result, `Failed to update project metadata`);
   }
 }

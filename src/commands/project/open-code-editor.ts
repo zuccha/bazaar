@@ -78,7 +78,6 @@ Configure a new one \`bazaar editor set code-editor --help\` for more`;
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to open project in code editor\n${messages}`, 1);
+    this.Error(result, `Failed to open project in code editor`);
   }
 }

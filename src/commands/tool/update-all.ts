@@ -25,7 +25,6 @@ Updating a tool will not cause any other version of the tool installed manually\
     }
 
     this.Info.failure();
-    const messages = R.messages(result, { verbose: true });
-    this.Error(`Failed to update tools\n${messages}`, 1);
+    this.Error(result, `Failed to update tools`);
   }
 }
