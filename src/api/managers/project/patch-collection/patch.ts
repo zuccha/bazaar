@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { R, ResultVoid } from "../../../utils/result";
 import { ConfigurableErrorCodes } from "../../configurable";
+import { CodeEditorErrorCodes } from "../../editor-collection/editors/code-editor";
 import Resource, {
   ResourceConfigSchema,
   ResourceErrorCodes,
@@ -45,6 +46,17 @@ export type PatchExtraErrorCodes = {
 };
 
 export type PatchErrorCodes = {
+  ValidateInputConfig:
+    | ResourceErrorCodes["ValidateInputConfig"]
+    | PatchExtraErrorCodes["ValidateInputConfig"];
+
+  Validate: ResourceErrorCodes["Validate"] | PatchExtraErrorCodes["Validate"];
+  Snapshot:
+    | ResourceErrorCodes["Snapshot"]
+    | PatchExtraErrorCodes["Snapshot"]
+    | PatchErrorCodes["Validate"]
+    | PatchErrorCodes["ValidateInputConfig"];
+
   CreateFromSingleFile:
     | PatchErrorCodes["ValidateInputConfig"]
     | PatchErrorCode.Internal
@@ -56,15 +68,9 @@ export type PatchErrorCodes = {
     | PatchErrorCode.InputCodeDirectoryNotValid
     | PatchErrorCode.InputMainFileNotInsideCodeDirectory
     | PatchErrorCode.PatchAlreadyExists;
-  Snapshot:
-    | ResourceErrorCodes["Snapshot"]
-    | PatchExtraErrorCodes["Snapshot"]
-    | PatchErrorCodes["Validate"]
-    | PatchErrorCodes["ValidateInputConfig"];
-  Validate: ResourceErrorCodes["Validate"] | PatchExtraErrorCodes["Validate"];
-  ValidateInputConfig:
-    | ResourceErrorCodes["ValidateInputConfig"]
-    | PatchExtraErrorCodes["ValidateInputConfig"];
+
+  OpenCodeDirectory: PatchErrorCodes["Validate"] | CodeEditorErrorCodes["Open"];
+  OpenMainFile: PatchErrorCodes["Validate"] | CodeEditorErrorCodes["Open"];
 };
 
 export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
@@ -428,6 +434,61 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
         message,
         PatchErrorCode.Internal,
       );
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
+  async openCodeDirectory(): Promise<
+    ResultVoid<PatchErrorCodes["OpenCodeDirectory"]>
+  > {
+    this.logger.start("Verifying that patch is valid");
+    const validateResult = await this.validate();
+    if (R.isError(validateResult)) {
+      this.logger.failure();
+      return validateResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Opening patch code directory in code editor");
+    const openCodeEditorResult = await this.editors.CodeEditor.open(
+      this._codeDirectoryPath(),
+    );
+    if (R.isError(openCodeEditorResult)) {
+      this.logger.failure();
+      return openCodeEditorResult;
+    }
+    this.logger.success();
+
+    return R.Void;
+  }
+
+  async openMainFile(): Promise<ResultVoid<PatchErrorCodes["OpenMainFile"]>> {
+    this.logger.start("Verifying that patch is valid");
+    const validateResult = await this.validate();
+    if (R.isError(validateResult)) {
+      this.logger.failure();
+      return validateResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Loading metadata");
+    const metadataResult = await this.loadConfig();
+    if (R.isError(metadataResult)) {
+      this.logger.failure();
+      return metadataResult;
+    }
+    this.logger.success();
+
+    this.logger.start("Opening patch main file in code editor");
+    const { mainFileRelativePath } = metadataResult.data;
+    const openCodeEditorResult = await this.editors.CodeEditor.open(
+      this._codeDirectoryPath(mainFileRelativePath),
+    );
+    if (R.isError(openCodeEditorResult)) {
+      this.logger.failure();
+      return openCodeEditorResult;
     }
     this.logger.success();
 
