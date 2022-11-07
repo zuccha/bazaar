@@ -1,7 +1,7 @@
+import { z } from "zod";
 import { R, ResultVoid } from "../utils/result";
 import Configurable, {
   ConfigurableContext,
-  ConfigurableConfig,
   ConfigurableConfigDefault,
   ConfigurableErrorCodes,
   ConfigurableExtraErrorCode,
@@ -11,6 +11,13 @@ import { DirectoryErrorCodes } from "./directory";
 import EditorCollection from "./editor-collection";
 import OriginalRom from "./original-rom";
 import ToolCollection from "./tool-collection";
+
+export const ResourceConfigSchema = z.object({
+  authors: z.array(z.string()),
+  version: z.string(),
+});
+
+export type ResourceConfig = z.infer<typeof ResourceConfigSchema>;
 
 export enum ResourceErrorCode {
   Internal,
@@ -37,8 +44,6 @@ export type ResourceContext = ConfigurableContext & {
   editors: EditorCollection;
   tools: ToolCollection;
 };
-
-export type ResourceConfig = ConfigurableConfig;
 
 export type ResourceConfigDefault = ConfigurableConfigDefault;
 

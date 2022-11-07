@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { R, ResultVoid } from "../../../utils/result";
 import { ConfigurableErrorCodes } from "../../configurable";
-import Resource, { ResourceErrorCodes } from "../../resource";
+import Resource, {
+  ResourceConfigSchema,
+  ResourceErrorCodes,
+} from "../../resource";
 
-const PatchConfigSchema = z.object({
+const PatchConfigSchema = ResourceConfigSchema.extend({
   mainFileRelativePath: z.string(),
-  authors: z.array(z.string()),
-  version: z.string(),
 });
 
 export type PatchConfig = z.infer<typeof PatchConfigSchema>;
@@ -66,6 +67,11 @@ export default class Patch extends Resource<PatchConfig, PatchExtraErrorCodes> {
     partialConfig?: Partial<PatchConfig>,
   ): Promise<ResultVoid<PatchErrorCodes["ValidateInputConfig"]>> {
     const scope = this.scope("_validateInputConfig");
+
+    const superResult = await super.validateInputConfig(partialConfig);
+    if (R.isError(superResult)) {
+      return superResult;
+    }
 
     if (partialConfig?.mainFileRelativePath) {
       // In the input config, we use the relative path as an absolute path.

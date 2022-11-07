@@ -1,5 +1,9 @@
 import { z } from "zod";
-import Resource, { ResourceContext, ResourceErrorCodes } from "../resource";
+import Resource, {
+  ResourceConfigSchema,
+  ResourceContext,
+  ResourceErrorCodes,
+} from "../resource";
 import { R, Result, ResultVoid } from "../../utils/result";
 import SemVer from "../../utils/sem-ver";
 import { ConfigurableErrorCodes } from "../configurable";
@@ -10,10 +14,7 @@ import PatchCollection from "./patch-collection";
 import { CollectionErrorCodes, CollectionInfo } from "../collection";
 import Patch from "./patch-collection/patch";
 
-export const ProjectConfigSchema = z.object({
-  authors: z.array(z.string()),
-  version: z.string(),
-});
+export const ProjectConfigSchema = ResourceConfigSchema;
 
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 
