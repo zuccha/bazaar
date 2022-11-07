@@ -3,6 +3,7 @@ import { ConfigurableErrorCode } from "../api/managers/configurable";
 import { ProjectErrorCode, ProjectErrorCodes } from "../api/managers/project";
 import { ResourceErrorCode } from "../api/managers/resource";
 import FSNode from "../utils/fs-node";
+import { ResourceConfigFlags, ResourceFlags } from "./resource";
 
 export const ProjectFlags = {
   path: Flags.string({
@@ -30,28 +31,15 @@ export const ProjectCreationFlags = {
   }),
 };
 
-export const ProjectConfigFlags = {
-  author: Flags.string({
-    summary: "Author(s) of the hack",
-    description: "You can specify this flag several times to add more authors.",
-    multiple: true,
-    required: false,
-  }),
-  version: Flags.string({
-    summary: "Version of the project",
-    description:
-      "The version can be anything, but a suggested format is SemVer.",
-    required: false,
-  }),
-};
+export const ProjectConfigFlags = ResourceConfigFlags({
+  singular: "project",
+  plural: "projects",
+});
 
-export const ProjectTemplateFlags = {
-  name: Flags.string({
-    summary: "Name of the template",
-    description: "The name is unique for each project template.",
-    required: true,
-  }),
-};
+export const ProjectTemplateFlags = ResourceFlags({
+  singular: "project template",
+  plural: "project templates",
+});
 
 export const isValidateProjectErrorCode = (
   errorCode: unknown,
