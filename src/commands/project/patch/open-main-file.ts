@@ -58,7 +58,7 @@ export default class ProjectPatchOpenMainFileCommand extends BaseCommand<
 
     if (isValidatePatchErrorCode(result.code)) {
       this.Info.failure();
-      getValidatePatchErrorMessage(result.code, flags.name);
+      this.Warning.log(getValidatePatchErrorMessage(result.code, flags.name));
       return;
     }
 
